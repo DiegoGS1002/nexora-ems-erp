@@ -46,6 +46,6 @@
         </div>
     </div>
 
-    <button type="submit" class="btn-save">Salvar Produto</button>
+    <button type="submit" class="btn-save">Salvar Cliente</button>
     <a class="btn-back" href="{{ route('clients.index') }}"> Voltar </a>
 </form>

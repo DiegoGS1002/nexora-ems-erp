@@ -36,6 +36,8 @@ use App\Http\Controllers\romaneioController;
 use App\Http\Controllers\vehicleTrackingController;
 use App\Http\Controllers\vehicleMaintenanceController;
 use App\Http\Controllers\transportReportController;
+use App\Http\Controllers\profileController;
+use App\Http\Controllers\ConfigurationController;
 
 Route::get('/', function () {
     return view('home-page');
@@ -98,6 +100,10 @@ Route::resource('romaneio', romaneioController::class);
 Route::resource('vehicle_tracking', vehicleTrackingController::class);
 Route::resource('vehicle_maintenance', vehicleMaintenanceController::class);
 Route::resource('transport_report', transportReportController::class);
+
+//perfil
+Route::resource('profile', profileController::class);
+Route::resource('configuration', configurationController::class);
 
 Route::get( '/products/{product}/suppliers', [ProductSupplierController::class, 'index'])->name('products.suppliers.index');
 
