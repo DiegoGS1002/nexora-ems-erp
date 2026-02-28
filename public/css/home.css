@@ -1,82 +1,92 @@
+/* RESET */
 *{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* BODY */
 body{
     min-height: 100vh;
-    background-color: #f0f0f0;
+    background-color: #F4F7FB;
     max-width: 1920px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #1F2937;
 }
 
+/* NAVBAR */
 .container{
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 60px; /* altura fixa da navbar */
+    height: 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #c4c1c1;
+    background-color: #0A1F3C;
     z-index: 1000;
     max-width: 1920px;
-    border-bottom: #000 solid 1px;
+    border-bottom: 1px solid #E3E8EF;
 }
 
+/* MENU */
 .menu{
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: row;
 }
 
 .menu > ul{
     list-style: none;
     display: flex;
-    flex-direction: row;
-    gap: 20px;
+    gap: 24px;
     padding: 20px;
 }
 
+/* LINKS NAVBAR */
 .menu ul li a{
     text-decoration: none;
-    color: black;
-    font-weight: bold;
-    font-size: 18px;
+    color: #FFFFFF;
+    font-weight: 500;
+    font-size: 16px;
+    transition: 0.3s;
 }
 
+.menu ul li a:hover{
+    color: #1E88E5;
+}
+
+/* LOGO */
 .logo img{
     width: 100px;
     height: auto;
-    border-radius: 50%;
-    margin: 0px 20px 0px 20px;
+    margin: 0 20px;
 }
 
+/* ALERTA SUCESSO */
 .alert-success{
-    background-color: #e6f4ea;
-    color: #2e7d32;
-    padding: 12px 16px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    font-weight: 500;
-}
-.alert-success {
     position: fixed;
-    top: 70px; /* Abaixo da navbar */
+    top: 70px;
     right: 20px;
     z-index: 1100;
+    background-color: #E3F2FD;
+    color: #1565C0;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    border-left: 4px solid #1E88E5;
 }
 
-/* Dropdown menu styling */
+/* DROPDOWN */
 .menu .dropdown-menu{
-    background-color: #c4c1c1;
-    border: 1px solid #9f9b9b; /* borda um pouco mais escura */
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    min-width: 140px;
+    background-color: #FFFFFF;
+    border: 1px solid #E3E8EF;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    min-width: 160px;
     display: flex;
     flex-direction: column;
+    border-radius: 6px;
 }
 
 .menu .dropdown-menu li{
@@ -84,26 +94,87 @@ body{
 }
 
 .menu .dropdown-menu a{
-    color: #000; /* letras pretas */
-    font-size: 15px; /* menor */
-    display: block;
-    padding: 8px 12px;
+    color: #1F2937;
+    font-size: 14px;
+    padding: 10px 14px;
+    transition: 0.2s;
 }
 
 .menu .dropdown-menu a:hover{
-    background-color: rgba(0,0,0,0.06);
+    background-color: #F4F7FB;
+    color: #1E88E5;
 }
 
+/* TÍTULO */
 .titulo {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 90px;
     margin-bottom: 20px;
-    max-width: 1920px;
     width: 100%;
 }
 
+/* BOTÕES */
+.button-create{
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.button-create button{
+    padding: 10px 18px;
+    background-color: #1E88E5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.button-create button:hover{
+    background-color: #1565C0;
+}
+
+.button-create button a{
+    text-decoration: none;
+    color: white;
+}
+
+/* FILTROS */
+.filter{
+    padding: 8px;
+    font-size: 15px;
+    border: 1px solid #E3E8EF;
+    border-radius: 6px;
+    background-color: #FFFFFF;
+}
+
+/* BOTÕES FILTRAR */
+.filtrar, .limpar{
+    padding: 10px 18px;
+    background-color: #1E88E5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.filtrar:hover, .limpar:hover{
+    background-color: #1565C0;
+}
+
+/* TÍTULOS */
+h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+/* ÍCONES DOWNLOAD */
 .download svg{
     vertical-align: middle;
     margin-right: 5px;
@@ -113,49 +184,3 @@ body{
     display: flex;
     align-items: center;
 }
-
-.button-create{
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-.button-create button{
-    padding: 10px 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.button-create button a{
-    text-decoration: none;
-    color: white;
-}
-
-.filter{
-        padding: 8px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-.filtrar, .limpar{
-    padding: 10px 18px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-h1 {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 30px;
-    font-weight: bold;
-    color: #000;
-}
-
-
