@@ -1,100 +1,274 @@
-# 🏢 Nexora EMS ERP
+# Nexora EMS ERP
 
-Sistema ERP web desenvolvido inicialmente como projeto integrador da faculdade e atualmente em evolução para uma solução completa de gestão empresarial.
+Sistema ERP em Laravel com múltiplos módulos de gestão empresarial (cadastros, produção, vendas, fiscal, financeiro, RH, logística e estoque), com versão web e empacotamento desktop via Electron.
 
-O objetivo do projeto é simular e implementar, na prática, os principais módulos utilizados em sistemas ERP reais, aplicando boas práticas de desenvolvimento, arquitetura e organização de software.
+## Visão Geral
 
-Link de acesso: https://nexora-ems-erp--diegogarcias.replit.app/
+O projeto evoluiu de um sistema acadêmico para uma base de ERP modular com recursos de:
 
----
+- Cadastros centrais (clientes, fornecedores, produtos, funcionários e veículos)
+- Operação comercial e produtiva
+- Controles financeiros e fiscais
+- RH e logística
+- Painel administrativo e relatórios
 
-## 🚀 Status do Projeto
+Status atual: desenvolvimento ativo.
 
-🟡 Em desenvolvimento ativo  
-Este projeto está sendo continuamente aprimorado e novas funcionalidades estão sendo adicionadas.
+## Requisitos
 
----
+### Backend/Web
 
-## 🎯 Sobre o Projeto
+- PHP 8.2+
+- Composer 2+
+- Node.js 20+ e npm 10+
+- Banco de dados SQLite (padrão) ou MySQL/PostgreSQL (ajustando `.env`)
 
-O sistema nasceu como um projeto acadêmico com foco em:
+### Desktop (opcional)
 
-- Cadastro de produtos
-- Fornecedores
-- Clientes
+- Node.js 20+
+- Dependências do Electron Builder para empacotamento no Windows
 
-Com o avanço do desenvolvimento, o projeto evoluiu para um **ERP completo**, incorporando múltiplos módulos empresariais.
+## Stack e Dependências Principais
 
----
-
-## 🧩 Módulos do Sistema
-
-Atualmente o ERP conta com:
-
-### 📋 Cadastros
-- Clientes
-- Fornecedores
-- Produtos
-- Funcionários
-- Veículos
-
-### 🏭 Produção
-- Controle de processos produtivos
-- Gestão de ordens de produção
-
-### 💰 Vendas
-- Emissão de pedidos
-- Controle comercial
-
-### 🧾 Fiscal
-- Gestão tributária básica
-- Preparação para emissão fiscal
-
-### 💵 Financeiro
-- Contas a pagar
-- Contas a receber
-- Fluxo de caixa
-
-### 👥 Recursos Humanos
-- Cadastro de funcionários
-- Estrutura organizacional
-
-### 🚚 Transporte
-- Gestão de frota
-- Controle logístico
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- PHP
-- Laravel
+- Laravel 12
+- Filament 4.5
 - Blade
-- Bootstrap / TailwindCSS
-- MySQL
-- JavaScript
-- Composer
-- Artisan CLI
+- Vite 7
+- Tailwind CSS 4
+- Bootstrap 5
+- Pest (testes)
+- Electron (aplicação desktop)
 
----
+## Estrutura de Pastas
 
-## ⚙️ Como Executar o Projeto
+```text
+app/                 # Models, controllers, middlewares, providers
+config/              # Configurações Laravel
+database/            # Migrations, seeders e factories
+resources/           # Front-end (views, css, js)
+routes/              # Rotas web e API separadas por domínio
+tests/               # Testes Unit e Feature
+nexora-desktop/      # Aplicativo desktop Electron
+```
+
+## Instalação e Execução (Web)
+
+### 1) Clonar o projeto
 
 ```bash
-# Clonar repositório
-git clone https://github.com/seu-usuario/seu-repo.git
+git clone https://github.com/DiegoGS1002/nexora-ems-erp.git
+cd nexora-ems-erp
+```
 
-# Instalar dependências
+### 2) Setup rápido (recomendado)
+
+O projeto possui script de setup no Composer:
+
+```bash
+composer run setup
+```
+
+Esse comando executa:
+
+- instalação de dependências PHP
+- criação de `.env` (se não existir)
+- geração de chave da aplicação
+- migrations
+- instalação de dependências front-end
+- build de assets
+
+### 3) Rodar ambiente de desenvolvimento
+
+```bash
+composer run dev
+```
+
+Esse comando sobe, em paralelo:
+
+- servidor Laravel
+- listener da fila
+- Vite em modo desenvolvimento
+
+### 4) Alternativa manual
+
+```bash
 composer install
-
-# Configurar ambiente
 cp .env.example .env
-
-# Gerar chave
 php artisan key:generate
-
-# Rodar migrations
 php artisan migrate
-
-# Iniciar servidor
+npm install
+npm run dev
 php artisan serve
+```
+
+## Configuração de Banco
+
+Padrão do projeto no `.env.example`:
+
+- `DB_CONNECTION=sqlite`
+
+Para SQLite local, garanta que o arquivo exista:
+
+```bash
+type nul > database/database.sqlite
+```
+
+Depois rode:
+
+```bash
+php artisan migrate
+```
+
+Se quiser MySQL/PostgreSQL, ajuste as variáveis `DB_*` no `.env` antes de migrar.
+
+## Execução Desktop (Electron)
+
+O projeto possui subprojeto desktop em `nexora-desktop/`.
+
+### Desenvolvimento desktop
+
+```bash
+cd nexora-desktop
+npm install
+npm start
+```
+
+### Build instalador desktop
+
+```bash
+cd nexora-desktop
+npm run build
+```
+
+Observações:
+
+- O desktop inicia um servidor Laravel interno com `artisan serve`.
+- O app cria `.env` automaticamente (quando ausente) e gera `APP_KEY` se necessário.
+
+## Testes
+
+Rodar suíte de testes:
+
+```bash
+composer test
+```
+
+Ou diretamente:
+
+```bash
+php artisan test
+```
+
+## Detalhamento de Rotas
+
+As rotas web estão organizadas por domínio em arquivos separados dentro de `routes/`, todos incluídos por `routes/web.php` sob middleware `MaintenanceERP`.
+
+### Rota base
+
+- `GET /` -> página inicial (`home`)
+
+### Padrão de rotas `Route::resource`
+
+Cada recurso abaixo expõe as rotas REST padrão Laravel:
+
+- `GET /recurso` (index)
+- `GET /recurso/create` (create)
+- `POST /recurso` (store)
+- `GET /recurso/{id}` (show)
+- `GET /recurso/{id}/edit` (edit)
+- `PUT/PATCH /recurso/{id}` (update)
+- `DELETE /recurso/{id}` (destroy)
+
+### Rotas Web por módulo
+
+#### Administração
+
+- Recursos: `profile`, `configuration`
+
+#### Cadastro
+
+- Recursos: `clients`, `products`, `suppliers`, `employees`, `role`, `vehicles`
+- Extras:
+	- `GET /clients/print`
+	- `GET /products/print`
+	- `GET /suppliers/print`
+	- `GET /employees/print`
+	- `GET /vehicles/print`
+	- `GET /products/{product}/suppliers`
+	- `POST /products/{product}/suppliers`
+	- `DELETE /products/{product}/suppliers/{supplier}`
+
+#### Produção
+
+- Recursos: `dashboard`, `production_orders`
+
+#### Vendas
+
+- Recursos: `requests`, `visits`, `sales_report`
+- Extra:
+	- `GET /salesReports/print`
+
+#### Fiscal
+
+- Recursos: `entrance`, `exit`
+
+#### Financeiro
+
+- Recursos: `plans_of_accounts`, `baccarat_accounts`, `accounts_payable`, `accounts_receivable`, `cash_flow`, `financial_reports`
+- Extra:
+	- `GET /financialReports/print`
+
+#### RH
+
+- Recursos: `working_day`, `stitch_beat`, `payroll`, `employee_management`, `rh_reports`
+- Extra:
+	- `GET /rhReports/print`
+
+#### Logística
+
+- Recursos: `route_management`, `routing`, `scheduling_of_deliveries`, `monitoring_of_deliveries`, `driver_management`, `romaneio`, `vehicle_tracking`, `vehicle_maintenance`, `transport_report`
+- Extras:
+	- `GET /transportReport/print`
+	- `GET /romaneio/print`
+
+#### Estoque
+
+- Recurso: `stock`
+
+#### Perfil/Segurança
+
+- Recursos: `users`, `permissions`, `logs`
+
+### API (`routes/api.php`)
+
+Endpoints REST para:
+
+- Produtos: `/api/products`
+- Fornecedores: `/api/suppliers`
+- Clientes: `/api/clients`
+- Relacionamento produto x fornecedor:
+	- `GET /api/products/{product}/suppliers`
+	- `POST /api/products/{product}/suppliers`
+	- `DELETE /api/products/{product}/suppliers/{supplier}`
+
+Cada entidade principal da API oferece operações: listar, criar, detalhar, atualizar (PUT/PATCH) e remover.
+
+## Comandos Úteis
+
+```bash
+php artisan route:list
+php artisan migrate:fresh --seed
+php artisan optimize:clear
+npm run build
+```
+
+## Outras Informações Relevantes
+
+- Middleware global de manutenção ERP aplicado às rotas web.
+- Projeto com separação por domínio via múltiplos arquivos de rota.
+- Existe histórico de execução em Replit, mas o foco atual está no ambiente local e no empacotamento desktop.
+- O projeto usa convenções Laravel e pode ser expandido com autenticação/autorização adicional conforme necessidade do negócio.
+
+## Licença
+
+Este projeto está licenciado sob MIT (ver dependências e cabeçalhos dos pacotes quando aplicável).
