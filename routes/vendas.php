@@ -1,12 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\requestsController;
-use App\Http\Controllers\visitsController;
-use App\Http\Controllers\salesReportController;
+use App\Http\Controllers\RequestsController;
+use App\Http\Controllers\VisitsController;
+use App\Http\Controllers\SalesReportController;
 
-Route::get('/salesReports/print', [salesReportController::class, 'print'])->name('salesReports.print');
+Route::get('/salesReports/print', [SalesReportController::class, 'print'])->name('salesReports.print');
 
-Route::resource('requests', requestsController::class);
-Route::resource('visits', visitsController::class);
-Route::resource('sales_report', salesReportController::class);
+Route::resource('requests', RequestsController::class);
+Route::resource('visits', VisitsController::class);
+Route::resource('sales_report', SalesReportController::class);

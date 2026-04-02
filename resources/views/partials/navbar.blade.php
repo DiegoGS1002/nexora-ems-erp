@@ -1,325 +1,163 @@
-@vite(['resources/css/app.css', 'resources/js/app.js'])
-
-<header class="container">
-    <nav class="menu flex justify-between items-center">
-        <div class="logo">
-            <a href="{{ url('/') }}">
-                <img src="{{ app()->environment() === 'production' ? secure_asset('images/logo.png') : asset('images/logo.png') }}" alt="Logo">
-            </a>
-        </div>
-
-        <ul class="flex items-center">
-            <li><a href="{{ route('home') }}">Início</a></li>
-
-            <!-- DROPDOWN -->
-              <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="dashboard">Dashboard ▾</a>
-
-                <ul id="dropdown-dashboard" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('dashboard.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Visão Geral
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('financial_reports.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Indicadores
-                        </a>
-                    </li>
-                </ul>
+{{-- ============================================================
+     SIDEBAR PRINCIPAL — Nexora ERP
+     ============================================================ --}}
+<aside class="nx-sidebar" id="nx-sidebar">
+    {{-- ── LOGO ── --}}
+    <div class="nx-sb-brand">
+        <a href="{{ url('/') }}" class="nx-sb-brand-link">
+            <img src="{{ app()->environment() === 'production' ? secure_asset('images/logo.png') : asset('images/logo.png') }}"
+                 alt="Nexora ERP" class="nx-sb-logo">
+            <span class="nx-sb-brand-text">
+                Nexora <span class="nx-sb-brand-hl">ERP</span>
+            </span>
+        </a>
+        <button class="nx-sb-toggle" id="nx-sb-toggle" onclick="nxSidebarToggle()" aria-label="Recolher menu" title="Recolher menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+    </div>
+    <div class="nx-sb-sep"></div>
+    {{-- ── NAVEGAÇÃO ── --}}
+    <nav class="nx-sb-nav">
+        <ul class="nx-sb-list">
+            <li class="nx-sb-item">
+                <a href="{{ route('home') }}" class="nx-sb-link {{ request()->routeIs('home') ? 'nx-sb-active' : '' }}">
+                    <span class="nx-sb-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+                    <span class="nx-sb-label">Início</span>
+                </a>
             </li>
-
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="cadastro">Cadastro ▾</a>
-                <ul id="dropdown-cadastro" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50 min-w-[140px]" style="display: none;">
-                    <li>
-                        <a href="{{ route('products.index') }}" class="block w-full px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Produtos
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('suppliers.index') }}" class="block w-full px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Fornecedores
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('clients.index') }}" class="block w-full px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Clientes
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('employees.index') }}" class="block w-full px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Funcionários
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('role.index') }}" class="block w-full px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Funções
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('vehicles.index') }}" class="block w-full px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Veículos
-                        </a>
-                    </li>
-                   {{--<li>
-                        <a href="{{ route('baccarat_accounts.index') }}" class="block w-full px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Depósitos
-                        </a>
-                    </li>--}}
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'dashboard') }}" class="nx-sb-link {{ request()->is('modulo/dashboard') ? 'nx-sb-active' : '' }}" style="--sb-accent:#3B82F6">
+                    <span class="nx-sb-icon" style="color:#3B82F6"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+                    <span class="nx-sb-label">Dashboard</span>
+                </a>
             </li>
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="producao">Produção ▾</a>
-
-                <ul id="dropdown-producao" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('dashboard.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('production_orders.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Ordens de Produção
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('products.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Ficha Tecnica
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'cadastro') }}" class="nx-sb-link {{ request()->is('modulo/cadastro') ? 'nx-sb-active' : '' }}" style="--sb-accent:#8B5CF6">
+                    <span class="nx-sb-icon" style="color:#8B5CF6"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
+                    <span class="nx-sb-label">Cadastro</span>
+                </a>
             </li>
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="estoque">Estoque ▾</a>
-
-                <ul id="dropdown-estoque" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('stock.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Movimentação
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('stock.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Inventários
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('stock.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Transferência
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'producao') }}" class="nx-sb-link {{ request()->is('modulo/producao') ? 'nx-sb-active' : '' }}" style="--sb-accent:#F59E0B">
+                    <span class="nx-sb-icon" style="color:#F59E0B"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V8"/><path d="m20 12-8-4-8 4"/><path d="M20 17v-5"/><path d="M4 17v-5"/><path d="M20 22v-5"/><path d="M4 22v-5"/></svg></span>
+                    <span class="nx-sb-label">Produção</span>
+                </a>
             </li>
-
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="vendas">Vendas ▾</a>
-
-                <ul id="dropdown-vendas" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('requests.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Pedidos
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('visits.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            CRM
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('sales_report.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Relatórios
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'estoque') }}" class="nx-sb-link {{ request()->is('modulo/estoque') ? 'nx-sb-active' : '' }}" style="--sb-accent:#10B981">
+                    <span class="nx-sb-icon" style="color:#10B981"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span>
+                    <span class="nx-sb-label">Estoque</span>
+                </a>
             </li>
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="compras">Compras ▾</a>
-
-                <ul id="dropdown-compras" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="#" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Solicitações de compra
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Pedidos de compra
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Cotação com fornecedores
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'vendas') }}" class="nx-sb-link {{ request()->is('modulo/vendas') ? 'nx-sb-active' : '' }}" style="--sb-accent:#06B6D4">
+                    <span class="nx-sb-icon" style="color:#06B6D4"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+                    <span class="nx-sb-label">Vendas</span>
+                </a>
             </li>
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="pedidos">Fiscal ▾</a>
-
-                <ul id="dropdown-pedidos" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('entrance.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            NF-e
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('entrance.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Entradas
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('exit.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Saídas
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('financial_reports.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Apuração
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'compras') }}" class="nx-sb-link {{ request()->is('modulo/compras') ? 'nx-sb-active' : '' }}" style="--sb-accent:#F97316">
+                    <span class="nx-sb-icon" style="color:#F97316"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+                    <span class="nx-sb-label">Compras</span>
+                </a>
             </li>
-
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="financeiro">Financeiro ▾</a>
-
-                <ul id="dropdown-financeiro" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('plans_of_accounts.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Plano de Contas
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('baccarat_accounts.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Contas Bancárias
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('accounts_payable.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Formas de Pagamento
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('accounts_payable.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Contas a Pagar
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('accounts_receivable.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Contas a Receber
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('cash_flow.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Fluxo de Caixa
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('financial_reports.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Relatórios Financeiros
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('financial_reports.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            DRE
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'fiscal') }}" class="nx-sb-link {{ request()->is('modulo/fiscal') ? 'nx-sb-active' : '' }}" style="--sb-accent:#EC4899">
+                    <span class="nx-sb-icon" style="color:#EC4899"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                    <span class="nx-sb-label">Fiscal</span>
+                </a>
             </li>
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="recursos">Recursos Humanos ▾</a>
-
-                <ul id="dropdown-recursos" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('working_day.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Jornada de Trabalho
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('stitch_beat.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Batida de Ponto
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('payroll.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Folha de Pagamento
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('employee_management.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Gerenciamento de Funcionários
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('rh_reports.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Relatórios de RH
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'financeiro') }}" class="nx-sb-link {{ request()->is('modulo/financeiro') ? 'nx-sb-active' : '' }}" style="--sb-accent:#22C55E">
+                    <span class="nx-sb-icon" style="color:#22C55E"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+                    <span class="nx-sb-label">Financeiro</span>
+                </a>
             </li>
-            <li class="relative">
-                <a href="#" class="cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="transporte">Transporte ▾</a>
-
-                <ul id="dropdown-transporte" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('vehicles.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                           Frotas
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('routing.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Roteirização
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('scheduling_of_deliveries.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Entregas
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'rh') }}" class="nx-sb-link {{ request()->is('modulo/rh') ? 'nx-sb-active' : '' }}" style="--sb-accent:#A78BFA">
+                    <span class="nx-sb-icon" style="color:#A78BFA"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                    <span class="nx-sb-label">RH</span>
+                </a>
             </li>
-            <li class="ml-auto relative">
-                <a href="#" class="flex items-center justify-end cursor-pointer" onclick="toggleDropdown(event)" data-dropdown="usuario"><img src="{{ app()->environment() === 'production' ? secure_asset('images/usuario.png') : asset('images/usuario.png') }}" alt="Usuário" class="w-8 h-8 rounded-full">▾</a>
-
-                <ul id="dropdown-usuario" class="dropdown-menu absolute left-0 mt-2 flex flex-col gap-1 shadow-lg rounded-md p-2 z-50" style="display: none;">
-                    <li>
-                        <a href="{{ route('profile.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Perfil
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('users.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Usuários
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('permissions.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Permissões
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('logs.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                        Logs
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('configuration.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Configurações
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{('https://web.whatsapp.com/+5532984502345') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Suporte
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('configuration.index') }}" class="block px-3 py-2 text-xs text-black hover:bg-gray-200 rounded">
-                            Sair
-                        </a>
-                    </li>
-                </ul>
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'transporte') }}" class="nx-sb-link {{ request()->is('modulo/transporte') ? 'nx-sb-active' : '' }}" style="--sb-accent:#0EA5E9">
+                    <span class="nx-sb-icon" style="color:#0EA5E9"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+                    <span class="nx-sb-label">Transporte</span>
+                </a>
             </li>
         </ul>
     </nav>
+    {{-- ── ZONA DO USUÁRIO ── --}}
+    <div class="nx-sb-user">
+        <div class="nx-sb-sep"></div>
+        <div class="nx-sb-user-actions">
+            <button class="nx-sb-icon-btn" title="Notificações">
+                <span class="nx-sb-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                </span>
+                <span class="nx-sb-label">Notificações</span>
+                <span class="nx-sb-badge">3</span>
+            </button>
+        </div>
+        <div class="nx-sb-profile nx-has-dropdown" id="nx-sb-profile">
+            <button class="nx-sb-profile-btn nx-dropdown-trigger" data-dropdown="usuario">
+                <img src="{{ app()->environment() === 'production' ? secure_asset('images/usuario.png') : asset('images/usuario.png') }}"
+                     alt="Usuário" class="nx-sb-avatar">
+                <span class="nx-sb-label nx-sb-profile-info">
+                    <span class="nx-sb-profile-name">Minha Conta</span>
+                    <span class="nx-sb-profile-role">Administrador</span>
+                </span>
+                <svg class="nx-chevron nx-sb-label" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="nx-dropdown nx-sb-user-menu" id="dropdown-usuario">
+                <div class="nx-dropdown-header">Minha Conta</div>
+                <a href="{{ route('profile.index') }}" class="nx-dropdown-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Perfil
+                </a>
+                <a href="{{ route('users.index') }}" class="nx-dropdown-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Usuários
+                </a>
+                <a href="{{ route('permissions.index') }}" class="nx-dropdown-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Permissões
+                </a>
+                <a href="{{ route('logs.index') }}" class="nx-dropdown-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Logs do Sistema
+                </a>
+                <a href="{{ route('configuration.index') }}" class="nx-dropdown-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 1 4.93 19.07 10 10 0 0 1 19.07 4.93z"/></svg>
+                    Configurações
+                </a>
+                <div class="nx-dropdown-divider"></div>
+                <a href="https://web.whatsapp.com/+5532984502345" target="_blank" class="nx-dropdown-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Suporte
+                </a>
+                <a href="{{ route('configuration.index') }}" class="nx-dropdown-item nx-dropdown-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sair
+                </a>
+            </div>
+        </div>
+    </div>
+</aside>
+{{-- ── OVERLAY MOBILE ── --}}
+<div class="nx-overlay" id="nx-overlay" onclick="nxSidebarClose()"></div>
+{{-- ── TOPBAR MOBILE ── --}}
+<header class="nx-topbar" id="nx-topbar">
+    <button class="nx-topbar-hamburger" onclick="nxSidebarOpen()" aria-label="Abrir menu">
+        <span></span><span></span><span></span>
+    </button>
+    <a href="{{ url('/') }}" class="nx-topbar-brand">
+        <img src="{{ app()->environment() === 'production' ? secure_asset('images/logo.png') : asset('images/logo.png') }}"
+             alt="Nexora" class="nx-topbar-logo">
+        <span>Nexora <strong>ERP</strong></span>
+    </a>
+    <button class="nx-sb-icon-btn" title="Notificações" style="margin-left:auto">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="nx-sb-badge">3</span>
+    </button>
 </header>

@@ -10,29 +10,28 @@ class AccountsPayableController extends Controller
 {
     public function index()
     {
-        $accountsPayable = AccountsPayable::all(); // ou paginate(10)
-
-        return view('cadastro.accounts_payable.index', compact('accountsPayable'));
+        return view('system.desenvolvimento', [
+            'title'       => 'Contas a Pagar',
+            'description' => 'Controle de pagamentos, vencimentos e obrigações financeiras',
+            'color'       => '#22C55E',
+            'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+            'moduleSlug'  => 'financeiro',
+            'moduleName'  => 'Financeiro',
+        ]);
     }
 
-    public function create(){
-        return view('cadastro.accounts_payable.create');
-    }
-
-   public function store(Request $request)
+    public function create()
     {
-        $request->validate([
-
+        return view('system.desenvolvimento', [
+            'title'      => 'Nova Conta a Pagar',
+            'color'      => '#22C55E',
+            'moduleSlug' => 'financeiro',
+            'moduleName' => 'Financeiro',
         ]);
+    }
 
-        AccountsPayable::create([
-            'name' => $request->name,
-            'value' => $request->value,
-            'due_date' => $request->due_date,
-        ]);
-
-        return redirect()
-            ->route('accounts_payable.index')
-            ->with('success', 'Conta a pagar salva com sucesso!');
+    public function store(Request $request)
+    {
+        return redirect()->route('accounts_payable.index');
     }
 }

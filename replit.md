@@ -42,7 +42,7 @@ php artisan serve --host=0.0.0.0 --port=5000
 
 ## Database
 
-The application uses SQLite stored at `database/database.sqlite`. Migrations are automatically applied during setup.
+The application uses the database configured via `DB_*` variables in `.env` (default: MySQL). Migrations are automatically applied during setup.
 
 ## Admin Panel
 

@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\entranceController;
-use App\Http\Controllers\exitController;
+use App\Http\Controllers\EntranceController;
+use App\Http\Controllers\ExitController;
 
-Route::resource('entrance', entranceController::class);
-Route::resource('exit', exitController::class);
+Route::resource('entrance', EntranceController::class);
+Route::resource('exit', ExitController::class);

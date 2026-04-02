@@ -1,124 +1,69 @@
-<style>
-    .container-products{
-        padding: 25px;
-    }
-    .button-create-products{
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 15px;
-    }
-    .button-create-products button{
-        padding: 6px 12px;
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 6px;
-        cursor: pointer;
-        align-items: center;
-        border: 1px solid #317033;
-        text-align: center;
-    }
-    .button-create-products button a{
-        text-decoration: none;
-        color: white;
-    }
-
-    .table-products{
-        width: 100%;
-        border-collapse: collapse;
-        text-align: center;
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .table-products th,
-    .table-products td{
-        padding: 12px 10px;
-        border: 1px solid #ddd;
-    }
-
-    .table-products tr:nth-child(even){
-        background-color: #f9f9f9;
-    }
-
-    .table-products tbody tr:hover{
-        background-color: #f1f1f1;
-    }
-
-    .table-products thead {
-        background-color: #f2f2f2;
-    }
-
-    .table-products th {
-        font-weight: bold;
-    }
-
-    .delete{
-        background: none;
-        border: none;
-        color: red;
-        cursor: pointer;
-        font-size: 1em;
-        text-decoration: underline;
-        padding: 0;
-        font-family: inherit;
-    }
-
-    .edit{
-        background: none;
-        border: none;
-        color: blue;
-        cursor: pointer;
-        font-size: 1em;
-        text-decoration: underline;
-        padding: 0;
-        font-family: inherit;
-    }
-
-    .search-filter{
-        display: flex;
-        justify-content: end;
-        margin-bottom: 20px;
-        gap: 10px;
-    }
-    .search-bar{
-        padding: 8px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    .filter{
-        padding: 8px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    .filtrar, .limpar{
-        padding: 10px 18px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    h1 {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 30px;
-        font-weight: bold;
-        color: #000;
-    }
-</style>
 @extends('layouts.app')
-
-@section('title', 'Produtos')
-
+@section('title', 'Funções')
 @section('content')
-<main class="container-products">
-    <div class="titulo">
-        <h1>Lista de Funções</h1>
-        <div class="button-create-products">
-            <button><a href="{{ route('roles.create') }}">Adicionar Funções</a></button>
+
+<div class="nx-list-page">
+
+    <div class="nx-page-header">
+        <div class="nx-page-header-left">
+            <h1 class="nx-page-title">Funções</h1>
+            <p class="nx-page-subtitle">Gerencie os cargos e funções dos funcionários</p>
+        </div>
+        <div class="nx-page-actions">
+            <a href="{{ route('role.create') }}" class="nx-btn nx-btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nova Função
+            </a>
+        </div>
+    </div>
+
+    <div class="nx-card">
+        @forelse($roles ?? [] as $role)
+            @if($loop->first)
+            <div class="nx-table-wrap">
+                <table class="nx-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Descrição</th>
+                            <th class="nx-th-actions">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            @endif
+                        <tr>
+                            <td><strong>{{ $role->name }}</strong></td>
+                            <td>{{ $role->description ?: '—' }}</td>
+                            <td class="nx-td-actions">
+                                <a href="{{ route('role.edit', $role) }}" class="nx-action-btn nx-action-edit" title="Editar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </a>
+                                <form action="{{ route('role.destroy', $role) }}" method="POST" style="display:inline;">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="nx-action-btn nx-action-delete" title="Excluir"
+                                            onclick="return confirm('Deseja excluir a função {{ addslashes($role->name) }}?')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+            @if($loop->last)
+                    </tbody>
+                </table>
+            </div>
+            <div class="nx-table-footer">
+                <span class="nx-table-count">{{ count($roles) }} {{ count($roles) === 1 ? 'função' : 'funções' }}</span>
+            </div>
+            @endif
+        @empty
+            @include('partials.empty-state', [
+                'title'       => 'Nenhuma função cadastrada',
+                'description' => 'Cadastre funções para organizar os cargos dos funcionários.',
+                'actionLabel' => 'Nova Função',
+                'actionRoute' => route('role.create'),
+            ])
+        @endforelse
+    </div>
+
+</div>
+@endsection

@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    container_name: laravel_app
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: laravel_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: nexora
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root
+      MYSQL_PASSWORD: "@D4i9e5g7o15"
+    ports:
+      # Bind to localhost and use a different host port to avoid conflicts on the host
+      # Change 33061 to another port if you need a different mapping
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

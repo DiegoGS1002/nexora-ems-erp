@@ -1,0 +1,46 @@
+/* ============================================================
+   BASE — Reset & Estilos Globais | Nexora ERP
+   ============================================================ */
+
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* BODY */
+body {
+    min-height: 100vh;
+    background-color: #F1F5F9;
+    max-width: 1920px;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: #1E293B;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* HEADINGS */
+h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.3px;
+}
+
+h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+p {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+}

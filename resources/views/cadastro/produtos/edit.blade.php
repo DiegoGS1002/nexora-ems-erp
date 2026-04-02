@@ -1,164 +1,171 @@
 @extends('layouts.app')
-
-<link rel="stylesheet" href="{{ app()->environment() === 'production' ? secure_asset('css/forms.css') : asset('css/forms.css') }}">
-
-@section('content')
 @section('title', 'Editar Produto')
+@section('content')
 
-    {{-- Mensagens de erro --}}
+<div class="nx-form-page" style="max-width:960px;">
+
+    <div class="nx-form-header">
+        <a href="{{ route('products.index') }}" class="nx-back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Voltar para Produtos
+        </a>
+        <h1 class="nx-form-title">Editar Produto</h1>
+        <p class="nx-form-subtitle">Atualize os dados de <strong>{{ $product->name }}</strong></p>
+    </div>
+
     @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+        <div class="alert-error">
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         </div>
     @endif
 
-    <h1>Editar Produto</h1>
-    <form action="{{ route('products.update', $product->id) }}" method="POST" class="supplier-form" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
+    <form action="{{ route('products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
+        @csrf @method('PUT')
 
-        {{-- Informações básicas --}}
-        <div class="form-section">
-            <h3>Informações Básicas</h3>
-            <div class="grid grid-2">
-                <div>
-                    <label>Nome do Produto:</label>
-                    <input type="text"
-                        name="name" value="{{ old('name', $product->name) }}" required>
+        <div class="nx-form-card">
+
+            {{-- Informações Básicas --}}
+            <div class="nx-form-section">
+                <div class="nx-form-section-header">
+                    <div class="nx-form-section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    </div>
+                    <h3 class="nx-form-section-title">Informações Básicas</h3>
                 </div>
-
-                {{-- EAN --}}
-                <div>
-                    <label>Código de Barras (GTIN/EAN):</label>
-                    <input type="text" name="ean" value="{{ old('ean', $product->ean) }}" required>
+                <div class="grid grid-2">
+                    <div class="nx-field">
+                        <label>Nome do Produto</label>
+                        <input type="text" name="name" value="{{ old('name', $product->name) }}" required>
+                    </div>
+                    <div class="nx-field">
+                        <label>Código de Barras (GTIN/EAN)</label>
+                        <input type="text" name="ean" value="{{ old('ean', $product->ean) }}" required>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        {{-- Descrição --}}
-        <div class="form-section">
-            <h3>Descrição</h3>
-            <div>
-                <label>Descrição:</label>
-               <textarea name="description" rows="3" required>
-                    {{ old('description', $product->description) }}
-                </textarea>
+            {{-- Descrição --}}
+            <div class="nx-form-section">
+                <div class="nx-form-section-header">
+                    <div class="nx-form-section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    </div>
+                    <h3 class="nx-form-section-title">Descrição</h3>
+                </div>
+                <div class="nx-field">
+                    <label>Descrição do Produto</label>
+                    <textarea name="description" rows="3">{{ old('description', $product->description) }}</textarea>
+                </div>
             </div>
-        </div>
 
-        {{-- Seleção --}}
-        <div class="form-section">
-            <h3>Seleção</h3>
-            <div class="grid grid-3">
-                <div>
-                    <label>Unidade de Medida:</label>
-                    <select name="unit_of_measure" required>
-                        <option value="">Selecione a unidade</option>
-                        <option value="unidade"
-                            {{ old('unit_of_measure', $product->unit_of_measure) == 'unidade' ? 'selected' : '' }}>
-                            Unidade
-                        </option>
-                        <option value="kg"
-                            {{ old('unit_of_measure', $product->unit_of_measure) == 'kg' ? 'selected' : '' }}>
-                            Kg
-                        </option>
-                        <option value="litro"
-                            {{ old('unit_of_measure', $product->unit_of_measure) == 'litro' ? 'selected' : '' }}>
-                            Litro
-                        </option>
-                        <option value="metro"
-                            {{ old('unit_of_measure', $product->unit_of_measure) == 'metro' ? 'selected' : '' }}>
-                            Metro
-                        </option>
+            {{-- Classificação --}}
+            <div class="nx-form-section">
+                <div class="nx-form-section-header">
+                    <div class="nx-form-section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>
+                    </div>
+                    <h3 class="nx-form-section-title">Classificação</h3>
+                </div>
+                <div class="grid grid-2">
+                    <div class="nx-field">
+                        <label>Unidade de Medida</label>
+                        <select name="unit_of_measure" required>
+                            <option value="">Selecione</option>
+                            <option value="unidade" {{ old('unit_of_measure', $product->unit_of_measure) == 'unidade' ? 'selected' : '' }}>Unidade</option>
+                            <option value="kg"      {{ old('unit_of_measure', $product->unit_of_measure) == 'kg'      ? 'selected' : '' }}>Kg</option>
+                            <option value="litro"   {{ old('unit_of_measure', $product->unit_of_measure) == 'litro'   ? 'selected' : '' }}>Litro</option>
+                            <option value="metro"   {{ old('unit_of_measure', $product->unit_of_measure) == 'metro'   ? 'selected' : '' }}>Metro</option>
+                        </select>
+                    </div>
+                    <div class="nx-field">
+                        <label>Categoria</label>
+                        <select name="category" required>
+                            <option value="">Selecione</option>
+                            <option value="eletronico" {{ old('category', $product->category) == 'eletronico' ? 'selected' : '' }}>Eletrônico</option>
+                            <option value="alimentos"  {{ old('category', $product->category) == 'alimentos'  ? 'selected' : '' }}>Alimentos</option>
+                            <option value="vestuario"  {{ old('category', $product->category) == 'vestuario'  ? 'selected' : '' }}>Vestuário</option>
+                            <option value="outro"      {{ old('category', $product->category) == 'outro'      ? 'selected' : '' }}>Outro</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Estoque & Preço --}}
+            <div class="nx-form-section">
+                <div class="nx-form-section-header">
+                    <div class="nx-form-section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <h3 class="nx-form-section-title">Estoque & Precificação</h3>
+                </div>
+                <div class="grid grid-3">
+                    <div class="nx-field">
+                        <label>Preço de Venda</label>
+                        <input type="number" step="0.01" name="sale_price" value="{{ old('sale_price', $product->sale_price) }}" required>
+                    </div>
+                    <div class="nx-field">
+                        <label>Estoque</label>
+                        <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" required>
+                    </div>
+                    <div class="nx-field">
+                        <label>Data de Validade</label>
+                        <input type="date" name="expiration_date" value="{{ old('expiration_date', $product->expiration_date) }}">
+                    </div>
+                </div>
+            </div>
+
+            {{-- Fornecedores --}}
+            <div class="nx-form-section">
+                <div class="nx-form-section-header">
+                    <div class="nx-form-section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                    </div>
+                    <h3 class="nx-form-section-title">Fornecedores</h3>
+                </div>
+                <div class="nx-field">
+                    <label>Fornecedores Associados</label>
+                    <select name="suppliers[]" multiple style="height:120px;">
+                        @foreach($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}" {{ $product->suppliers->contains($supplier->id) ? 'selected' : '' }}>
+                                {{ $supplier->corporate_name ?? $supplier->social_name }}
+                            </option>
+                        @endforeach
                     </select>
+                    <small>Segure CTRL para selecionar mais de um fornecedor</small>
                 </div>
+            </div>
 
-                <div>
-                    <label>Categoria:</label>
-                    <select name="category" required>
-                        <option value="eletronico"
-                            {{ old('category', $product->category) == 'eletronico' ? 'selected' : '' }}>
-                            Eletrônico
-                        </option>
-                        <option value="alimentos"
-                            {{ old('category', $product->category) == 'alimentos' ? 'selected' : '' }}>
-                            Alimentos
-                        </option>
-                        <option value="vestuario"
-                            {{ old('category', $product->category) == 'vestuario' ? 'selected' : '' }}>
-                            Vestuário
-                        </option>
-                        <option value="outro"
-                            {{ old('category', $product->category) == 'outro' ? 'selected' : '' }}>
-                            Outro
-                        </option>
-                    </select>
+            {{-- Imagem --}}
+            <div class="nx-form-section">
+                <div class="nx-form-section-header">
+                    <div class="nx-form-section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <h3 class="nx-form-section-title">Imagem do Produto</h3>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+                    @if($product->image)
+                        <div>
+                            <label style="margin-bottom:8px;display:block;">Imagem atual</label>
+                            <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}"
+                                 style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #E2E8F0;">
+                        </div>
+                    @endif
+                    <div class="nx-field" style="flex:1;min-width:200px;">
+                        <label>{{ $product->image ? 'Trocar Imagem (opcional)' : 'Foto do Produto' }}</label>
+                        <input type="file" name="image" accept="image/*">
+                        <small>Deixe em branco para manter a imagem atual</small>
+                    </div>
                 </div>
             </div>
         </div>
 
-        {{-- Outros --}}
-        <div class="form-section">
-            <h3>Outros</h3>
-            <div class="grid grid-3">
-                <div>
-                    <label>Preço de Venda:</label>
-                    <input type="number" step="0.01" name="sale_price" value="{{ old('sale_price', $product->sale_price) }}" required>
-                </div>
-
-                <div>
-                    <label>Estoque</label>
-                    <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" required>
-                </div>
-
-                {{-- Data de validade --}}
-                <div>
-                    <label>Data de Validade</label>
-                    <input type="date" name="expiration_date" value="{{ old('expiration_date', $product->expiration_date) }}">
-                </div>
-            </div>
-        </div>
-
-        <label>Imagem</label>
-        <input type="file" name="image" accept="image/*">
-
-        @if ($product->image)
-            <img src="{{ asset('storage/' . $product->image) }}" width="120">
-        @endif
-
-        {{-- Fornecedores (N:N) --}}
-        <div class="mb-4">
-            <label class="form-label">Fornecedores</label>
-            <select name="suppliers[]"
-                    class="form-select"
-                    multiple>
-
-                @foreach ($suppliers as $supplier)
-                    <option value="{{ $supplier->id }}"
-                        {{ $product->suppliers->contains($supplier->id) ? 'selected' : '' }}>
-                        {{ $supplier->corporate_name ?? $supplier->social_name }}
-                    </option>
-                @endforeach
-
-            </select>
-            <small class="text-muted">
-                Segure CTRL (Windows) para selecionar mais de um
-            </small>
-        </div>
-
-        {{-- Botões --}}
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-save">
+        <div class="nx-form-footer">
+            <a href="{{ route('products.index') }}" class="nx-btn nx-btn-ghost">Cancelar</a>
+            <button type="submit" class="nx-btn nx-btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                 Salvar Alterações
             </button>
-
-            <a href="{{ route('products.index') }}" class="btn btn-back">
-                Cancelar
-            </a>
         </div>
     </form>
 </div>

@@ -1,0 +1,472 @@
+/* ============================================================
+   TABLES — Nexora ERP | Sistema de Listagem Unificado
+   ============================================================ */
+
+/* ══════════════════════════════════════════════
+   PAGE LAYOUT
+   ══════════════════════════════════════════════ */
+.nx-list-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ══════════════════════════════════════════════
+   PAGE HEADER
+   ══════════════════════════════════════════════ */
+.nx-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.nx-page-header-left {}
+
+.nx-page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+    margin: 0 0 4px;
+}
+
+.nx-page-subtitle {
+    font-size: 13px;
+    color: #64748B;
+    margin: 0;
+    font-weight: 400;
+}
+
+.nx-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════
+   BOTÕES UNIFICADOS
+   ══════════════════════════════════════════════ */
+.nx-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border-radius: 9px;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: background 0.18s, box-shadow 0.18s, color 0.18s, border-color 0.18s, transform 0.1s;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.nx-btn:active { transform: translateY(1px); }
+
+.nx-btn svg { flex-shrink: 0; }
+
+.nx-btn-primary {
+    background: #3B82F6;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.28);
+}
+.nx-btn-primary:hover {
+    background: #2563EB;
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(59,130,246,0.4);
+}
+
+.nx-btn-outline {
+    background: #FFFFFF;
+    color: #475569;
+    border: 1.5px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.nx-btn-outline:hover {
+    background: #F8FAFC;
+    color: #1E293B;
+    border-color: #CBD5E1;
+}
+
+.nx-btn-ghost {
+    background: transparent;
+    color: #64748B;
+    border: 1.5px solid transparent;
+}
+.nx-btn-ghost:hover {
+    background: #F1F5F9;
+    color: #1E293B;
+}
+
+.nx-btn-danger {
+    background: #EF4444;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(239,68,68,0.25);
+}
+.nx-btn-danger:hover {
+    background: #DC2626;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(239,68,68,0.35);
+}
+
+.nx-btn-sm {
+    padding: 6px 12px;
+    font-size: 12.5px;
+    border-radius: 7px;
+    gap: 5px;
+}
+
+/* ══════════════════════════════════════════════
+   BARRA DE FILTROS
+   ══════════════════════════════════════════════ */
+.nx-filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nx-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+}
+
+.nx-search-wrap svg {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    pointer-events: none;
+}
+
+.nx-search {
+    width: 100%;
+    padding: 9px 12px 9px 36px;
+    font-size: 13.5px;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 9px;
+    background-color: #FFFFFF;
+    color: #1E293B;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.nx-search:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.nx-search::placeholder { color: #94A3B8; }
+
+.nx-filter-select {
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 9px;
+    background-color: #FFFFFF;
+    color: #1E293B;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    cursor: pointer;
+}
+
+.nx-filter-select:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.nx-filter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ══════════════════════════════════════════════
+   TABLE CARD
+   ══════════════════════════════════════════════ */
+.nx-card {
+    background: #FFFFFF;
+    border-radius: 14px;
+    border: 1px solid #E8EEF5;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+.nx-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* ══════════════════════════════════════════════
+   TABLE
+   ══════════════════════════════════════════════ */
+.nx-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-size: 13.5px;
+    color: #1E293B;
+    min-width: 600px;
+}
+
+/* HEADER */
+.nx-table thead {
+    background: #F8FAFC;
+    border-bottom: 1.5px solid #E8EEF5;
+}
+
+.nx-table thead tr {
+    border: none;
+}
+
+.nx-table th {
+    padding: 13px 18px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #64748B;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.nx-table th.nx-th-center { text-align: center; }
+.nx-table th.nx-th-right  { text-align: right; }
+.nx-table th.nx-th-actions {
+    text-align: center;
+    width: 100px;
+}
+
+/* CELLS */
+.nx-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid #F1F5F9;
+    vertical-align: middle;
+    color: #374151;
+    font-size: 13.5px;
+}
+
+.nx-table td.nx-td-muted { color: #94A3B8; }
+.nx-table td.nx-td-center { text-align: center; }
+.nx-table td.nx-td-right  { text-align: right; }
+.nx-table td.nx-td-actions {
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* BODY */
+.nx-table tbody tr {
+    transition: background 0.15s;
+}
+
+.nx-table tbody tr:hover td {
+    background: #F0F7FF;
+}
+
+/* LAST ROW */
+.nx-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ZEBRA */
+.nx-table tbody tr:nth-child(even) td {
+    background-color: #FAFBFD;
+}
+.nx-table tbody tr:nth-child(even):hover td {
+    background: #F0F7FF;
+}
+
+/* ══════════════════════════════════════════════
+   ACTION BUTTONS (inside table)
+   ══════════════════════════════════════════════ */
+.nx-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, color 0.18s;
+    padding: 0;
+    text-decoration: none;
+    vertical-align: middle;
+    color: #64748B;
+}
+
+.nx-action-btn + .nx-action-btn { margin-left: 4px; }
+.nx-action-btn + form { display: inline; }
+form + .nx-action-btn { margin-left: 4px; }
+
+.nx-action-edit {
+    color: #3B82F6;
+}
+.nx-action-edit:hover {
+    background: #DBEAFE;
+    border-color: #BFDBFE;
+    color: #2563EB;
+}
+
+.nx-action-delete {
+    color: #EF4444;
+}
+.nx-action-delete:hover {
+    background: #FEE2E2;
+    border-color: #FECACA;
+    color: #DC2626;
+}
+
+.nx-action-view {
+    color: #10B981;
+}
+.nx-action-view:hover {
+    background: #D1FAE5;
+    border-color: #A7F3D0;
+    color: #059669;
+}
+
+/* ══════════════════════════════════════════════
+   EMPTY STATE
+   ══════════════════════════════════════════════ */
+.nx-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 32px;
+    text-align: center;
+    gap: 0;
+}
+
+.nx-empty-illustration {
+    width: 180px;
+    height: auto;
+    margin-bottom: 28px;
+    opacity: 0.85;
+}
+
+.nx-empty-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1E293B;
+    margin: 0 0 8px;
+    letter-spacing: -0.2px;
+}
+
+.nx-empty-desc {
+    font-size: 13.5px;
+    color: #64748B;
+    margin: 0 0 24px;
+    max-width: 340px;
+    line-height: 1.6;
+}
+
+.nx-empty-action {}
+
+/* ══════════════════════════════════════════════
+   STATUS BADGES
+   ══════════════════════════════════════════════ */
+.nx-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.nx-badge-success { background: #DCFCE7; color: #15803D; }
+.nx-badge-warning { background: #FEF9C3; color: #A16207; }
+.nx-badge-danger  { background: #FEE2E2; color: #B91C1C; }
+.nx-badge-info    { background: #DBEAFE; color: #1D4ED8; }
+.nx-badge-neutral { background: #F1F5F9; color: #475569; }
+
+/* ══════════════════════════════════════════════
+   PAGINATION
+   ══════════════════════════════════════════════ */
+.nx-pagination {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 18px;
+    border-top: 1px solid #F1F5F9;
+}
+
+/* ══════════════════════════════════════════════
+   TABLE FOOTER
+   ══════════════════════════════════════════════ */
+.nx-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-top: 1px solid #F1F5F9;
+    background: #FAFBFD;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.nx-table-count {
+    font-size: 12.5px;
+    color: #64748B;
+    font-weight: 500;
+}
+
+/* Pagination inside footer */
+.nx-table-footer .nx-pagination {
+    border-top: none;
+    padding: 0;
+}
+
+/* ══════════════════════════════════════════════
+   LEGACY — mantido para compatibilidade reversa
+   ══════════════════════════════════════════════ */
+.container-client,
+.container-products,
+.container-supplier {
+    padding: 0;
+}
+
+.table-wrapper {
+    background: #FFFFFF;
+    border-radius: 14px;
+    border: 1px solid #E8EEF5;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* Legacy badges */
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600; }
+.badge-success { background: #DCFCE7; color: #15803D; }
+.badge-warning { background: #FEF9C3; color: #A16207; }
+.badge-danger  { background: #FEE2E2; color: #B91C1C; }
+.badge-info    { background: #DBEAFE; color: #1D4ED8; }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .nx-page-header { flex-direction: column; }
+    .nx-page-actions { width: 100%; }
+    .nx-btn { font-size: 13px; }
+    .nx-filters-bar { flex-direction: column; align-items: stretch; }
+    .nx-search-wrap { max-width: 100%; }
+    .nx-empty-state { padding: 40px 20px; }
+    .nx-empty-illustration { width: 140px; }
+}

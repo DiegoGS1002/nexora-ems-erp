@@ -7,5 +7,15 @@ use Illuminate\Http\Request;
 
 class BaccaratAccountsController extends Controller
 {
-    public function index() { abort(501, 'Not implemented'); }
+    public function index()
+    {
+        return view('system.desenvolvimento', [
+            'title'       => 'Contas Bancárias',
+            'description' => 'Gestão de contas bancárias e instituições financeiras',
+            'color'       => '#22C55E',
+            'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+            'moduleSlug'  => 'financeiro',
+            'moduleName'  => 'Financeiro',
+        ]);
+    }
 }

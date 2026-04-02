@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\Users;
 use Illuminate\Support\Str;
 
 class UsersController extends Controller
 {
     public function index()
     {
-        $users = Users::all(); // ou paginate(10)
+        $users = User::all(); // ou paginate(10)
 
         return view('cadastro.usuarios.index', compact('users'));
     }
@@ -31,7 +30,7 @@ class UsersController extends Controller
             'address' => 'nullable|string|max:255',
         ]);
 
-        Users::create([
+        User::create([
             'name' => $request->name,
             'identification_number' => $request->identification_number,
             'role' => $request->role,

@@ -1,6 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\stockController;
+use App\Http\Controllers\StockController;
 
-Route::resource('stock', stockController::class);
+Route::resource('stock', StockController::class);
