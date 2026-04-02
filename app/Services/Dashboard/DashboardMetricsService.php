@@ -26,30 +26,26 @@ class DashboardMetricsService
         $months = collect(range(5, 0))
             ->map(fn (int $offset) => $now->copy()->subMonths($offset));
 
-        $faturamento = [];
-        $categorias = [];
+        $categorias = $months
+            ->map(fn (Carbon $month) => $month->translatedFormat('M/y'))
+            ->values()
+            ->all();
 
-        foreach ($months as $index => $month) {
-            $categorias[] = $month->translatedFormat('M/y');
-
-            $monthlyRevenue = $this->monthlyEstimatedRevenue($month);
-            if ($monthlyRevenue <= 0) {
-                $monthlyRevenue = $this->fallbackRevenueForMonth($index);
-            }
-
-            $faturamento[] = round($monthlyRevenue, 2);
-        }
+        $faturamento = $months
+            ->map(fn (Carbon $month) => round($this->monthlyEstimatedRevenue($month), 2))
+            ->values()
+            ->all();
 
         $distribuicaoData = $this->categoryDistribution();
 
-        $tableRows = collect($categorias)
+        $tableRows = $months
             ->values()
-            ->map(function (string $categoria, int $index) use ($faturamento) {
+            ->map(function (Carbon $month, int $index) use ($faturamento) {
                 return [
                     'month_index' => $index,
-                    'mes' => $categoria,
+                    'mes' => $month->translatedFormat('M/y'),
                     'faturamento' => $faturamento[$index],
-                    'pedidos' => $this->ordersForMonth($index),
+                    'pedidos' => $this->ordersForMonth($month),
                 ];
             })
             ->all();
@@ -66,14 +62,14 @@ class DashboardMetricsService
     private function estimatedRevenue(): float
     {
         if (! Schema::hasTable('products')) {
-            return 128590.00;
+            return 0.0;
         }
 
         $value = (float) DB::table('products')
             ->selectRaw('COALESCE(SUM(COALESCE(sale_price, 0) * COALESCE(stock, 0)), 0) as total')
             ->value('total');
 
-        return $value > 0 ? round($value, 2) : 128590.00;
+        return round($value, 2);
     }
 
     private function monthlyEstimatedRevenue(Carbon $month): float
@@ -89,23 +85,12 @@ class DashboardMetricsService
             ->value('total');
     }
 
-    private function fallbackRevenueForMonth(int $index): float
-    {
-        $base = $this->estimatedRevenue();
-
-        if ($base <= 0) {
-            return 12000 + ($index * 7000);
-        }
-
-        return $base * (0.30 + ($index * 0.08));
-    }
-
     private function categoryDistribution(): array
     {
         if (! Schema::hasTable('products')) {
             return [
-                'labels' => ['Comercial', 'Operacional', 'Marketing', 'Outros'],
-                'series' => [34, 28, 20, 18],
+                'labels' => [],
+                'series' => [],
             ];
         }
 
@@ -119,8 +104,8 @@ class DashboardMetricsService
 
         if ($rows->isEmpty()) {
             return [
-                'labels' => ['Comercial', 'Operacional', 'Marketing', 'Outros'],
-                'series' => [34, 28, 20, 18],
+                'labels' => [],
+                'series' => [],
             ];
         }
 
@@ -130,20 +115,16 @@ class DashboardMetricsService
         ];
     }
 
-    private function ordersForMonth(int $index): int
+    private function ordersForMonth(Carbon $targetMonth): int
     {
         if (! Schema::hasTable('requests')) {
-            return 12 + ($index * 4);
+            return 0;
         }
 
-        $targetMonth = now()->copy()->subMonths(5 - $index);
-
-        $value = (int) DB::table('requests')
+        return (int) DB::table('requests')
             ->whereYear('created_at', $targetMonth->year)
             ->whereMonth('created_at', $targetMonth->month)
             ->count();
-
-        return $value > 0 ? $value : 12 + ($index * 4);
     }
 
     private function safeCount(string $table): int

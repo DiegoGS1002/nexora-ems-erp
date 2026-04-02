@@ -15,10 +15,13 @@ it('renders dashboard kpi route', function () {
 
 it('loads kpi report payload', function () {
     Livewire::test(KpiReport::class)
-        ->assertSet('faturamento', fn (array $value) => count($value) > 0)
-        ->assertSet('categorias', fn (array $value) => count($value) > 0)
-        ->assertSet('distribuicao', fn (array $value) => count($value) > 0)
-        ->assertSet('tableRows', fn (array $value) => count($value) > 0);
+        ->assertSet('faturamento', [12000, 19000, 30000, 50000])
+        ->assertSet('categorias', ['Jan', 'Fev', 'Mar', 'Abr'])
+        ->assertSet('distribuicao', [34, 28, 20, 18])
+        ->assertSet('tableRows', fn (array $value) => count($value) === 4)
+        ->assertSet('kpis.0.title', 'Faturamento')
+        ->assertSet('kpis.0.value', 128590)
+        ->assertSet('kpis.3.title', 'Despesas');
 });
 
 it('filters table by month event', function () {
