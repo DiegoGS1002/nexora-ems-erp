@@ -16,7 +16,7 @@ it('returns only real values for dashboard metrics when there is no data', funct
         ->and($overview['pedidos'])->toBe(0)
         ->and($overview['despesas'])->toBe(0.0)
         ->and($report['faturamento'])->each->toBe(0.0)
-        ->and($report['table_rows'])->each(fn (array $row) => expect($row['pedidos'])->toBe(0))
+        ->and($report['table_rows'])->each(fn ($row) => expect($row->value['pedidos'])->toBe(0))
         ->and($report['distribuicao'])->toBe([])
         ->and($report['distribuicao_labels'])->toBe([]);
 });

@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Cadastro\Fornecedores;
 
+use App\Livewire\Forms\SupplierForm;
 use App\Models\Supplier;
+use App\Services\BrasilAPIService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -11,86 +13,128 @@ use Livewire\Component;
 class Form extends Component
 {
     public ?Supplier $supplier = null;
+    public SupplierForm $form;
 
-    public string $name = '';
-    public string $social_name = '';
-    public string $taxNumber = '';
-    public string $email = '';
-    public string $phone_number = '';
-    public string $address_zip_code = '';
-    public string $address_street = '';
-    public string $address_number = '';
-    public string $address_complement = '';
-    public string $address_district = '';
-    public string $address_city = '';
-    public string $address_state = '';
+    public ?string $cnpjSituacao = null;
+    public ?string $cnpjAtividade = null;
+    public ?string $cnpjError    = null;
+    public ?string $cepError     = null;
 
     public function mount(?Supplier $supplier = null): void
     {
         $this->supplier = $supplier && $supplier->exists ? $supplier : null;
 
         if ($this->supplier) {
-            $this->name = $this->supplier->name;
-            $this->social_name = $this->supplier->social_name;
-            $this->taxNumber = $this->supplier->taxNumber;
-            $this->email = $this->supplier->email;
-            $this->phone_number = $this->supplier->phone_number;
-            $this->address_zip_code = $this->supplier->address_zip_code;
-            $this->address_street = $this->supplier->address_street;
-            $this->address_number = $this->supplier->address_number;
-            $this->address_complement = $this->supplier->address_complement;
-            $this->address_district = $this->supplier->address_district;
-            $this->address_city = $this->supplier->address_city;
-            $this->address_state = $this->supplier->address_state;
+            $this->form->fill([
+                'social_name'        => $this->supplier->social_name,
+                'taxNumber'          => $this->supplier->taxNumber,
+                'name'               => $this->supplier->name,
+                'email'              => $this->supplier->email,
+                'phone_number'       => $this->supplier->phone_number,
+                'address_zip_code'   => $this->supplier->address_zip_code,
+                'address_street'     => $this->supplier->address_street,
+                'address_number'     => $this->supplier->address_number,
+                'address_complement' => $this->supplier->address_complement,
+                'address_district'   => $this->supplier->address_district,
+                'address_city'       => $this->supplier->address_city,
+                'address_state'      => $this->supplier->address_state,
+            ]);
         }
     }
 
-    protected function rules(): array
+    public function buscarCnpj(BrasilAPIService $brasilApi): void
     {
-        $supplierId = $this->supplier?->id;
+        $this->cnpjError = null;
 
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'social_name' => ['required', 'string', 'max:255'],
-            'taxNumber' => ['required', 'string', 'max:14', Rule::unique('suppliers', 'taxNumber')->ignore($supplierId)],
-            'email' => ['required', 'email', Rule::unique('suppliers', 'email')->ignore($supplierId)],
-            'phone_number' => ['required', 'string', 'max:255'],
-            'address_zip_code' => ['required', 'string', 'max:255'],
-            'address_street' => ['required', 'string', 'max:255'],
-            'address_number' => ['required', 'string', 'max:255'],
-            'address_complement' => ['required', 'string', 'max:255'],
-            'address_district' => ['required', 'string', 'max:255'],
-            'address_city' => ['required', 'string', 'max:255'],
-            'address_state' => ['required', 'string', 'size:2'],
-        ];
+        $dados = $brasilApi->consultarCnpj($this->form->taxNumber);
+
+        if (!$dados) {
+            $this->cnpjError = 'CNPJ não encontrado ou serviço indisponível. Preencha os dados manualmente.';
+            return;
+        }
+
+        $this->form->social_name       = $dados['razao_social'] ?? '';
+        $this->form->name              = $dados['nome_fantasia'] ?: ($dados['razao_social'] ?? '');
+        $this->form->address_zip_code  = preg_replace('/\D/', '', $dados['cep'] ?? '');
+        $this->form->address_street    = $dados['logradouro'] ?? '';
+        $this->form->address_number    = $dados['numero'] ?? '';
+        $this->form->address_complement= $dados['complemento'] ?? '';
+        $this->form->address_district  = $dados['bairro'] ?? '';
+        $this->form->address_city      = $dados['municipio'] ?? '';
+        $this->form->address_state     = $dados['uf'] ?? '';
+
+        if (!empty($dados['ddd_telefone_1'])) {
+            $this->form->phone_number = $dados['ddd_telefone_1'];
+        }
+        if (!empty($dados['email'])) {
+            $this->form->email = $dados['email'];
+        }
+
+        $this->cnpjSituacao  = $dados['descricao_situacao_cadastral'] ?? null;
+        $this->cnpjAtividade = $dados['cnae_fiscal_descricao'] ?? null;
+    }
+
+    public function buscarCep(BrasilAPIService $brasilApi): void
+    {
+        $this->cepError = null;
+
+        $dados = $brasilApi->consultarCep($this->form->address_zip_code);
+
+        if (!$dados) {
+            $this->cepError = 'CEP não encontrado. Verifique o número informado.';
+            return;
+        }
+
+        $this->form->address_street   = $dados['street']       ?? '';
+        $this->form->address_district = $dados['neighborhood'] ?? '';
+        $this->form->address_city     = $dados['city']         ?? '';
+        $this->form->address_state    = $dados['state']        ?? '';
     }
 
     public function save()
     {
-        $validated = $this->validate();
+        $supplierId = $this->supplier?->id;
+
+        $this->form->validate();
+
+        $this->validate([
+            'form.taxNumber' => ['required', 'string', Rule::unique('suppliers', 'taxNumber')->ignore($supplierId)],
+            'form.email'     => ['required', 'email',  Rule::unique('suppliers', 'email')->ignore($supplierId)],
+        ]);
+
+        $data = [
+            'social_name'        => $this->form->social_name,
+            'taxNumber'          => $this->form->taxNumber,
+            'name'               => $this->form->name,
+            'email'              => $this->form->email,
+            'phone_number'       => $this->form->phone_number,
+            'address_zip_code'   => $this->form->address_zip_code,
+            'address_street'     => $this->form->address_street,
+            'address_number'     => $this->form->address_number,
+            'address_complement' => $this->form->address_complement,
+            'address_district'   => $this->form->address_district,
+            'address_city'       => $this->form->address_city,
+            'address_state'      => $this->form->address_state,
+        ];
 
         if ($this->supplier) {
-            $this->supplier->update($validated);
-
-            return redirect()
-                ->route('suppliers.index')
-                ->with('success', 'Fornecedor atualizado com sucesso!');
+            $this->supplier->update($data);
+            $message = 'Fornecedor atualizado com sucesso!';
+        } else {
+            Supplier::create($data);
+            $message = 'Fornecedor cadastrado com sucesso!';
         }
-
-        Supplier::query()->create($validated);
 
         return redirect()
             ->route('suppliers.index')
-            ->with('success', 'Fornecedor cadastrado com sucesso!');
+            ->with('success', $message);
     }
 
     public function render()
     {
-        $title = $this->supplier ? 'Editar Fornecedor' : 'Novo Fornecedor';
-
         return view('livewire.cadastro.fornecedores.form', [
             'isEditing' => (bool) $this->supplier,
-        ])->title($title);
+        ])->title($this->supplier ? 'Editar Fornecedor' : 'Novo Fornecedor');
     }
 }
 

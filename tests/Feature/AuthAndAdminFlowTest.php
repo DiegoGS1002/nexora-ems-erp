@@ -73,6 +73,8 @@ it('allows admin to create users', function () {
         'password' => 'password123',
         'password_confirmation' => 'password123',
         'is_admin' => '1',
+        'is_active' => '1',
+        'has_license' => '1',
     ]);
 
     $response->assertRedirect(route('users.index'));

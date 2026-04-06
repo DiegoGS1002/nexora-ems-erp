@@ -399,8 +399,94 @@ form + .nx-action-btn { margin-left: 4px; }
 .nx-badge-neutral { background: #F1F5F9; color: #475569; }
 
 /* ══════════════════════════════════════════════
-   PAGINATION
+   PAGINATION — design system nx-
    ══════════════════════════════════════════════ */
+
+/* Container do nav */
+.nx-pag-nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Linha de botões em flex */
+.nx-pag-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Botão base */
+.nx-pag-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.nx-pag-btn:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+    color: #1E293B;
+}
+
+/* Botão ativo / página atual */
+.nx-pag-btn.nx-pag-active {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+    font-weight: 700;
+    cursor: default;
+    box-shadow: 0 1px 6px rgba(37, 99, 235, 0.35);
+}
+
+.nx-pag-btn.nx-pag-active:hover {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+}
+
+/* Botões de seta (anterior / próximo) */
+.nx-pag-btn.nx-pag-btn-arrow {
+    min-width: 34px;
+    padding: 0;
+}
+
+/* Desabilitado */
+.nx-pag-btn.nx-pag-disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Reticências */
+.nx-pag-btn.nx-pag-dots {
+    border-color: transparent;
+    background: transparent;
+    cursor: default;
+    pointer-events: none;
+    color: #94A3B8;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    padding: 0 4px;
+    min-width: auto;
+}
+
+/* ── Wrapper legado — mantido para compatibilidade ─── */
 .nx-pagination {
     display: flex;
     justify-content: flex-end;

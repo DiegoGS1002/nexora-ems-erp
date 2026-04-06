@@ -42,7 +42,9 @@ class MaintenanceERP
             // perfil e permissões
             $request->routeIs('profile.*') ||
             $request->routeIs('permissions.*') ||
-            $request->routeIs('logs.*')
+            $request->routeIs('logs.*') ||
+            // suporte
+            $request->routeIs('suporte.*')
         ) {
             return $next($request);
         }

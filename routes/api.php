@@ -4,7 +4,13 @@ use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\SupplierApiController;
 use App\Http\Controllers\Api\ProductSupplierApiController;
 use App\Http\Controllers\Api\ClientApiController;
+use App\Http\Controllers\ExternalApiProxyController;
 use Illuminate\Support\Facades\Route;
+
+Route::middleware('auth')->group(function () {
+    Route::get('/proxy/cnpj/{cnpj}', [ExternalApiProxyController::class, 'getCnpj']);
+    Route::get('/proxy/cep/{cep}', [ExternalApiProxyController::class, 'getCep']);
+});
 
 Route::middleware('api')->group(function () {
     // Products

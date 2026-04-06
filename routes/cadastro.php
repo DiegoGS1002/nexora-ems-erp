@@ -13,8 +13,11 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\RoleController;
+use App\Livewire\Cadastro\Funcoes\Form as RoleForm;
+use App\Livewire\Cadastro\Funcoes\Index as RoleIndex;
 use App\Http\Controllers\VehicleController;
+use App\Livewire\Cadastro\Veiculos\Form as VehicleForm;
+use App\Livewire\Cadastro\Veiculos\Index as VehicleIndex;
 use App\Http\Controllers\ProductSupplierController;
 
 /*
@@ -54,8 +57,12 @@ Route::get('/suppliers/{supplier}/edit', SupplierForm::class)->name('suppliers.e
 Route::get('/employees', EmployeeIndex::class)->name('employees.index');
 Route::get('/employees/create', EmployeeForm::class)->name('employees.create');
 Route::get('/employees/{employee}/edit', EmployeeForm::class)->name('employees.edit');
-Route::resource('role', RoleController::class);
-Route::resource('vehicles', VehicleController::class);
+Route::get('/roles', RoleIndex::class)->name('roles.index');
+Route::get('/roles/create', RoleForm::class)->name('roles.create');
+Route::get('/roles/{role}/edit', RoleForm::class)->name('roles.edit');
+Route::get('/vehicles', VehicleIndex::class)->name('vehicles.index');
+Route::get('/vehicles/create', VehicleForm::class)->name('vehicles.create');
+Route::get('/vehicles/{vehicle}/edit', VehicleForm::class)->name('vehicles.edit');
 
 
 /*

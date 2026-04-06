@@ -11,7 +11,13 @@ return new class extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
+            $table->string('department')->nullable();
+            $table->string('code')->nullable()->unique();
+            $table->foreignId('parent_role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->text('description')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->boolean('allow_assignment')->default(true);
+            $table->json('permissions')->nullable();
             $table->timestamps();
         });
     }

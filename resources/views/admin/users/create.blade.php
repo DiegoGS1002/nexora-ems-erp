@@ -32,8 +32,9 @@
     <form action="{{ route('users.store') }}" method="POST">
         @csrf
 
-        {{-- ── SEÇÃO: IDENTIFICAÇÃO ── --}}
         <div class="nx-form-card">
+
+            {{-- ── SEÇÃO: IDENTIFICAÇÃO ── --}}
             <div class="nx-form-section">
                 <div class="nx-form-section-header">
                     <div class="nx-form-section-icon">
@@ -79,49 +80,7 @@
                 </div>
             </div>
 
-            {{-- ── SEÇÃO: CREDENCIAIS ── --}}
-            <div class="nx-form-section">
-                <div class="nx-form-section-header">
-                    <div class="nx-form-section-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
-                    </div>
-                    <h3 class="nx-form-section-title">Credenciais de Acesso</h3>
-                </div>
-                <div class="grid grid-2">
-                    <div class="nx-field">
-                        <label for="password">Senha</label>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            placeholder="Mínimo 8 caracteres"
-                            required
-                            autocomplete="new-password"
-                        >
-                        @error('password')
-                            <small style="color:#EF4444;">{{ $message }}</small>
-                        @enderror
-                        <small>Use letras, números e símbolos para aumentar a segurança.</small>
-                    </div>
-                    <div class="nx-field">
-                        <label for="password_confirmation">Confirmar Senha</label>
-                        <input
-                            id="password_confirmation"
-                            name="password_confirmation"
-                            type="password"
-                            placeholder="Repita a senha"
-                            required
-                            autocomplete="new-password"
-                        >
-                    </div>
-                </div>
-            </div>
-
-            {{-- ── SEÇÃO: PERMISSÕES ── --}}
+            {{-- ── SEÇÃO: PERFIL E PERMISSÕES ── --}}
             <div class="nx-form-section">
                 <div class="nx-form-section-header">
                     <div class="nx-form-section-icon">
@@ -185,6 +144,48 @@
                 @error('is_admin')
                     <small style="color:#EF4444; display:block; margin-top:8px;">{{ $message }}</small>
                 @enderror
+            </div>
+
+            {{-- ── SEÇÃO: CREDENCIAIS ── --}}
+            <div class="nx-form-section">
+                <div class="nx-form-section-header">
+                    <div class="nx-form-section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <h3 class="nx-form-section-title">Credenciais de Acesso</h3>
+                </div>
+                <div class="grid grid-2">
+                    <div class="nx-field">
+                        <label for="password">Senha</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="Mínimo 8 caracteres"
+                            required
+                            autocomplete="new-password"
+                        >
+                        @error('password')
+                            <small style="color:#EF4444;">{{ $message }}</small>
+                        @enderror
+                        <small>Use letras, números e símbolos para aumentar a segurança.</small>
+                    </div>
+                    <div class="nx-field">
+                        <label for="password_confirmation">Confirmar Senha</label>
+                        <input
+                            id="password_confirmation"
+                            name="password_confirmation"
+                            type="password"
+                            placeholder="Repita a senha"
+                            required
+                            autocomplete="new-password"
+                        >
+                    </div>
+                </div>
             </div>
 
             {{-- ── SEÇÃO: STATUS E LICENÇA ── --}}
@@ -294,6 +295,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
 
         {{-- ── SEÇÃO: MÓDULOS CONTRATADOS ── --}}

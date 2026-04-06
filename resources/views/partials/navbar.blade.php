@@ -136,7 +136,7 @@
                     Configurações
                 </a>
                 <div class="nx-dropdown-divider"></div>
-                <a href="https://web.whatsapp.com/+5532984502345" target="_blank" class="nx-dropdown-item">
+                <a href="{{ route('suporte.chat') }}" class="nx-dropdown-item">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     Suporte
                 </a>

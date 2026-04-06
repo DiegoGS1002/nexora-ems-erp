@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\MaintenanceERP;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\ModulePageController;
+use App\Livewire\Suporte\Chat as ChatSuporte;
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('login');
@@ -26,6 +27,8 @@ Route::middleware(['auth', 'midnight.session', MaintenanceERP::class])->group(fu
         ->name('module.item.development');
 
     Route::get('/modulo/{module}', [ModulePageController::class, 'show'])->name('module.show');
+
+    Route::get('/suporte/chat', ChatSuporte::class)->name('suporte.chat');
 
 /*
 |--------------------------------------------------------------------------

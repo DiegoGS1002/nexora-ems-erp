@@ -6,6 +6,10 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    $this->actingAs(\App\Models\User::factory()->create(['last_login_at' => now()]));
+});
+
 it('renders dashboard overview route', function () {
     $response = $this->get(route('dashboard.index'));
 

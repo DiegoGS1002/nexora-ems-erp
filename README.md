@@ -10,7 +10,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 **Status:** desenvolvimento ativo.
 
-**Última atualização da documentação:** 2026-04-03 (README e `replit.md` revisados).
+**Última atualização da documentação:** 2026-04-06 (README revisado).
 
 > Guia rápido para ambiente Replit: veja `replit.md`.
 
@@ -23,6 +23,8 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Dashboard — Indicadores KPI (`/dashboard/kpi`) | 🔶 Implementado (dados de exemplo) |
 | Controle de Usuários (`/users`) | ✅ Ativo (CRUD + status + licença + módulos) |
 | Configurações do Sistema (`/configuracoes`) | ✅ Ativo (9 seções) |
+| Suporte (`/suporte/chat`) | ✅ Ativo (tickets + chat em tempo real) |
+| Logs de Auditoria (`/logs`) | ✅ Ativo (somente admin) |
 | Produção (Ordens de Produção) | 🚧 Em desenvolvimento |
 | Estoque | 🚧 Em desenvolvimento |
 | Vendas (Pedidos, CRM, Relatórios) | 🚧 Em desenvolvimento |
@@ -31,7 +33,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Financeiro (Plano de Contas, Contas, Caixa, DRE) | 🚧 Em desenvolvimento |
 | RH (Jornada, Ponto, Folha, Relatórios) | 🚧 Em desenvolvimento |
 | Transporte / Logística | 🚧 Em desenvolvimento |
-| Perfil e Segurança (Permissões, Logs) | 🚧 Em desenvolvimento |
+| Perfil e Segurança (Permissões) | 🚧 Em desenvolvimento |
 | Painel Administrativo Filament (`/admin`) | ✅ Ativo |
 
 ---
@@ -77,6 +79,15 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 ```text
 app/
   Enums/                # Enums de domínio (Pascal case)
+    CategoriaVeiculo.php
+    CombustivelVeiculo.php
+    EspecieVeiculo.php
+    NaturezaProduto.php
+    PrioridadeTicketSuporte.php
+    StatusTicketSuporte.php
+    TipoPessoa.php
+    TipoProduto.php
+    TipoVeiculo.php
   Http/
     Controllers/        # Slim controllers por domínio
       Api/              # Controllers da API REST
@@ -84,30 +95,58 @@ app/
         ProductApiController.php
         ProductSupplierApiController.php
         SupplierApiController.php
+      Auth/
+        SessionController.php     # Login / logout
       ConfigurationController.php   # Configurações do sistema (GET/POST /configuracoes)
+      ExternalApiProxyController.php # Proxy autenticado para BrasilAPI (CNPJ/CEP)
       UsersController.php           # Controle de usuários com status, licença e módulos
     Middleware/
+      EnforceMidnightSession.php    # Encerra sessão se a data de login for anterior ao dia atual
+      EnsureUserIsAdmin.php         # Bloqueia acesso de não-administradores
       MaintenanceERP.php            # Whitelist de rotas liberadas
   Livewire/             # Componentes Livewire
+    Administracao/
+      Logs/             # Index — listagem de logs de auditoria (somente admin)
     Cadastro/
       Clientes/         # Index + Form (full-page)
       Fornecedores/     # Index + Form
       Funcionarios/     # Index + Form
+      Funcoes/          # Index + Form (Funções/Cargos)
       Produtos/         # Index + Form
+      Veiculos/         # Index + Form
     Dashboard/
       Overview.php      # Visão Geral do Dashboard
       KpiReport.php     # Indicadores KPI com drill-down
+    Forms/
+      NovoTicketForm.php  # Livewire Form Object para criação de tickets
+    Suporte/
+      Chat.php          # Chat de suporte com tickets em tempo real
   Models/               # Modelos Eloquent
-    Setting.php         # Configurações do sistema (key-value com cache)
+    MensagemSuporte.php   # Mensagens de tickets de suporte
+    Setting.php           # Configurações do sistema (key-value com cache)
+    SystemLog.php         # Registros de auditoria do sistema
+    TicketSuporte.php     # Tickets de suporte
   Providers/
     Filament/           # AdminPanelProvider (Filament)
   Services/             # Service classes com lógica de negócio
+    BrasilAPIService.php        # Integração com BrasilAPI (CNPJ e CEP)
+    Dashboard/
+      DashboardMetricsService.php
+    LogService.php              # Registro centralizado de logs de auditoria
+    RoleService.php             # Lógica de negócio de funções/cargos
+    SuporteService.php          # Criação e gestão de tickets de suporte
 config/
 database/
-  migrations/
-    2026_04_03_200000_create_settings_table.php
+  migrations/           # Migrations em ordem cronológica
   seeders/
-    SettingsSeeder.php  # Valores padrão para todas as 9 seções de configuração
+    AdminUserSeeder.php   # Cria usuário administrador padrão
+    ClientSeeder.php      # Carga inicial de clientes
+    DatabaseSeeder.php    # Orquestrador principal
+    ProductSeeder.php     # Carga inicial de produtos
+    SettingsSeeder.php    # Valores padrão das 9 seções de configuração
+    SupplierSeeder.php    # Carga inicial de fornecedores
+    SystemLogSeeder.php   # Logs de exemplo para desenvolvimento
+    UserSeeder.php        # Usuários de exemplo para desenvolvimento
   factories/
 resources/
   css/
@@ -123,7 +162,9 @@ resources/
       settings/
         index.blade.php # Página de configurações (9 abas)
     cadastro/           # Views CRUD: clientes, fornecedores, produtos, funcionários, funções, veículos
-    administrativo/     # Views de permissões e logs
+    administrativo/     # Views de permissões
+    auth/
+      login.blade.php   # Tela de login
     components/
       dashboard/        # Blade components reutilizáveis do dashboard
         kpi-card.blade.php
@@ -133,12 +174,17 @@ resources/
     layouts/
       app.blade.php     # Layout principal — inclui modal de aviso de licença
     livewire/
+      administracao/
+        logs/           # View do componente de logs de auditoria
       cadastro/         # Views Livewire de cadastro
       dashboard/
         overview.blade.php    # View da Visão Geral
         kpi-report.blade.php  # View dos Indicadores KPI
+      suporte/
+        chat.blade.php  # Interface de chat de suporte (tickets)
     modules/            # Página de detalhes do módulo (show.blade.php)
     partials/           # Partials reutilizáveis (navbar.blade.php)
+    perfil/             # Views de perfil do usuário
     system/
       desenvolvimento.blade.php  # Tela "Em Breve"
 routes/
@@ -154,7 +200,7 @@ routes/
   producao.php          # Inclui também as rotas do Dashboard
   rh.php
   vendas.php
-  api.php               # API REST
+  api.php               # API REST + proxy BrasilAPI
 tests/
   Feature/
   Unit/
@@ -260,14 +306,22 @@ php artisan migrate:fresh --seed
 
 ### Seeders iniciais
 
-O `DatabaseSeeder` registra os seguintes seeders:
+O `DatabaseSeeder` registra os seguintes seeders na execução principal:
 
 | Seeder | Objetivo |
 |---|---|
+| `AdminUserSeeder` | Cria o usuário administrador padrão |
 | `ClientSeeder` | Carga inicial de clientes |
 | `ProductSeeder` | Carga inicial de produtos |
 | `SupplierSeeder` | Carga inicial de fornecedores |
+
+Seeders adicionais (executados individualmente):
+
+| Seeder | Objetivo |
+|---|---|
 | `SettingsSeeder` | Valores padrão para todas as 9 seções de configuração do sistema |
+| `SystemLogSeeder` | Logs de exemplo para desenvolvimento |
+| `UserSeeder` | Usuários de exemplo para desenvolvimento |
 
 Rodar todos os seeders:
 
@@ -278,10 +332,12 @@ php artisan db:seed --no-interaction
 Rodar seeders específicos:
 
 ```bash
+php artisan db:seed --class=AdminUserSeeder --no-interaction
 php artisan db:seed --class=ClientSeeder --no-interaction
 php artisan db:seed --class=ProductSeeder --no-interaction
 php artisan db:seed --class=SupplierSeeder --no-interaction
 php artisan db:seed --class=SettingsSeeder --no-interaction
+php artisan db:seed --class=SystemLogSeeder --no-interaction
 ```
 
 > Observação: os seeders já são idempotentes (`updateOrCreate` / `firstOrCreate`) e definidos para funcionar com UUID mesmo quando eventos de modelo estiverem desabilitados durante o `db:seed`.
@@ -330,6 +386,20 @@ chmod -R ug+rw storage bootstrap/cache
 
 ---
 
+## Autenticação
+
+As rotas de autenticação são tratadas pelo `SessionController`:
+
+| Método | URI | Nome | Descrição |
+|---|---|---|---|
+| `GET` | `/login` | `login` | Exibe a tela de login (middleware `guest`) |
+| `POST` | `/login` | `login.store` | Processa o login (middleware `guest`) |
+| `POST` | `/logout` | `logout` | Encerra a sessão (middleware `auth`) |
+
+O login registra `last_login_at` no usuário. Usuários com `is_active = false` têm o acesso bloqueado com mensagem de erro.
+
+---
+
 ## Dashboard
 
 O dashboard é composto por dois componentes Livewire full-page:
@@ -358,6 +428,73 @@ O dashboard é composto por dois componentes Livewire full-page:
 - **Gráfico de barras agrupado** — Meta × Realizado por mês (ApexCharts)
 - **Comparativos Mensais** — tabela com faturamento, variação % e pedidos vs mês anterior
 - **Tabela detalhada** — dados por período com busca em tempo real
+
+---
+
+## Suporte (`/suporte/chat`)
+
+Acessível por todos os usuários autenticados. Administradores visualizam todos os tickets; usuários comuns só veem os seus próprios.
+
+### Funcionalidades
+
+- **Criação de tickets** com assunto, prioridade e categoria
+- **Chat em tempo real** dentro de cada ticket (Livewire polling)
+- **Filtros** por status e busca por assunto
+- **Gestão de status** pelo administrador (Aberto → Em Andamento → Resolvido → Fechado)
+- **Marcação de leitura** automática ao selecionar um ticket
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `TicketSuporte` | `tickets_suporte` | Ticket de suporte (UUID, assunto, status, prioridade, categoria) |
+| `MensagemSuporte` | `mensagens_suporte` | Mensagem de ticket (conteúdo, flag `is_suporte`, flag `lida`) |
+
+### Enums de Suporte
+
+| Enum | Valores |
+|---|---|
+| `StatusTicketSuporte` | `aberto`, `em_andamento`, `resolvido`, `fechado` |
+| `PrioridadeTicketSuporte` | `baixa`, `media`, `alta`, `critica` |
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/suporte/chat` | `suporte.chat` | `App\Livewire\Suporte\Chat` |
+
+---
+
+## Logs de Auditoria (`/logs`)
+
+Acessível apenas por administradores (middleware `admin`). Implementado como componente Livewire full-page (`App\Livewire\Administracao\Logs\Index`).
+
+### Modelo `SystemLog`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `level` | string | `success`, `warning`, `error` |
+| `action` | string | Código da ação (ex.: `LOGIN`, `ACESSO_NEGADO`) |
+| `module` | string | Módulo do sistema (ex.: `Segurança`, `Cadastros`) |
+| `description` | string | Descrição textual do evento |
+| `ip` | string | IP do requisitante |
+| `user_id` | bigint | FK para `users` (nullable) |
+| `user_name` | string | Nome snapshot do usuário |
+| `user_email` | string | E-mail snapshot do usuário |
+| `context` | JSON | Dados extras opcionais |
+
+### `LogService` — Registro centralizado
+
+```php
+// Registrar evento de sucesso
+LogService::success('LOGIN', 'Usuário realizou login.', 'Segurança');
+
+// Registrar aviso
+LogService::warning('ACESSO_NEGADO', 'Tentativa sem permissão.', 'Segurança');
+
+// Registrar erro com contexto extra
+LogService::error('ERRO_API', 'Falha ao consultar BrasilAPI.', 'Integrações', ['status' => 500]);
+```
 
 ---
 
@@ -420,6 +557,7 @@ Acessível em `/users` (somente administradores via middleware `admin`).
 | `is_active` | boolean | Usuário inativo não consegue fazer login |
 | `has_license` | boolean | Sem licença exibe modal de aviso a cada 15 s |
 | `modules` | JSON | Lista dos módulos contratados pelo usuário |
+| `last_login_at` | timestamp | Data/hora do último login (registrado pelo `SessionController`) |
 
 ### Regras de Negócio
 
@@ -507,7 +645,9 @@ O CSS é gerido por arquivos parciais importados em `resources/css/app.css`:
 
 ---
 
-## Middleware `MaintenanceERP`
+## Middleware
+
+### `MaintenanceERP`
 
 Aplicado ao grupo de rotas autenticadas em `routes/web.php`. Rotas **liberadas** (renderizam normalmente):
 
@@ -516,16 +656,25 @@ Aplicado ao grupo de rotas autenticadas em `routes/web.php`. Rotas **liberadas**
 - `module.item.development` — tela de funcionalidade em desenvolvimento
 - Módulos de item de módulo listados em `ModulePageController::moduleItemRouteNames()`
 - `products.*`, `clients.*`, `vehicles.*`, `employees.*`, `suppliers.*` — cadastros ativos
-- `role.*`, `roles.*` — funções/cargos
+- `roles.*` — funções/cargos (Livewire)
 - `users.*` — controle de usuários (somente admin via middleware separado)
 - `configuration.*` — configurações do sistema
 - `profile.*` — perfil do usuário
 - `permissions.*` — gerenciamento de permissões
 - `logs.*` — logs do sistema
+- `suporte.*` — módulo de suporte
 
 Todas as demais rotas retornam a view `system.desenvolvimento` ("Em Breve") até que o módulo esteja pronto.
 
 > **Atenção:** ao implementar uma nova rota que deve estar acessível, adicione o padrão `rotaNova.*` no bloco `if` do método `handle()` em `MaintenanceERP.php`.
+
+### `EnforceMidnightSession`
+
+Aplicado ao grupo de rotas autenticadas. Encerra automaticamente a sessão do usuário se a data do login (`last_login_at`) for anterior ao dia atual, redirecionando para `/login` com mensagem de expiração. Garante que nenhuma sessão atravesse a meia-noite sem reautenticação.
+
+### `EnsureUserIsAdmin`
+
+Bloqueia o acesso de usuários não-administradores às rotas protegidas. Aplicado ao grupo de rotas em `routes/perfil.php` (users, permissions, logs).
 
 ---
 
@@ -542,6 +691,24 @@ Para criar o primeiro usuário administrador:
 ```bash
 php artisan make:filament-user
 ```
+
+---
+
+## Enums
+
+Todos os enums ficam em `app/Enums/` e são usados como cast nos modelos.
+
+| Enum | Modelo | Descrição |
+|---|---|---|
+| `TipoPessoa` | `Client` | Pessoa Física / Jurídica |
+| `TipoProduto` | `Product` | Tipo do produto |
+| `NaturezaProduto` | `Product` | Natureza (ex.: revenda, produção própria) |
+| `TipoVeiculo` | `Vehicle` | Tipo do veículo |
+| `CategoriaVeiculo` | `Vehicle` | Categoria do veículo |
+| `EspecieVeiculo` | `Vehicle` | Espécie do veículo |
+| `CombustivelVeiculo` | `Vehicle` | Tipo de combustível |
+| `StatusTicketSuporte` | `TicketSuporte` | `aberto`, `em_andamento`, `resolvido`, `fechado` |
+| `PrioridadeTicketSuporte` | `TicketSuporte` | `baixa`, `media`, `alta`, `critica` |
 
 ---
 
@@ -584,14 +751,27 @@ php artisan make:filament-user
 | Campo | Tipo | Observações |
 |---|---|---|
 | `id` | UUID | Gerado automaticamente via `booted()` |
-| `name` | string | Único |
-| `ean` | string (13) | Código de barras, único |
-| `description` | string | |
+| `product_code` | string | Código interno (ex.: `PROD-000001`), gerado automaticamente |
+| `name` | string | Nome do produto |
+| `ean` | string (13) | Código de barras (nullable) |
+| `description` | string | Descrição (nullable) |
+| `short_description` | string | Descrição curta |
+| `brand` | string | Marca |
+| `product_type` | enum | Cast `TipoProduto` |
+| `nature` | enum | Cast `NaturezaProduto` |
+| `product_line` | string | Linha do produto |
 | `unit_of_measure` | string | |
+| `category` | string | |
 | `sale_price` | decimal:2 | |
 | `stock` | integer | |
 | `expiration_date` | date | Nullable |
-| `category` | string | |
+| `weight_net` | decimal:3 | Peso líquido (kg) |
+| `weight_gross` | decimal:3 | Peso bruto (kg) |
+| `height` / `width` / `depth` | decimal:2 | Dimensões (cm) |
+| `full_description` | text | Descrição completa |
+| `is_active` | boolean | |
+| `highlights` | JSON | Destaques/características |
+| `tags` | JSON | Tags de busca |
 | `image` | string | Caminho no disco `public`; accessor `image_url` retorna URL completa |
 
 - Usa `SoftDeletes`.
@@ -621,54 +801,174 @@ php artisan make:filament-user
 
 ### `Client`
 
-| Campo | Tipo |
-|---|---|
-| `id` | UUID |
-| `name` | string |
-| `social_name` | string (nullable) |
-| `taxNumber` | string (CPF/CNPJ) |
-| `email` | string |
-| `phone_number` | string |
-| `address` | string |
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | UUID | |
+| `tipo_pessoa` | enum | Cast `TipoPessoa` (Física / Jurídica) |
+| `name` | string | |
+| `social_name` | string (nullable) | |
+| `taxNumber` | string | CPF ou CNPJ |
+| `email` | string | |
+| `phone_number` | string | |
+| `address` | string | Endereço legado (campo único) |
+| `address_zip_code` | string | CEP |
+| `address_street` | string | Logradouro |
+| `address_number` | string | Número |
+| `address_complement` | string (nullable) | Complemento |
+| `address_district` | string | Bairro |
+| `address_city` | string | Cidade |
+| `address_state` | string | UF |
+
+- Método auxiliar `getFullAddress(): string`.
 
 ### `Employees`
 
-| Campo | Tipo |
-|---|---|
-| `id` | UUID |
-| `name` | string |
-| `identification_number` | string |
-| `role` | string |
-| `email` | string |
-| `phone_number` | string |
-| `address` | string |
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | UUID | |
+| `name` | string | |
+| `social_name` | string | Nome social |
+| `identification_number` | string | CPF |
+| `rg` | string | RG |
+| `rg_issuer` | string | Órgão emissor do RG |
+| `rg_date` | date | Data de emissão do RG |
+| `birth_date` | date | Data de nascimento |
+| `gender` | string | |
+| `marital_status` | string | Estado civil |
+| `nationality` | string | |
+| `birthplace` | string | Naturalidade |
+| `role` | string | Função/cargo (nome) |
+| `email` | string | |
+| `phone_number` | string | Telefone principal |
+| `phone_secondary` | string | Telefone secundário |
+| `address` | string | Endereço legado |
+| `zip_code` / `street` / `number` / `complement` / `neighborhood` / `city` / `state` / `country` | string | Endereço detalhado |
+| `emergency_contact_name` | string | |
+| `emergency_contact_relationship` | string | |
+| `emergency_contact_phone` | string | |
+| `photo` | string | Caminho da foto |
+| `access_profile` | string | Perfil de acesso ao sistema |
+| `is_active` | boolean | |
+| `admission_date` | date | Data de admissão |
+| `work_schedule` | string | Jornada de trabalho |
+| `allow_system_access` | boolean | Permite acesso ao sistema |
+| `department` | string | Departamento |
+| `salary` | decimal:2 | Salário |
+| `internal_code` | string | Código interno |
+| `observations` | text | Observações |
 
 ### `Vehicle`
 
-| Campo | Tipo |
-|---|---|
-| `name` | string |
-| `model` | string |
-| `brand` | string |
-| `plate` | string |
-| `renavam` | string |
-| `chassis` | string |
-| `fuel_type` | string |
-| `year` | integer |
-| `color` | string |
+| Campo | Tipo | Observações |
+|---|---|---|
+| `name` | string | Apelido/identificação |
+| `plate` | string | Placa |
+| `renavam` | string | |
+| `chassis` | string | |
+| `vehicle_type` | enum | Cast `TipoVeiculo` |
+| `category` | enum | Cast `CategoriaVeiculo` |
+| `species` | enum | Cast `EspecieVeiculo` |
+| `manufacturing_year` | integer | Ano de fabricação |
+| `model_year` | integer | Ano do modelo |
+| `brand` | string | Marca |
+| `model` | string | Modelo |
+| `color` | string | |
+| `fuel_type` | enum | Cast `CombustivelVeiculo` |
+| `power_hp` | integer | Potência (cv) |
+| `displacement_cc` | integer | Cilindrada (cc) |
+| `doors` | integer | Número de portas |
+| `passenger_capacity` | integer | Capacidade de passageiros |
+| `transmission_type` | string | Câmbio |
+| `traction_type` | string | Tração |
+| `gross_weight` | decimal:2 | PBT (kg) |
+| `net_weight` | decimal:2 | Tara (kg) |
+| `cargo_capacity` | decimal:2 | Capacidade de carga (kg) |
+| `department` | string | Departamento responsável |
+| `responsible_driver` | string | Motorista responsável |
+| `cost_center` | string | Centro de custo |
+| `unit` | string | Unidade/filial |
+| `current_location` | string | Localização atual |
+| `location_note` | string | Observação de localização |
+| `is_active` | boolean | |
+| `acquisition_date` | date | Data de aquisição |
+| `acquisition_value` | decimal:2 | Valor de aquisição |
+| `photos` | JSON | Array de caminhos de fotos |
+| `observations` | text | |
+
+- Accessors: `status_label` e `display_name`.
 
 ### `Role`
 
-| Campo | Tipo |
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `name` | string | Nome da função/cargo |
+| `department` | string | Departamento |
+| `code` | string | Código interno |
+| `parent_role_id` | bigint (nullable) | FK para hierarquia de cargos |
+| `description` | string | |
+| `is_active` | boolean | |
+| `allow_assignment` | boolean | Permite atribuição a funcionários |
+| `permissions` | JSON | Mapa de permissões por módulo/ação |
+
+- Relacionamentos: `parentRole()`, `childRoles()`, `employees()`.
+- Método `getPermissionForModule(string $module, string $action): bool` — verifica permissão com herança hierárquica.
+
+### `SystemLog`
+
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `level` | string | `success`, `warning`, `error` |
+| `action` | string | Código da ação |
+| `module` | string | Módulo do sistema |
+| `description` | string | Descrição do evento |
+| `ip` | string | IP do requisitante |
+| `user_id` | bigint (nullable) | FK para `users` |
+| `user_name` | string | Nome snapshot |
+| `user_email` | string | E-mail snapshot |
+| `context` | JSON | Dados extras opcionais |
+
+### `TicketSuporte`
+
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | UUID | |
+| `user_id` | bigint | FK para `users` |
+| `assunto` | string | |
+| `status` | enum | Cast `StatusTicketSuporte` |
+| `prioridade` | enum | Cast `PrioridadeTicketSuporte` |
+| `categoria` | string (nullable) | |
+| `fechado_em` | datetime (nullable) | Preenchido ao resolver/fechar |
+
+### `MensagemSuporte`
+
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `ticket_id` | UUID | FK para `tickets_suporte` |
+| `user_id` | bigint | FK para `users` |
+| `conteudo` | text | |
+| `is_suporte` | boolean | `true` = mensagem do time de suporte |
+| `lida` | boolean | Marcada ao selecionar o ticket |
+
+---
+
+## Services
+
+| Service | Descrição |
 |---|---|
-| `name` | string |
-| `description` | string |
+| `BrasilAPIService` | Consulta CNPJ (`consultarCnpj`) e CEP (`consultarCep`) via BrasilAPI |
+| `LogService` | Registro centralizado de logs: `::success()`, `::warning()`, `::error()` |
+| `SuporteService` | Criação de tickets, envio de mensagens, atualização de status e marcação de leitura |
+| `RoleService` | Lógica de negócio de funções/cargos |
+| `DashboardMetricsService` | Métricas e dados agregados para o dashboard |
 
 ---
 
 ## Detalhamento de Rotas
 
-Todas as rotas web estão sob o middleware `MaintenanceERP`. O arquivo `routes/web.php` inclui os arquivos de domínio.
+Todas as rotas web estão sob o middleware `auth`, `midnight.session` e `MaintenanceERP`. O arquivo `routes/web.php` inclui os arquivos de domínio.
 
 ### Rota base
 
@@ -677,6 +977,7 @@ Todas as rotas web estão sob o middleware `MaintenanceERP`. O arquivo `routes/w
 | `GET` | `/` | `home` | Página inicial com todos os módulos |
 | `GET` | `/modulo/{module}` | `module.show` | Página de detalhes do módulo |
 | `GET` | `/modulo/{module}/item/{item}` | `module.item.development` | Tela de funcionalidade em desenvolvimento |
+| `GET` | `/suporte/chat` | `suporte.chat` | Chat de suporte com tickets |
 
 ### Padrão `Route::resource`
 
@@ -702,30 +1003,34 @@ Todas as rotas web estão sob o middleware `MaintenanceERP`. O arquivo `routes/w
 
 #### Perfil / Segurança (`routes/perfil.php`) — middleware `admin`
 
-| Recurso | Rotas geradas | Descrição |
+| Recurso / Rota | Nome(s) | Descrição |
 |---|---|---|
-| `users` | `users.*` | Controle de usuários com status, licença e módulos |
-| `permissions` | `permissions.*` | Gerenciamento de permissões |
-| `logs` | `logs.*` | Logs do sistema |
+| `Route::resource` `users` | `users.*` | Controle de usuários (sem `show`) |
+| `Route::resource` `permissions` | `permissions.*` | Gerenciamento de permissões |
+| `GET /logs` | `logs.index` | Listagem de logs de auditoria (Livewire) |
 
 #### Cadastro (`routes/cadastro.php`)
 
-- Rotas Livewire (GET):
-  - `clients.index`, `clients.create`, `clients.edit`
-  - `products.index`, `products.create`, `products.edit`
-  - `suppliers.index`, `suppliers.create`, `suppliers.edit`
-  - `employees.index`, `employees.create`, `employees.edit`
-- `Route::resource` → `role`, `vehicles`
-- Rotas extras de impressão:
-  - `GET /clients/print` → `clients.print`
-  - `GET /products/print` → `products.print`
-  - `GET /suppliers/print` → `suppliers.print`
-  - `GET /employees/print` → `employees.print`
-  - `GET /vehicles/print` → `vehicles.print`
-- Relacionamento produto × fornecedor:
-  - `GET /products/{product}/suppliers` → `products.suppliers.index`
-  - `POST /products/{product}/suppliers` → `products.suppliers.store`
-  - `DELETE /products/{product}/suppliers/{supplier}` → `products.suppliers.destroy`
+Todas as rotas abaixo usam componentes **Livewire** (GET):
+
+- `clients.index`, `clients.create`, `clients.edit`
+- `products.index`, `products.create`, `products.edit`
+- `suppliers.index`, `suppliers.create`, `suppliers.edit`
+- `employees.index`, `employees.create`, `employees.edit`
+- `roles.index`, `roles.create`, `roles.edit`
+- `vehicles.index`, `vehicles.create`, `vehicles.edit`
+
+Rotas extras de impressão:
+- `GET /clients/print` → `clients.print`
+- `GET /products/print` → `products.print`
+- `GET /suppliers/print` → `suppliers.print`
+- `GET /employees/print` → `employees.print`
+- `GET /vehicles/print` → `vehicles.print`
+
+Relacionamento produto × fornecedor:
+- `GET /products/{product}/suppliers` → `products.suppliers.index`
+- `POST /products/{product}/suppliers` → `products.suppliers.store`
+- `DELETE /products/{product}/suppliers/{supplier}` → `products.suppliers.destroy`
 
 #### Produção + Dashboard (`routes/producao.php`)
 
@@ -774,9 +1079,18 @@ Todas as rotas web estão sob o middleware `MaintenanceERP`. O arquivo `routes/w
 
 ## API REST (`routes/api.php`)
 
-Todos os endpoints ficam sob o prefixo `/api` com middleware `api`.
+Todos os endpoints ficam sob o prefixo `/api`.
 
-### Produtos
+### Proxy BrasilAPI (middleware `auth`)
+
+| Método | URI | Descrição |
+|---|---|---|
+| `GET` | `/api/proxy/cnpj/{cnpj}` | Consulta dados de CNPJ via BrasilAPI |
+| `GET` | `/api/proxy/cep/{cep}` | Consulta dados de CEP via BrasilAPI |
+
+> Esses endpoints requerem sessão autenticada e fazem proxy para `https://brasilapi.com.br/api`.
+
+### Produtos (middleware `api`)
 
 | Método | URI | Descrição |
 |---|---|---|
@@ -786,9 +1100,9 @@ Todos os endpoints ficam sob o prefixo `/api` com middleware `api`.
 | `PUT / PATCH` | `/api/products/{product}` | Atualizar |
 | `DELETE` | `/api/products/{product}` | Remover |
 
-**Campos obrigatórios para criação:** `name`, `ean` (13 dígitos, único), `description`, `unit_of_measure`, `sale_price`, `stock`, `category`. Opcionais: `expiration_date`, `image` (jpg/jpeg/png/webp, máx. 2 MB).
+**Campos obrigatórios para criação:** `name`, `unit_of_measure`, `sale_price`, `stock`, `category`. Opcionais: `ean` (13 dígitos), `description`, `expiration_date`, `image` (jpg/jpeg/png/webp, máx. 2 MB).
 
-### Fornecedores
+### Fornecedores (middleware `api`)
 
 | Método | URI | Descrição |
 |---|---|---|
@@ -800,7 +1114,7 @@ Todos os endpoints ficam sob o prefixo `/api` com middleware `api`.
 
 **Campos obrigatórios:** `name`, `social_name`, `taxNumber` (CNPJ, único), `email`, `phone_number`, `address_zip_code`, `address_street`, `address_number`, `address_district`, `address_city`, `address_state`.
 
-### Clientes
+### Clientes (middleware `api`)
 
 | Método | URI | Descrição |
 |---|---|---|
@@ -812,7 +1126,7 @@ Todos os endpoints ficam sob o prefixo `/api` com middleware `api`.
 
 **Campos obrigatórios:** `name`, `taxNumber` (único), `email` (único), `phone_number`, `address`.
 
-### Relacionamento Produto × Fornecedor
+### Relacionamento Produto × Fornecedor (middleware `api`)
 
 | Método | URI | Descrição |
 |---|---|---|
@@ -855,6 +1169,9 @@ php artisan db:seed --no-interaction
 # Rodar seeder de configurações
 php artisan db:seed --class=SettingsSeeder --no-interaction
 
+# Rodar seeder de logs de exemplo
+php artisan db:seed --class=SystemLogSeeder --no-interaction
+
 # Rodar seeders no Docker (container app)
 docker compose exec app php artisan db:seed --no-interaction
 
@@ -885,6 +1202,8 @@ php artisan about
 - **Comandos Laravel via Sail**: usar `./vendor/bin/sail artisan ...` se o projeto estiver rodando via Sail.
 - **Novas rotas**: ao criar uma rota que deve renderizar normalmente (não "Em Breve"), adicionar o padrão `rotaNova.*` ao whitelist em `app/Http/Middleware/MaintenanceERP.php`.
 - **Configurações do sistema**: usar `Setting::get()` / `Setting::set()` — nunca acessar a tabela `settings` diretamente fora do model.
+- **Logs de auditoria**: usar `LogService::success()`, `::warning()` ou `::error()` — nunca escrever diretamente em `SystemLog`.
+- **Integração BrasilAPI**: usar `BrasilAPIService` injetado via DI ou o endpoint proxy `/api/proxy/cnpj/{cnpj}` e `/api/proxy/cep/{cep}` no front-end.
 
 ---
 
