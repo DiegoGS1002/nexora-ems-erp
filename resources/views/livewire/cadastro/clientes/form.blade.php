@@ -40,7 +40,7 @@
                 </div>
                 <div class="nx-tipo-selector">
                     <label class="nx-tipo-card {{ $form->tipo_pessoa === 'PJ' ? 'nx-tipo-card--active' : '' }}">
-                        <input type="radio" wire:model="form.tipo_pessoa" value="PJ" class="sr-only">
+                        <input type="radio" wire:model.live="form.tipo_pessoa" value="PJ" class="sr-only">
                         <div class="nx-tipo-card-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                         </div>
@@ -55,7 +55,7 @@
                         </div>
                     </label>
                     <label class="nx-tipo-card {{ $form->tipo_pessoa === 'PF' ? 'nx-tipo-card--active' : '' }}">
-                        <input type="radio" wire:model="form.tipo_pessoa" value="PF" class="sr-only">
+                        <input type="radio" wire:model.live="form.tipo_pessoa" value="PF" class="sr-only">
                         <div class="nx-tipo-card-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         </div>

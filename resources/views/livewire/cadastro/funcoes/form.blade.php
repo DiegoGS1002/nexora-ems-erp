@@ -229,14 +229,30 @@
                                         {{-- GRID DE CHECKBOXES --}}
                                         @if($isExpanded)
                                             <div class="nx-perm-module-body">
+                                                {{-- Botões rápidos por módulo --}}
+                                                <div style="display:flex;gap:6px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #F1F5F9;">
+                                                    <button type="button"
+                                                        wire:click="selectAllModule('{{ $moduleKey }}')"
+                                                        class="nx-roles-action-btn"
+                                                        style="font-size:11px;padding:3px 9px;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                        Marcar todos
+                                                    </button>
+                                                    <button type="button"
+                                                        wire:click="clearModule('{{ $moduleKey }}')"
+                                                        class="nx-roles-action-btn"
+                                                        style="font-size:11px;padding:3px 9px;color:#EF4444;border-color:#FEE2E2;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                                        Desmarcar todos
+                                                    </button>
+                                                </div>
                                                 <div class="nx-perm-grid">
                                                     @foreach($actions as $actionKey => $actionLabel)
                                                         <label class="nx-perm-checkbox-label"
                                                             wire:key="perm-{{ $moduleKey }}-{{ $actionKey }}">
                                                             <input type="checkbox"
                                                                 wire:model.live="form.permissions.{{ $moduleKey }}.{{ $actionKey }}"
-                                                                class="nx-perm-checkbox"
-                                                                value="1">
+                                                                class="nx-perm-checkbox">
                                                             <span class="nx-perm-checkmark"></span>
                                                             <span class="nx-perm-action-name">{{ $actionLabel }}</span>
                                                         </label>
@@ -576,7 +592,7 @@
                     <p style="font-size:13.5px;color:#475569;margin-bottom:14px;">Selecione a função de origem. As permissões serão copiadas para esta função.</p>
                     <div class="nx-field">
                         <label>Copiar de</label>
-                        <select wire:model="copyFromRoleId">
+                        <select wire:model.live="copyFromRoleId">
                             <option value="">Selecione uma função...</option>
                             @foreach($this->otherRoles as $r)
                                 <option value="{{ $r->id }}">{{ $r->name }}{{ $r->department ? ' — '.$r->department : '' }}</option>

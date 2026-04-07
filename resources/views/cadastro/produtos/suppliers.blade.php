@@ -38,7 +38,7 @@
 
         <div>
             <label>Descrição</label>
-            <input readonly {{ $product->description }}>
+            <input type="text" value="{{ $product->description }}" readonly>
         </div>
     </div>
 

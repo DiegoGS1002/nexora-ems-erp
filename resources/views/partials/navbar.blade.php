@@ -91,37 +91,41 @@
     <div class="nx-sb-user">
         <div class="nx-sb-sep"></div>
         <div class="nx-sb-user-actions">
-            <button class="nx-sb-icon-btn" title="Notificações">
-                <span class="nx-sb-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                </span>
-                <span class="nx-sb-label">Notificações</span>
-                <span class="nx-sb-badge">3</span>
-            </button>
+            @auth
+                <livewire:notification-dropdown />
+            @endauth
         </div>
         <div class="nx-sb-profile nx-has-dropdown" id="nx-sb-profile">
             <button class="nx-sb-profile-btn nx-dropdown-trigger" data-dropdown="usuario">
-                <img src="{{ app()->environment() === 'production' ? secure_asset('images/usuario.png') : asset('images/usuario.png') }}"
-                     alt="Usuário" class="nx-sb-avatar">
+                @if(auth()->user()->avatar)
+                    <img src="{{ Storage::url(auth()->user()->avatar) }}"
+                         alt="{{ auth()->user()->name }}" class="nx-sb-avatar">
+                @else
+                    <span class="nx-sb-avatar" style="background:linear-gradient(135deg,#3B82F6,#6366F1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:2px solid #3B82F6;">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                    </span>
+                @endif
                 <span class="nx-sb-label nx-sb-profile-info">
                     <span class="nx-sb-profile-name">{{ auth()->user()->name }}</span>
-                    <span class="nx-sb-profile-role">{{ auth()->user()->is_admin ? 'Administrador' : 'Usuario' }}</span>
+                    <span class="nx-sb-profile-role">{{ auth()->user()->is_admin ? 'Administrador' : 'Usuário' }}</span>
                 </span>
                 <svg class="nx-chevron nx-sb-label" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             <div class="nx-dropdown nx-sb-user-menu" id="dropdown-usuario">
                 <div class="nx-dropdown-header">Minha Conta</div>
-                <a href="{{ route('profile.index') }}" class="nx-dropdown-item">
+                <a href="{{ route('profile.index') }}" class="nx-dropdown-item {{ request()->routeIs('profile.*') ? 'nx-dropdown-item--active' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Perfil
+                    Meu Perfil
+                </a>
+                <a href="{{ route('notifications.index') }}" class="nx-dropdown-item {{ request()->routeIs('notifications.*') ? 'nx-dropdown-item--active' : '' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Notificações
                 </a>
                 @if(auth()->user()->is_admin)
                     <a href="{{ route('users.index') }}" class="nx-dropdown-item">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         Usuários
                     </a>
-                @endif
-                @if(auth()->user()->is_admin)
                     <a href="{{ route('permissions.index') }}" class="nx-dropdown-item">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         Permissões
@@ -163,8 +167,7 @@
              alt="Nexora" class="nx-topbar-logo">
         <span>Nexora <strong>ERP</strong></span>
     </a>
-    <button class="nx-sb-icon-btn" title="Notificações" style="margin-left:auto">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="nx-sb-badge">3</span>
-    </button>
+    @auth
+        <livewire:notification-dropdown />
+    @endauth
 </header>

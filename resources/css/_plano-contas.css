@@ -1,0 +1,528 @@
+/* ============================================================
+   PLANO DE CONTAS — Nexora ERP
+   ============================================================ */
+
+/* ── PAGE LAYOUT ──────────────────────────────────────────── */
+
+.nx-plano-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── BREADCRUMB ───────────────────────────────────────────── */
+
+.nx-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.nx-breadcrumb-link {
+    font-size: 12.5px;
+    color: #64748B;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.nx-breadcrumb-link:hover { color: #3B82F6; }
+
+.nx-breadcrumb-current {
+    font-size: 12.5px;
+    color: #94A3B8;
+}
+
+.nx-breadcrumb svg { color: #CBD5E1; flex-shrink: 0; }
+
+/* ── KPI GRID ─────────────────────────────────────────────── */
+
+.nx-plano-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+/* ── MAIN CARD ────────────────────────────────────────────── */
+
+.nx-plano-main-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+/* ── FILTER BAR ───────────────────────────────────────────── */
+
+.nx-plano-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #F1F5F9;
+    background: #FAFBFD;
+    flex-wrap: wrap;
+}
+
+.nx-plano-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 200px;
+    max-width: 320px;
+}
+
+.nx-plano-search-icon {
+    position: absolute;
+    left: 10px;
+    color: #94A3B8;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.nx-plano-search-input {
+    width: 100%;
+    padding: 8px 32px 8px 32px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 9px;
+    font-size: 13px;
+    color: #1E293B;
+    background: #FFFFFF;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.nx-plano-search-input:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.nx-plano-search-input::placeholder { color: #94A3B8; }
+
+.nx-plano-search-clear {
+    position: absolute;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: #E2E8F0;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    padding: 0;
+}
+
+.nx-plano-search-clear:hover { background: #CBD5E1; }
+
+/* Type filter tabs */
+.nx-plano-type-filter {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #F1F5F9;
+    border-radius: 9px;
+    padding: 3px;
+}
+
+.nx-plano-type-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.nx-plano-type-btn:hover { background: rgba(255,255,255,0.7); }
+
+.nx-plano-type-btn--active {
+    background: #FFFFFF !important;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.nx-plano-type-btn--active-receita  { color: #059669 !important; }
+.nx-plano-type-btn--active-despesa  { color: #DC2626 !important; }
+.nx-plano-type-btn--active-ativo    { color: #2563EB !important; }
+.nx-plano-type-btn--active-passivo  { color: #D97706 !important; }
+
+.nx-plano-type-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Legend */
+.nx-plano-legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.nx-plano-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    color: #94A3B8;
+}
+
+/* ── TREE TABLE HEADER ────────────────────────────────────── */
+
+.nx-tree-table-header {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 10px 18px 10px 16px;
+    background: #F8FAFC;
+    border-bottom: 2px solid #E8EEF5;
+}
+
+.nx-tree-th {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.nx-tree-th--icon   { width: 24px; }
+.nx-tree-th--code   { width: 90px; }
+.nx-tree-th--name   { flex: 1; min-width: 0; }
+.nx-tree-th--type   { width: 90px; }
+.nx-tree-th--level  { width: 90px; }
+.nx-tree-th--status { width: 72px; }
+.nx-tree-th--actions{ width: 96px; text-align: right; }
+
+/* ── TREE BODY ────────────────────────────────────────────── */
+
+.nx-tree-body {
+    transition: opacity 0.2s;
+}
+
+.nx-tree-body--loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* ── TREE ROW ─────────────────────────────────────────────── */
+
+.nx-tree-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 18px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid #F8FAFC;
+    transition: background 0.12s;
+    position: relative;
+}
+
+.nx-tree-row:hover {
+    background: #F8FAFC;
+}
+
+.nx-tree-row--group {
+    background: #FAFBFD;
+}
+
+.nx-tree-row--group:hover {
+    background: #F1F5F9;
+}
+
+/* ── TOGGLE BUTTON ────────────────────────────────────────── */
+
+.nx-tree-toggle {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    padding: 0;
+}
+
+.nx-tree-toggle:hover {
+    background: #EFF6FF;
+    border-color: #93C5FD;
+    color: #3B82F6;
+}
+
+.nx-tree-toggle-placeholder {
+    width: 22px;
+    flex-shrink: 0;
+}
+
+.nx-tree-chevron {
+    transition: transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.nx-tree-chevron--open {
+    transform: rotate(90deg);
+}
+
+/* ── ICON ─────────────────────────────────────────────────── */
+
+.nx-tree-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    flex-shrink: 0;
+}
+
+.nx-tree-icon--folder { color: #06B6D4; }
+.nx-tree-icon--file   { color: #94A3B8; }
+
+/* ── CODE ─────────────────────────────────────────────────── */
+
+.nx-tree-code {
+    width: 90px;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748B;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── NAME ─────────────────────────────────────────────────── */
+
+.nx-tree-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13.5px;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nx-tree-name--group {
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.nx-tree-inactive-hint {
+    font-size: 11px;
+    color: #94A3B8;
+    font-style: italic;
+    margin-left: 4px;
+}
+
+.nx-tree-parent-hint {
+    font-size: 11.5px;
+    color: #94A3B8;
+    margin-left: 6px;
+    font-weight: 400;
+}
+
+/* ── TYPE BADGES ──────────────────────────────────────────── */
+
+.nx-tree-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    width: 90px;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.nx-type--receita { background: rgba(16,185,129,0.1);  color: #059669; }
+.nx-type--despesa { background: rgba(239,68,68,0.1);   color: #DC2626; }
+.nx-type--ativo   { background: rgba(59,130,246,0.1);  color: #2563EB; }
+.nx-type--passivo { background: rgba(245,158,11,0.1);  color: #D97706; }
+.nx-type--default { background: rgba(100,116,139,0.1); color: #64748B; }
+
+/* ── SELECTABLE / LEVEL BADGES ────────────────────────────── */
+
+.nx-tree-selectable-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    width: 90px;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.nx-tree-selectable--yes   { background: rgba(6,182,212,0.1);  color: #0891B2; }
+.nx-tree-selectable--no    { background: rgba(100,116,139,0.1); color: #475569; }
+.nx-tree-selectable--group { background: rgba(139,92,246,0.1); color: #7C3AED; }
+
+/* ── STATUS BADGES ────────────────────────────────────────── */
+
+.nx-tree-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    width: 72px;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.nx-tree-status::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.nx-tree-status--active   { background: rgba(16,185,129,0.1); color: #059669; }
+.nx-tree-status--inactive { background: rgba(100,116,139,0.1); color: #94A3B8; }
+
+/* ── ACTION BUTTONS ───────────────────────────────────────── */
+
+.nx-tree-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 96px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.nx-tree-row:hover .nx-tree-actions,
+.nx-tree-row:focus-within .nx-tree-actions {
+    opacity: 1;
+}
+
+.nx-tree-action-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    border: 1.5px solid transparent;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.nx-tree-action-btn--add {
+    color: #059669;
+    border-color: rgba(16,185,129,0.3);
+}
+.nx-tree-action-btn--add:hover {
+    background: rgba(16,185,129,0.1);
+    border-color: rgba(16,185,129,0.6);
+}
+
+.nx-tree-action-btn--edit {
+    color: #475569;
+    border-color: #E2E8F0;
+}
+.nx-tree-action-btn--edit:hover {
+    background: #F1F5F9;
+    border-color: #CBD5E1;
+    color: #1E293B;
+}
+
+.nx-tree-action-btn--delete {
+    color: #DC2626;
+    border-color: rgba(239,68,68,0.2);
+}
+.nx-tree-action-btn--delete:hover {
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.4);
+}
+
+/* ── TREE TRANSITIONS ─────────────────────────────────────── */
+
+.nx-tree-transition-enter {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    overflow: hidden;
+}
+.nx-tree-transition-enter-start { opacity: 0; transform: translateY(-4px); }
+.nx-tree-transition-enter-end   { opacity: 1; transform: translateY(0); }
+.nx-tree-transition-leave       { transition: opacity 0.12s ease; overflow: hidden; }
+.nx-tree-transition-leave-start { opacity: 1; }
+.nx-tree-transition-leave-end   { opacity: 0; }
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+
+.nx-plano-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-top: 1px solid #F1F5F9;
+    background: #FAFBFD;
+}
+
+.nx-plano-footer-count {
+    font-size: 12.5px;
+    color: #94A3B8;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+    .nx-plano-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+    .nx-tree-th--type,
+    .nx-tree-th--level,
+    .nx-tree-type-badge,
+    .nx-tree-selectable-badge { display: none; }
+}
+
+@media (max-width: 768px) {
+    .nx-plano-kpis { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .nx-plano-legend { display: none; }
+    .nx-plano-filter-bar { flex-direction: column; align-items: stretch; }
+    .nx-plano-search-wrap { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+    .nx-plano-kpis { grid-template-columns: 1fr; }
+    .nx-tree-th--status { display: none; }
+    .nx-tree-status     { display: none; }
+}
+

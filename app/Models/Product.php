@@ -31,7 +31,9 @@ class Product extends Model
         'unit_of_measure',
         'category',
         'sale_price',
+        'cost_price',
         'stock',
+        'stock_min',
         'expiration_date',
         'weight_net',
         'weight_gross',
@@ -47,6 +49,7 @@ class Product extends Model
 
     protected $casts = [
         'sale_price'   => 'decimal:2',
+        'cost_price'   => 'decimal:2',
         'weight_net'   => 'decimal:3',
         'weight_gross' => 'decimal:3',
         'height'       => 'decimal:2',

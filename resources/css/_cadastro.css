@@ -1,0 +1,768 @@
+/* ============================================================
+   CADASTRO — Nexora ERP | Listagens, Formulários e Funções
+   ============================================================ */
+
+/* ══════════════════════════════════════════════
+   CAMPO — ERROS DE VALIDAÇÃO
+   ══════════════════════════════════════════════ */
+
+.nx-field-error {
+    font-size: 12px;
+    color: #EF4444;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+/* Danger variant para inline alerts */
+.nx-inline-alert--danger {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #991B1B;
+}
+
+/* ══════════════════════════════════════════════
+   LOOKUP BUTTONS (CNPJ / CEP)
+   ══════════════════════════════════════════════ */
+
+.nx-lookup-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: #FFFFFF;
+    background: #2563EB;
+    border: 1.5px solid #2563EB;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.18s, box-shadow 0.18s, transform 0.1s;
+    white-space: nowrap;
+    outline: none;
+}
+
+.nx-lookup-btn:hover { background: #1D4ED8; border-color: #1D4ED8; box-shadow: 0 3px 10px rgba(37,99,235,0.3); }
+.nx-lookup-btn:active { transform: scale(0.98); }
+.nx-lookup-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.nx-lookup-btn--secondary {
+    background: #F1F5F9;
+    color: #374151;
+    border-color: #E2E8F0;
+}
+.nx-lookup-btn--secondary:hover { background: #E2E8F0; border-color: #CBD5E1; box-shadow: none; }
+
+/* ══════════════════════════════════════════════
+   MODAL (genérico)
+   ══════════════════════════════════════════════ */
+
+.nx-modal--sm .nx-modal { max-width: 480px; }
+
+/* ══════════════════════════════════════════════
+   MONOSPACE
+   ══════════════════════════════════════════════ */
+
+.nx-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 12.5px;
+}
+
+/* ══════════════════════════════════════════════
+   LIST PAGE — HEADER
+   ══════════════════════════════════════════════ */
+
+.nx-list-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.nx-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.nx-page-header-left { display: flex; flex-direction: column; gap: 4px; }
+
+.nx-page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.4px;
+    margin: 0;
+}
+
+.nx-page-subtitle {
+    font-size: 13.5px;
+    color: #64748B;
+    margin: 0;
+}
+
+.nx-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ══════════════════════════════════════════════
+   LIST PAGE — FILTERS BAR
+   ══════════════════════════════════════════════ */
+
+.nx-filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: #FFFFFF;
+    border: 1px solid #E8EEF5;
+    border-radius: 12px;
+    padding: 10px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.nx-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 200px;
+}
+
+.nx-search-wrap svg {
+    position: absolute;
+    left: 10px;
+    color: #94A3B8;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.nx-search {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    font-size: 13.5px;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: #1E293B;
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 9px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.nx-search:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); background: #FFFFFF; }
+.nx-search::placeholder { color: #94A3B8; }
+
+.nx-filter-select {
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: #374151;
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 9px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    min-width: 140px;
+}
+
+.nx-filter-select:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); background: #FFFFFF; }
+
+.nx-filter-actions { display: flex; gap: 6px; margin-left: auto; }
+
+/* ══════════════════════════════════════════════
+   LIST PAGE — TABELA
+   ══════════════════════════════════════════════ */
+
+.nx-card {
+    background: #FFFFFF;
+    border: 1px solid #E8EEF5;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+}
+
+.nx-table-wrap { overflow-x: auto; }
+
+.nx-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+}
+
+.nx-table thead tr {
+    background: #F8FAFC;
+    border-bottom: 1px solid #E8EEF5;
+}
+
+.nx-table th {
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.nx-table td {
+    padding: 12px 16px;
+    color: #1E293B;
+    border-bottom: 1px solid #F1F5F9;
+    vertical-align: middle;
+}
+
+.nx-table tbody tr:last-child td { border-bottom: none; }
+.nx-table tbody tr:hover { background: #FAFBFC; }
+
+.nx-th-center, .nx-td-center { text-align: center !important; }
+.nx-th-right, .nx-td-right { text-align: right !important; }
+.nx-th-actions, .nx-td-actions { text-align: right !important; white-space: nowrap; }
+.nx-td-muted { color: #94A3B8; font-size: 13px; }
+
+.nx-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #F8FAFC;
+    border-top: 1px solid #F1F5F9;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.nx-table-count {
+    font-size: 12.5px;
+    color: #64748B;
+    font-weight: 500;
+}
+
+.nx-pagination { display: flex; align-items: center; gap: 4px; }
+
+/* ══════════════════════════════════════════════
+   ACTION BUTTONS (editar / excluir na tabela)
+   ══════════════════════════════════════════════ */
+
+.nx-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid #E2E8F0;
+    background: #FFFFFF;
+    cursor: pointer;
+    color: #64748B;
+    transition: background 0.18s, border-color 0.18s, color 0.18s;
+    text-decoration: none;
+}
+
+.nx-action-btn:hover { background: #F1F5F9; border-color: #CBD5E1; color: #1E293B; }
+
+.nx-action-edit:hover { background: #EFF6FF; border-color: #BFDBFE; color: #2563EB; }
+.nx-action-delete:hover { background: #FEF2F2; border-color: #FECACA; color: #EF4444; }
+
+/* ══════════════════════════════════════════════
+   BADGES (status pills nas tabelas)
+   ══════════════════════════════════════════════ */
+
+.nx-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.nx-badge-success  { background: #F0FDF4; border-color: #BBF7D0; color: #166534; }
+.nx-badge-danger   { background: #FEF2F2; border-color: #FECACA; color: #991B1B; }
+.nx-badge-warning  { background: #FFFBEB; border-color: #FDE68A; color: #92400E; }
+.nx-badge--blue    { background: #EFF6FF; border-color: #BFDBFE; color: #1D4ED8; }
+.nx-badge--purple  { background: #F5F3FF; border-color: #DDD6FE; color: #5B21B6; }
+.nx-badge--gray    { background: #F1F5F9; border-color: #E2E8F0; color: #475569; }
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES / ROLES — BADGE STATUS
+   ══════════════════════════════════════════════ */
+
+.nx-roles-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.nx-roles-badge--active   { background: #F0FDF4; border-color: #BBF7D0; color: #166534; }
+.nx-roles-badge--inactive { background: #F8FAFC; border-color: #E2E8F0; color: #64748B; }
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES — MODULE CARDS GRID
+   ══════════════════════════════════════════════ */
+
+.nx-roles-modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.nx-roles-module-card {
+    background: #F8FAFC;
+    border: 2px solid #E8EEF5;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.18s, background 0.18s;
+}
+
+.nx-roles-module-card--enabled {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+}
+
+.nx-roles-module-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.nx-roles-module-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.nx-roles-module-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.nx-roles-module-status--on  { background: #10B981; box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
+.nx-roles-module-status--off { background: #D1D5DB; }
+
+.nx-roles-module-perms {
+    font-size: 11.5px;
+    color: #64748B;
+}
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES — DONUT / LEGEND
+   ══════════════════════════════════════════════ */
+
+.nx-roles-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.nx-roles-donut {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.nx-roles-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.nx-roles-legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12.5px;
+}
+
+.nx-roles-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.nx-roles-legend-label { color: #64748B; flex: 1; }
+.nx-roles-legend-value { font-weight: 700; color: #1E293B; }
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES — STATUS TOGGLE ROW
+   ══════════════════════════════════════════════ */
+
+.nx-roles-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.nx-roles-status-label { font-size: 13.5px; font-weight: 600; color: #1E293B; }
+
+.nx-roles-status-toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.nx-roles-status-track {
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: #D1D5DB;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.nx-roles-status-track--on  { background: #3B82F6; }
+.nx-roles-status-track--off { background: #D1D5DB; }
+
+.nx-roles-status-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+}
+
+.nx-roles-status-track--on .nx-roles-status-thumb { transform: translateX(20px); }
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES — QUICK ACTIONS
+   ══════════════════════════════════════════════ */
+
+.nx-roles-quick-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.1s;
+}
+
+.nx-roles-quick-btn:active { transform: scale(0.97); }
+
+.nx-roles-quick-btn--blue  { background: #EFF6FF; border-color: #BFDBFE; color: #1D4ED8; }
+.nx-roles-quick-btn--green { background: #F0FDF4; border-color: #BBF7D0; color: #166534; }
+.nx-roles-quick-btn--red   { background: #FEF2F2; border-color: #FECACA; color: #991B1B; }
+
+.nx-roles-quick-btn--blue:hover  { background: #DBEAFE; }
+.nx-roles-quick-btn--green:hover { background: #DCFCE7; }
+.nx-roles-quick-btn--red:hover   { background: #FEE2E2; }
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES — ACTION BUTTON (inline na tabela)
+   ══════════════════════════════════════════════ */
+
+.nx-roles-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    border-radius: 7px;
+    border: 1.5px solid #E2E8F0;
+    background: #FFFFFF;
+    cursor: pointer;
+    color: #374151;
+    transition: background 0.18s, border-color 0.18s;
+}
+.nx-roles-action-btn:hover { background: #F1F5F9; border-color: #CBD5E1; }
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES — SECURITY TIP
+   ══════════════════════════════════════════════ */
+
+.nx-roles-security-tip {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.nx-roles-security-tip-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: #FEF3C7;
+    border: 1px solid #FDE68A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D97706;
+    flex-shrink: 0;
+}
+
+.nx-roles-security-tip-title { font-size: 13.5px; font-weight: 700; color: #92400E; margin: 0 0 4px; }
+.nx-roles-security-tip-text  { font-size: 12.5px; color: #78350F; line-height: 1.5; margin: 0; }
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES — HISTORY (changelog)
+   ══════════════════════════════════════════════ */
+
+.nx-roles-history-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 12.5px;
+}
+.nx-roles-history-item:last-child { border-bottom: none; }
+
+.nx-roles-history-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+.nx-roles-history-dot--create { background: #10B981; }
+.nx-roles-history-dot--update { background: #3B82F6; }
+
+/* ══════════════════════════════════════════════
+   FUNÇÕES — USERS CARD
+   ══════════════════════════════════════════════ */
+
+.nx-roles-users-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.nx-roles-users-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3B82F6;
+    flex-shrink: 0;
+}
+
+.nx-roles-users-count { font-size: 22px; font-weight: 800; color: #0F172A; line-height: 1; }
+.nx-roles-users-label { font-size: 12px; color: #94A3B8; }
+.nx-roles-users-link  { font-size: 12.5px; font-weight: 600; color: #2563EB; text-decoration: none; }
+.nx-roles-users-link:hover { text-decoration: underline; }
+
+/* ══════════════════════════════════════════════
+   PERMISSÕES — ACCORDION TABLE
+   ══════════════════════════════════════════════ */
+
+.nx-perm-accordion {
+    border: 1px solid #E8EEF5;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.nx-perm-table-header {
+    display: grid;
+    background: #F8FAFC;
+    border-bottom: 1px solid #E8EEF5;
+    padding: 10px 16px;
+}
+
+.nx-perm-module {
+    border-bottom: 1px solid #F1F5F9;
+}
+.nx-perm-module:last-child { border-bottom: none; }
+
+.nx-perm-module-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: #FFFFFF;
+    transition: background 0.15s;
+    user-select: none;
+}
+
+.nx-perm-module-header:hover { background: #F8FAFC; }
+.nx-perm-module-header--open { background: #F0F7FF; border-bottom: 1px solid #DBEAFE; }
+
+.nx-perm-module-col {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.nx-perm-module-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.nx-perm-mini-dots {
+    display: flex;
+    gap: 3px;
+    margin-left: 8px;
+}
+
+.nx-perm-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    border: 1px solid #CBD5E1;
+    background: transparent;
+}
+.nx-perm-dot--on  { background: #10B981; border-color: #10B981; }
+.nx-perm-dot--off { background: #E2E8F0; border-color: #E2E8F0; }
+
+.nx-perm-count-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #1D4ED8;
+    white-space: nowrap;
+}
+
+.nx-perm-chevron {
+    color: #94A3B8;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+.nx-perm-chevron--open { transform: rotate(90deg); }
+
+.nx-perm-module-body {
+    display: none;
+    padding: 8px 0;
+    background: #FAFBFC;
+    border-top: 1px solid #F1F5F9;
+}
+
+.nx-perm-module-body.open { display: block; }
+
+.nx-perm-grid {
+    display: flex;
+    flex-direction: column;
+}
+
+.nx-perm-action-col {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 24px;
+    border-bottom: 1px solid #F8FAFC;
+    transition: background 0.12s;
+    gap: 12px;
+}
+.nx-perm-action-col:last-child { border-bottom: none; }
+.nx-perm-action-col:hover { background: #F8FAFC; }
+
+.nx-perm-action-name {
+    font-size: 13px;
+    color: #374151;
+    flex: 1;
+}
+
+.nx-perm-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.nx-perm-checkbox input[type="checkbox"] { display: none; }
+
+.nx-perm-checkmark {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 2px solid #CBD5E1;
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, border-color 0.18s;
+    flex-shrink: 0;
+}
+
+.nx-perm-checkbox input:checked ~ .nx-perm-checkmark {
+    background: #2563EB;
+    border-color: #2563EB;
+}
+
+.nx-perm-checkbox-label {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.nx-perm-info-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    color: #64748B;
+    background: #F8FAFC;
+    border-top: 1px solid #F1F5F9;
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVO — CADASTRO
+   ══════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+    .nx-filters-bar { padding: 10px; gap: 8px; }
+    .nx-search-wrap { min-width: 100%; order: -1; }
+    .nx-filter-actions { margin-left: 0; }
+    .nx-page-header { flex-direction: column; align-items: stretch; }
+    .nx-page-actions { justify-content: flex-end; }
+}
+
+@media (max-width: 600px) {
+    .nx-table-footer { flex-direction: column; gap: 8px; align-items: flex-start; }
+    .nx-roles-modules-grid { grid-template-columns: 1fr 1fr; }
+}
+

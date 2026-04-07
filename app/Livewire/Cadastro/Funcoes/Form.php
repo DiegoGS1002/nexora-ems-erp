@@ -90,6 +90,20 @@ class Form extends Component
         $this->form->permissions = (new RoleService())->clearAll($this->form->permissions);
     }
 
+    public function selectAllModule(string $module): void
+    {
+        foreach (array_keys(RoleService::ACTIONS) as $action) {
+            $this->form->permissions[$module][$action] = true;
+        }
+    }
+
+    public function clearModule(string $module): void
+    {
+        foreach (array_keys(RoleService::ACTIONS) as $action) {
+            $this->form->permissions[$module][$action] = false;
+        }
+    }
+
     public function openCopyModal(): void
     {
         $this->copyFromRoleId = null;

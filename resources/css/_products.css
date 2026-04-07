@@ -1,0 +1,658 @@
+/* ============================================================
+   PRODUTOS — Nexora ERP | Formulário e Listagem de Produtos
+   ============================================================ */
+
+/* ══════════════════════════════════════════════
+   BOTÕES GLOBAIS (nx-btn)
+   ══════════════════════════════════════════════ */
+
+.nx-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    font-size: 13.5px;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-weight: 600;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.1s, opacity 0.18s;
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 1;
+    outline: none;
+}
+
+.nx-btn:active { transform: scale(0.98); }
+.nx-btn:disabled, .nx-btn[disabled] { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+
+.nx-btn-primary {
+    background: #2563EB;
+    color: #fff;
+    border-color: #2563EB;
+    box-shadow: 0 1px 3px rgba(37,99,235,0.3);
+}
+.nx-btn-primary:hover { background: #1D4ED8; border-color: #1D4ED8; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
+
+.nx-btn-secondary {
+    background: #F1F5F9;
+    color: #1E293B;
+    border-color: #E2E8F0;
+}
+.nx-btn-secondary:hover { background: #E2E8F0; border-color: #CBD5E1; }
+
+.nx-btn-outline {
+    background: transparent;
+    color: #374151;
+    border-color: #D1D5DB;
+}
+.nx-btn-outline:hover { background: #F9FAFB; border-color: #9CA3AF; }
+
+.nx-btn-ghost {
+    background: transparent;
+    color: #64748B;
+    border-color: transparent;
+}
+.nx-btn-ghost:hover { background: #F1F5F9; color: #1E293B; }
+
+.nx-btn-sm {
+    padding: 6px 14px;
+    font-size: 12.5px;
+    border-radius: 8px;
+}
+
+.nx-btn--loading { opacity: 0.7; cursor: wait; }
+
+@keyframes nx-spin-anim { to { transform: rotate(360deg); } }
+.nx-spin { animation: nx-spin-anim 0.7s linear infinite; }
+
+/* ══════════════════════════════════════════════
+   ALERTAS INLINE
+   ══════════════════════════════════════════════ */
+
+.nx-inline-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    border: 1px solid transparent;
+}
+
+.nx-inline-alert svg { flex-shrink: 0; margin-top: 1px; }
+
+.nx-inline-alert--warn {
+    background: #FFFBEB;
+    border-color: #FDE68A;
+    color: #92400E;
+}
+
+.nx-inline-alert--success {
+    background: #F0FDF4;
+    border-color: #BBF7D0;
+    color: #166534;
+}
+
+.nx-inline-alert--info {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+    color: #1E40AF;
+}
+
+/* ══════════════════════════════════════════════
+   CAMPO REQUIRED / SECTION HINT
+   ══════════════════════════════════════════════ */
+
+.nx-required { color: #EF4444; margin-left: 2px; }
+.nx-section-hint { font-size: 12px; color: #94A3B8; margin-left: auto; font-weight: 400; }
+
+/* Prefixo / sufixo em campos numéricos */
+.nx-input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.nx-input-unit {
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 600;
+    color: #94A3B8;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ══════════════════════════════════════════════
+   STATUS BADGE
+   ══════════════════════════════════════════════ */
+
+.nx-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.nx-status-badge--edit {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+    color: #2563EB;
+}
+
+/* ══════════════════════════════════════════════
+   FORM HEADER
+   ══════════════════════════════════════════════ */
+
+.nx-form-header { display: flex; flex-direction: column; gap: 10px; }
+.nx-form-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.nx-form-footer-left { flex: 1; }
+.nx-form-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.4px;
+    margin: 0;
+}
+.nx-form-subtitle { font-size: 13.5px; color: #64748B; margin: 0; }
+
+/* ══════════════════════════════════════════════
+   TAB PANEL (conteúdo das abas)
+   ══════════════════════════════════════════════ */
+
+.nx-tab-panel { display: none; }
+.nx-tab-panel--active { display: block; }
+
+/* ══════════════════════════════════════════════
+   PRODUTO — LAYOUT PRINCIPAL
+   ══════════════════════════════════════════════ */
+
+.nx-product-page {
+    max-width: 100%;
+    padding: 0 0 32px;
+}
+
+/* Grade 2/3 principal + 1/3 sidebar */
+.nx-product-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.nx-product-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+}
+
+.nx-product-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+/* Rodapé do formulário */
+.nx-product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #F1F5F9;
+    margin-top: 4px;
+}
+
+/* ══════════════════════════════════════════════
+   PRODUTO — TABS (botões de aba)
+   ══════════════════════════════════════════════ */
+
+.nx-product-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    background: #F8FAFC;
+    border: 1px solid #E8EEF5;
+    border-radius: 12px;
+    padding: 6px;
+}
+
+.nx-product-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+    background: transparent;
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+    white-space: nowrap;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.nx-product-tab:hover { background: #FFFFFF; color: #1E293B; border-color: #E2E8F0; }
+
+.nx-product-tab--active {
+    background: #FFFFFF;
+    color: #2563EB;
+    font-weight: 600;
+    border-color: #BFDBFE;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.nx-product-tab svg { flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════
+   PRODUTO — SIDEBAR CARDS
+   ══════════════════════════════════════════════ */
+
+.nx-sidebar-card {
+    background: #FFFFFF;
+    border: 1px solid #E8EEF5;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.nx-sidebar-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    background: #F8FAFC;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.nx-sidebar-card-body {
+    padding: 16px;
+}
+
+/* Imagem do produto na sidebar */
+.nx-product-thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    display: block;
+}
+
+.nx-product-thumb-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    aspect-ratio: 1 / 1;
+    background: #F8FAFC;
+    border: 2px dashed #E2E8F0;
+    border-radius: 10px;
+    color: #CBD5E1;
+}
+
+.nx-product-thumb-empty p { font-size: 12px; color: #94A3B8; margin: 0; }
+
+/* ══════════════════════════════════════════════
+   PRODUTO — TIPO SELECTOR (Físico / Serviço)
+   ══════════════════════════════════════════════ */
+
+.nx-tipo-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.nx-tipo-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #F8FAFC;
+    border: 2px solid #E8EEF5;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+    position: relative;
+    user-select: none;
+}
+
+.nx-tipo-card:hover { background: #FFFFFF; border-color: #BFDBFE; }
+
+.nx-tipo-card--active {
+    background: #EFF6FF;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.nx-tipo-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3B82F6;
+    flex-shrink: 0;
+}
+
+.nx-tipo-card-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.nx-tipo-card-label { font-size: 13.5px; font-weight: 600; color: #1E293B; }
+.nx-tipo-card-sub { font-size: 12px; color: #94A3B8; }
+
+.nx-tipo-card-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.18s, border-color 0.18s;
+    color: transparent;
+}
+
+.nx-tipo-card-check--active {
+    background: #3B82F6;
+    border-color: #3B82F6;
+    color: #FFFFFF;
+}
+
+/* ══════════════════════════════════════════════
+   PRODUTO — DROPZONE (upload de imagem)
+   ══════════════════════════════════════════════ */
+
+.nx-dropzone {
+    position: relative;
+    border: 2px dashed #D1D5DB;
+    border-radius: 14px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F9FAFB;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.nx-dropzone:hover, .nx-dropzone--over {
+    border-color: #3B82F6;
+    background: #EFF6FF;
+}
+
+.nx-dropzone-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+.nx-dropzone-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 32px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.nx-dropzone-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94A3B8;
+}
+
+.nx-dropzone-label {
+    font-size: 14px;
+    color: #374151;
+    margin: 0;
+}
+
+.nx-dropzone-hint {
+    font-size: 12px;
+    color: #9CA3AF;
+    margin: 0;
+}
+
+.nx-dropzone-preview {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nx-dropzone-preview img {
+    max-width: 100%;
+    max-height: 260px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.nx-dropzone-remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #EF4444;
+    transition: background 0.18s;
+    z-index: 2;
+}
+
+.nx-dropzone-remove:hover { background: #FEF2F2; }
+
+/* ══════════════════════════════════════════════
+   PRODUTO — FORNECEDORES GRID
+   ══════════════════════════════════════════════ */
+
+.nx-supplier-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.nx-supplier-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #F8FAFC;
+    border: 2px solid #E8EEF5;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.18s, background 0.18s;
+    user-select: none;
+}
+
+.nx-supplier-option:hover { background: #FFFFFF; border-color: #BFDBFE; }
+
+.nx-supplier-option--active {
+    background: #EFF6FF;
+    border-color: #3B82F6;
+}
+
+.nx-supplier-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+}
+
+.nx-supplier-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.nx-supplier-name { font-size: 13px; font-weight: 600; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nx-supplier-doc { font-size: 11.5px; color: #94A3B8; }
+
+.nx-supplier-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: transparent;
+    transition: background 0.18s, border-color 0.18s;
+}
+
+.nx-supplier-check--active {
+    background: #3B82F6;
+    border-color: #3B82F6;
+    color: #FFFFFF;
+}
+
+/* ══════════════════════════════════════════════
+   PRODUTO — TAGS / DESTAQUES
+   ══════════════════════════════════════════════ */
+
+.nx-tags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 28px;
+}
+
+.nx-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+
+.nx-tag--blue { background: #EFF6FF; border-color: #BFDBFE; color: #1D4ED8; }
+.nx-tag--gray { background: #F1F5F9; border-color: #E2E8F0; color: #475569; }
+
+.nx-tag-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 15px;
+    color: inherit;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+.nx-tag-remove:hover { opacity: 1; }
+
+.nx-tag-input-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.nx-tag-input-row input {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: #1E293B;
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.nx-tag-input-row input:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+.nx-tag-add-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: #3B82F6;
+    color: #FFFFFF;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.18s;
+}
+.nx-tag-add-btn:hover { background: #2563EB; }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVO — PRODUTO
+   ══════════════════════════════════════════════ */
+
+@media (max-width: 1100px) {
+    .nx-product-layout { grid-template-columns: 1fr 280px; }
+}
+
+@media (max-width: 900px) {
+    .nx-product-layout { grid-template-columns: 1fr; }
+    .nx-product-sidebar { position: static; }
+    .nx-tipo-selector { grid-template-columns: 1fr; }
+    .nx-product-tabs { gap: 3px; }
+    .nx-product-tab { font-size: 12px; padding: 7px 10px; }
+}
+
+@media (max-width: 600px) {
+    .nx-product-tabs { overflow-x: auto; flex-wrap: nowrap; }
+    .nx-product-footer { flex-direction: column; }
+    .nx-product-footer .nx-btn { width: 100%; justify-content: center; }
+    .nx-supplier-grid { grid-template-columns: 1fr; }
+}
+

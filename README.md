@@ -10,9 +10,8 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 **Status:** desenvolvimento ativo.
 
-**Última atualização da documentação:** 2026-04-06 (README revisado).
+**Última atualização da documentação:** 2026-04-07 (README revisado).
 
-> Guia rápido para ambiente Replit: veja `replit.md`.
 
 ### Módulos
 
@@ -25,15 +24,18 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Configurações do Sistema (`/configuracoes`) | ✅ Ativo (9 seções) |
 | Suporte (`/suporte/chat`) | ✅ Ativo (tickets + chat em tempo real) |
 | Logs de Auditoria (`/logs`) | ✅ Ativo (somente admin) |
+| Notificações (`/notificacoes`) | ✅ Ativo (dropdown no topbar + central de notificações) |
+| Perfil do Usuário (`/perfil`) | ✅ Ativo (info, senha, avatar) |
+| Financeiro — Plano de Contas (`/plans_of_accounts`) | ✅ Implementado (tree view hierárquico) |
+| Financeiro — Contas Bancárias (`/contas-bancarias`) | ✅ Implementado (cards + transferência + conciliação) |
 | Produção (Ordens de Produção) | 🚧 Em desenvolvimento |
 | Estoque | 🚧 Em desenvolvimento |
 | Vendas (Pedidos, CRM, Relatórios) | 🚧 Em desenvolvimento |
 | Compras (Solicitações, Pedidos, Cotações) | 🚧 Em desenvolvimento |
 | Fiscal (Entradas, Saídas) | 🚧 Em desenvolvimento |
-| Financeiro (Plano de Contas, Contas, Caixa, DRE) | 🚧 Em desenvolvimento |
+| Financeiro (Contas a Pagar, Contas a Receber, Caixa, DRE) | 🚧 Em desenvolvimento |
 | RH (Jornada, Ponto, Folha, Relatórios) | 🚧 Em desenvolvimento |
 | Transporte / Logística | 🚧 Em desenvolvimento |
-| Perfil e Segurança (Permissões) | 🚧 Em desenvolvimento |
 | Painel Administrativo Filament (`/admin`) | ✅ Ativo |
 
 ---
@@ -107,6 +109,7 @@ app/
   Livewire/             # Componentes Livewire
     Administracao/
       Logs/             # Index — listagem de logs de auditoria (somente admin)
+      Notifications/    # Index — central de notificações (paginada, com filtros)
     Cadastro/
       Clientes/         # Index + Form (full-page)
       Fornecedores/     # Index + Form
@@ -117,12 +120,18 @@ app/
     Dashboard/
       Overview.php      # Visão Geral do Dashboard
       KpiReport.php     # Indicadores KPI com drill-down
+    Financeiro/
+      PlanoContas.php   # Plano de Contas (tree view hierárquico, full-page)
+      ContaBancaria.php # Contas Bancárias (cards + transferência + conciliação, full-page)
     Forms/
       NovoTicketForm.php  # Livewire Form Object para criação de tickets
     Suporte/
       Chat.php          # Chat de suporte com tickets em tempo real
+    NotificationDropdown.php  # Dropdown de notificações no topbar
   Models/               # Modelos Eloquent
+    BaccaratAccount.php   # Conta bancária (saldo, conciliação, vínculo com Plano de Contas)
     MensagemSuporte.php   # Mensagens de tickets de suporte
+    PlanOfAccount.php     # Plano de contas hierárquico (parent-child)
     Setting.php           # Configurações do sistema (key-value com cache)
     SystemLog.php         # Registros de auditoria do sistema
     TicketSuporte.php     # Tickets de suporte
@@ -176,12 +185,17 @@ resources/
     livewire/
       administracao/
         logs/           # View do componente de logs de auditoria
+        notifications/  # View da central de notificações
       cadastro/         # Views Livewire de cadastro
       dashboard/
         overview.blade.php    # View da Visão Geral
         kpi-report.blade.php  # View dos Indicadores KPI
+      financeiro/
+        plano-contas/   # View do Plano de Contas (tree view)
+        conta-bancaria/ # View das Contas Bancárias (cards + modal)
       suporte/
         chat.blade.php  # Interface de chat de suporte (tickets)
+      notification-dropdown.blade.php  # Dropdown de notificações no topbar
     modules/            # Página de detalhes do módulo (show.blade.php)
     partials/           # Partials reutilizáveis (navbar.blade.php)
     perfil/             # Views de perfil do usuário
@@ -255,27 +269,6 @@ npm run dev
 php artisan serve
 ```
 
-### 5. Execução no Replit
-
-O ambiente Replit deste projeto está configurado em `.replit` com:
-
-- workflow `Project` iniciando `php artisan serve --host=0.0.0.0 --port=5000`
-- mapeamento de porta `5000 -> 80` para acesso web da aplicação
-- porta `3000` disponível para Vite/HMR quando necessário
-- `deployment` com `build = npm run build`
-
-Fluxo mínimo para abrir no Replit:
-
-```bash
-composer install
-npm install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate --force
-php artisan serve --host=0.0.0.0 --port=5000
-```
-
-> Para detalhes operacionais e troubleshooting no Replit, consulte `replit.md`.
 
 ---
 
@@ -498,6 +491,160 @@ LogService::error('ERRO_API', 'Falha ao consultar BrasilAPI.', 'Integrações', 
 
 ---
 
+## Notificações
+
+### Dropdown (`topbar`)
+
+O componente `App\Livewire\NotificationDropdown` é incluído no layout principal e exibe:
+
+- **Ícone de sino** com badge de contagem de não lidas
+- **Painel flutuante** glassmorphism com até 10 notificações recentes
+- **Ações rápidas:** marcar uma ou todas como lidas
+- `toggle()`, `markAsRead(string $id)`, `markAllAsRead()`
+
+### Central de Notificações (`/notificacoes`)
+
+Componente Livewire full-page (`App\Livewire\Administracao\Notifications\Index`), acessível por todos os usuários autenticados.
+
+#### Funcionalidades
+
+- **KPIs no topo:** total, não lidas, lidas, distribuição por tipo
+- **Filtros:** por tipo, por status (lida/não lida), por data
+- **Paginação** configurável (padrão: 15 por página)
+- **Ações:** marcar como lida, excluir individual, marcar todas como lidas, excluir todas
+
+#### Modelo (tabela `notifications`)
+
+Utiliza o sistema nativo de notificações do Laravel:
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID | Identificador único |
+| `type` | string | Classe da notificação |
+| `notifiable_type` / `notifiable_id` | morphs | Polimórfico — geralmente `App\Models\User` |
+| `data` | JSON | Payload da notificação (inclui chave `type` para categorização) |
+| `read_at` | timestamp (nullable) | Nulo = não lida |
+
+#### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/notificacoes` | `notifications.index` | `App\Livewire\Administracao\Notifications\Index` |
+
+---
+
+## Perfil do Usuário (`/perfil`)
+
+Acessível por todos os usuários autenticados via `ProfileController`.
+
+### Funcionalidades
+
+- **Informações pessoais:** nome, telefone, cargo (`job_title`), departamento, bio (máx. 500 chars)
+- **Troca de senha:** valida senha atual + confirma nova (mín. 8 chars, letras + números)
+- **Avatar:** upload (jpg/jpeg/png/webp, máx. 2 MB) armazenado em `storage/app/public/avatars/`; remoção volta ao avatar gerado por inicial
+
+### Rotas (`routes/perfil.php`)
+
+| Método | URI | Nome | Descrição |
+|---|---|---|---|
+| `GET` | `/perfil` | `profile.index` | Exibe a página de perfil |
+| `PATCH` | `/perfil/info` | `profile.updateInfo` | Atualiza nome, telefone, cargo, departamento, bio |
+| `PATCH` | `/perfil/senha` | `profile.updatePassword` | Altera a senha |
+| `POST` | `/perfil/avatar` | `profile.uploadAvatar` | Faz upload do avatar |
+| `DELETE` | `/perfil/avatar` | `profile.removeAvatar` | Remove o avatar |
+
+---
+
+## Financeiro — Plano de Contas (`/plans_of_accounts`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Financeiro\PlanoContas`).
+
+### Funcionalidades
+
+- **Tree view hierárquico** — suporta até 5 níveis de profundidade (pai → filho recursivo)
+- **Criar conta raiz ou subconta** — modal com herança automática do `type` do pai
+- **Editar / excluir** — exclusão bloqueada se a conta possui subcontas
+- **Toggle ativo/inativo** sem recarregar a página
+- **Busca em tempo real** por nome ou código (exibe lista plana com recuo)
+- **Filtro por tipo** (`receita`, `despesa`, `ativo`, `passivo`)
+- **KPIs:** total de contas, ativas, grupos (contas sintéticas)
+
+### Modelo `PlanOfAccount`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `parent_id` | bigint (nullable) | FK para a própria tabela — define hierarquia |
+| `code` | string(30) | Código da conta (ex.: `1.01.002`) |
+| `name` | string | Nome da conta |
+| `description` | text (nullable) | Descrição opcional |
+| `type` | enum | `receita`, `despesa`, `ativo`, `passivo` |
+| `is_selectable` | boolean | `false` = conta sintética (não recebe lançamentos) |
+| `is_active` | boolean | |
+
+**Relacionamentos:**
+
+| Método | Tipo | Descrição |
+|---|---|---|
+| `parent()` | `BelongsTo` | Conta pai |
+| `children()` | `HasMany` | Subcontas diretas (ordenadas por `code`) |
+| `isSynthetic()` | método | `true` se a conta possui filhos |
+
+**Accessors:** `type_label`, `type_color`, `type_css_class`.
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/plans_of_accounts` | `plans_of_accounts.index` | `App\Livewire\Financeiro\PlanoContas` |
+
+---
+
+## Financeiro — Contas Bancárias (`/contas-bancarias`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Financeiro\ContaBancaria`).
+
+### Funcionalidades
+
+- **Cards de banco** no topo com gradiente por instituição (Nubank, Itaú, Bradesco, BB, Caixa, Santander, Inter, C6, Sicredi…)
+- **CRUD completo** via modal (criar, editar, excluir com confirmação)
+- **Transferência entre contas** — valida saldo suficiente, debita origem e credita destino
+- **Toggle ativo/inativo** e **toggle conciliação** (registra `last_reconciled_at`)
+- **Filtros:** busca (nome/banco/número), tipo de conta, status (ativo/inativo)
+- **KPIs:** saldo total, saldo previsto total, contas ativas, total de contas, conciliadas
+- **Vínculo com Plano de Contas** — filtrado por `type = 'ativo'` e `is_selectable = true`
+
+### Modelo `BaccaratAccount`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `name` | string | Apelido da conta (ex.: `Itaú Principal`) |
+| `bank_name` | string | Nome do banco/instituição |
+| `agency` | string (nullable) | Agência |
+| `number` | string (nullable) | Número da conta |
+| `type` | enum | `corrente`, `poupanca`, `caixa_interno`, `digital` |
+| `balance` | decimal:2 | Saldo atual |
+| `predicted_balance` | decimal:2 | Saldo previsto (conciliado) |
+| `color` | string(20) (nullable) | Cor hex do card; se nulo, inferida automaticamente pelo banco |
+| `chart_of_account_id` | bigint (nullable) | FK para `plans_of_accounts` |
+| `is_active` | boolean | |
+| `is_reconciled` | boolean | Indica conciliação com extrato bancário |
+| `last_reconciled_at` | date (nullable) | Data da última conciliação |
+| `description` | text (nullable) | Observações |
+
+**Relacionamentos:** `chartOfAccount()` → `BelongsTo(PlanOfAccount)`.
+
+**Accessors:** `type_label`, `type_icon`, `card_color`, `formatted_balance`, `formatted_predicted_balance`.
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/contas-bancarias` | `contas_bancarias.index` | `App\Livewire\Financeiro\ContaBancaria` |
+
+---
+
 ## Configurações do Sistema
 
 Acessível em `/configuracoes` (link no dropdown do usuário na sidebar). Restrito a administradores via middleware.
@@ -558,6 +705,11 @@ Acessível em `/users` (somente administradores via middleware `admin`).
 | `has_license` | boolean | Sem licença exibe modal de aviso a cada 15 s |
 | `modules` | JSON | Lista dos módulos contratados pelo usuário |
 | `last_login_at` | timestamp | Data/hora do último login (registrado pelo `SessionController`) |
+| `avatar` | string (nullable) | Caminho do avatar no disco `public`; gerenciado pelo `ProfileController` |
+| `phone` | string(20) (nullable) | Telefone do usuário |
+| `job_title` | string(100) (nullable) | Cargo / título |
+| `department` | string(100) (nullable) | Departamento |
+| `bio` | text (nullable) | Breve biografia |
 
 ### Regras de Negócio
 
@@ -667,6 +819,7 @@ Aplicado ao grupo de rotas autenticadas em `routes/web.php`. Rotas **liberadas**
 Todas as demais rotas retornam a view `system.desenvolvimento` ("Em Breve") até que o módulo esteja pronto.
 
 > **Atenção:** ao implementar uma nova rota que deve estar acessível, adicione o padrão `rotaNova.*` no bloco `if` do método `handle()` em `MaintenanceERP.php`.
+> As rotas `plans_of_accounts.*`, `contas_bancarias.*` e `notifications.*` ainda **não** estão no whitelist do middleware — adicione-as ao liberar esses módulos para os usuários.
 
 ### `EnforceMidnightSession`
 
@@ -745,6 +898,11 @@ Todos os enums ficam em `app/Enums/` e são usados como cast nos modelos.
 | `has_license` | boolean | Sem licença = modal de aviso recorrente |
 | `modules` | JSON | Array de slugs dos módulos contratados |
 | `last_login_at` | timestamp | Nullable — data do último acesso |
+| `avatar` | string (nullable) | Caminho no disco `public` (ex.: `avatars/foto.jpg`) |
+| `phone` | string(20) (nullable) | Telefone do usuário |
+| `job_title` | string(100) (nullable) | Cargo / título |
+| `department` | string(100) (nullable) | Departamento |
+| `bio` | text (nullable) | Breve biografia (máx. 500 chars) |
 
 ### `Product`
 
@@ -952,6 +1110,41 @@ Todos os enums ficam em `app/Enums/` e são usados como cast nos modelos.
 | `is_suporte` | boolean | `true` = mensagem do time de suporte |
 | `lida` | boolean | Marcada ao selecionar o ticket |
 
+### `PlanOfAccount`
+
+Ver documentação completa em [Financeiro — Plano de Contas](#financeiro--plano-de-contas-plansofaccounts).
+
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `parent_id` | bigint (nullable) | FK para a própria tabela |
+| `code` | string(30) | Código (ex.: `1.01.002`) |
+| `name` | string | |
+| `description` | text (nullable) | |
+| `type` | enum | `receita`, `despesa`, `ativo`, `passivo` |
+| `is_selectable` | boolean | `false` = conta sintética |
+| `is_active` | boolean | |
+
+### `BaccaratAccount`
+
+Ver documentação completa em [Financeiro — Contas Bancárias](#financeiro--contas-bancárias-contas-bancarias).
+
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `name` | string | Apelido da conta |
+| `bank_name` | string | Nome do banco |
+| `agency` | string (nullable) | |
+| `number` | string (nullable) | |
+| `type` | enum | `corrente`, `poupanca`, `caixa_interno`, `digital` |
+| `balance` | decimal:2 | Saldo atual |
+| `predicted_balance` | decimal:2 | Saldo previsto |
+| `color` | string(20) (nullable) | Cor hex do card |
+| `chart_of_account_id` | bigint (nullable) | FK para `plans_of_accounts` |
+| `is_active` | boolean | |
+| `is_reconciled` | boolean | |
+| `last_reconciled_at` | date (nullable) | |
+
 ---
 
 ## Services
@@ -999,15 +1192,20 @@ Todas as rotas web estão sob o middleware `auth`, `midnight.session` e `Mainten
 |---|---|---|---|
 | `GET` | `/configuracoes` | `configuration.index` | Página de configurações (9 seções) |
 | `POST` | `/configuracoes` | `configuration.store` | Salvar configurações |
-| `Route::resource` | `/profile` | `profile.*` | Perfil do usuário |
 
-#### Perfil / Segurança (`routes/perfil.php`) — middleware `admin`
+#### Perfil / Segurança (`routes/perfil.php`)
 
-| Recurso / Rota | Nome(s) | Descrição |
-|---|---|---|
-| `Route::resource` `users` | `users.*` | Controle de usuários (sem `show`) |
-| `Route::resource` `permissions` | `permissions.*` | Gerenciamento de permissões |
-| `GET /logs` | `logs.index` | Listagem de logs de auditoria (Livewire) |
+| Recurso / Rota | Nome(s) | Middleware | Descrição |
+|---|---|---|---|
+| `Route::resource` `users` | `users.*` | `admin` | Controle de usuários (sem `show`) |
+| `Route::resource` `permissions` | `permissions.*` | `admin` | Gerenciamento de permissões |
+| `GET /logs` | `logs.index` | `admin` | Listagem de logs de auditoria (Livewire) |
+| `GET /notificacoes` | `notifications.index` | `auth` | Central de notificações (todos os usuários) |
+| `GET /perfil` | `profile.index` | `auth` | Página de perfil |
+| `PATCH /perfil/info` | `profile.updateInfo` | `auth` | Atualizar dados pessoais |
+| `PATCH /perfil/senha` | `profile.updatePassword` | `auth` | Alterar senha |
+| `POST /perfil/avatar` | `profile.uploadAvatar` | `auth` | Upload de avatar |
+| `DELETE /perfil/avatar` | `profile.removeAvatar` | `auth` | Remover avatar |
 
 #### Cadastro (`routes/cadastro.php`)
 
@@ -1057,8 +1255,16 @@ Relacionamento produto × fornecedor:
 
 #### Financeiro (`routes/financeiro.php`)
 
-- `GET /financialReports/print` → `financialReports.print`
-- `Route::resource` → `plans_of_accounts`, `baccarat_accounts`, `accounts_payable`, `accounts_receivable`, `cash_flow`, `financial_reports`
+| Método | URI | Nome | Componente / Controller |
+|---|---|---|---|
+| `GET` | `/plans_of_accounts` | `plans_of_accounts.index` | `Livewire\Financeiro\PlanoContas` |
+| `GET` | `/contas-bancarias` | `contas_bancarias.index` | `Livewire\Financeiro\ContaBancaria` |
+| `GET` | `/financialReports/print` | `financialReports.print` | `FinancialReportsController` |
+| `Route::resource` | `baccarat_accounts` | `baccarat_accounts.*` | `BaccaratAccountsController` |
+| `Route::resource` | `accounts_payable` | `accounts_payable.*` | `AccountsPayableController` |
+| `Route::resource` | `accounts_receivable` | `accounts_receivable.*` | `AccountsReceivableController` |
+| `Route::resource` | `cash_flow` | `cash_flow.*` | `CashFlowController` |
+| `Route::resource` | `financial_reports` | `financial_reports.*` | `FinancialReportsController` |
 
 #### RH (`routes/rh.php`)
 
@@ -1204,6 +1410,10 @@ php artisan about
 - **Configurações do sistema**: usar `Setting::get()` / `Setting::set()` — nunca acessar a tabela `settings` diretamente fora do model.
 - **Logs de auditoria**: usar `LogService::success()`, `::warning()` ou `::error()` — nunca escrever diretamente em `SystemLog`.
 - **Integração BrasilAPI**: usar `BrasilAPIService` injetado via DI ou o endpoint proxy `/api/proxy/cnpj/{cnpj}` e `/api/proxy/cep/{cep}` no front-end.
+- **Notificações**: usar o sistema nativo de notificações do Laravel (`Notifiable` trait no `User`); disparar via `$user->notify(new MinhaNotification())`. O `NotificationDropdown` atualiza automaticamente via `refreshNotifications`.
+- **Avatar de usuário**: armazenado em `storage/app/public/avatars/`; acessar via `Storage::url($user->avatar)`. Usar `ProfileController::uploadAvatar()` e `removeAvatar()` para gerenciar.
+- **Plano de Contas**: usar `PlanOfAccount` com hierarquia `parent_id`; contas sintéticas (`isSynthetic()`) não devem receber lançamentos diretos.
+- **Contas Bancárias**: usar `BaccaratAccount`; vincular sempre a uma conta do Plano de Contas do tipo `ativo` e `is_selectable = true`. Transferências entre contas usam `increment`/`decrement` em transação.
 
 ---
 

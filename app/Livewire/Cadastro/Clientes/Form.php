@@ -43,6 +43,15 @@ class Form extends Component
         }
     }
 
+    public function updatedFormTipoPessoa(): void
+    {
+        $this->form->taxNumber   = '';
+        $this->form->social_name = null;
+        $this->cnpjSituacao      = null;
+        $this->cnpjAtividade     = null;
+        $this->cnpjError         = null;
+    }
+
     public function buscarCnpj(BrasilAPIService $brasilApi): void
     {
         $this->cnpjError = null;

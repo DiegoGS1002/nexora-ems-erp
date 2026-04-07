@@ -62,7 +62,9 @@ class Form extends Component
             $this->form->highlights        = $this->product->highlights ?? [];
             $this->form->tags              = $this->product->tags ?? [];
             $this->form->sale_price        = (string) ($this->product->sale_price ?? '');
+            $this->form->cost_price        = (string) ($this->product->cost_price ?? '');
             $this->form->stock             = (string) ($this->product->stock ?? '');
+            $this->form->stock_min         = (string) ($this->product->stock_min ?? '');
             $this->form->expiration_date   = $this->product->expiration_date?->format('Y-m-d') ?? '';
             $this->supplier_ids            = $this->product->suppliers->pluck('id')->all();
         }
@@ -166,7 +168,9 @@ class Form extends Component
             'unit_of_measure'   => $this->form->unit_of_measure,
             'category'          => $this->form->category,
             'sale_price'        => $this->form->sale_price ?: null,
+            'cost_price'        => $this->form->cost_price ?: null,
             'stock'             => $this->form->stock ?: 0,
+            'stock_min'         => $this->form->stock_min ?: 0,
             'expiration_date'   => $this->form->expiration_date ?: null,
             'weight_net'        => $this->form->weight_net ?: null,
             'weight_gross'      => $this->form->weight_gross ?: null,

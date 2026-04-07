@@ -32,17 +32,23 @@
 
         <select wire:model.live="unitOfMeasure" class="nx-filter-select">
             <option value="">Todas as unidades</option>
-            <option value="unidade">Unidade</option>
-            <option value="kg">Kg</option>
-            <option value="litro">Litro</option>
-            <option value="metro">Metro</option>
+            <option value="UN">UN — Unidade</option>
+            <option value="CX">CX — Caixa</option>
+            <option value="KG">KG — Quilograma</option>
+            <option value="LT">LT — Litro</option>
+            <option value="MT">MT — Metro</option>
+            <option value="PC">PC — Peça</option>
+            <option value="DZ">DZ — Dúzia</option>
         </select>
 
         <select wire:model.live="category" class="nx-filter-select">
             <option value="">Todas as categorias</option>
-            <option value="eletronico">Eletronico</option>
+            <option value="informatica">Informática</option>
+            <option value="moveis">Móveis</option>
+            <option value="eletronicos">Eletrônicos</option>
             <option value="alimentos">Alimentos</option>
-            <option value="vestuario">Vestuario</option>
+            <option value="vestuario">Vestuário</option>
+            <option value="ferramentas">Ferramentas</option>
             <option value="outro">Outro</option>
         </select>
 
