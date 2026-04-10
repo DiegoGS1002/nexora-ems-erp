@@ -226,7 +226,25 @@ class ProductSeeder extends Seeder
         ];
 
         $inserted = 0;
-        foreach ($products as [$name, $ean, $unit, $sale, $cost, $stock, $min, $catSlug, $expDays]) {
+        foreach ($products as $product) {
+            // Handle both associative and indexed array formats
+            if (isset($product['name'])) {
+                // Associative array format
+                $name = $product['name'];
+                $ean = $product['ean'];
+                $unit = $product['unit_of_measure'];
+                $sale = $product['sale_price'];
+                $cost = $product['cost_price'] ?? 0;
+                $stock = $product['stock'];
+                $min = $product['stock_min'] ?? 0;
+                $catSlug = $product['category'];
+                $expDate = $product['expiration_date'] ?? null;
+            } else {
+                // Indexed array format: [name, ean, unit, sale, cost, stock, min, catSlug, expDays]
+                [$name, $ean, $unit, $sale, $cost, $stock, $min, $catSlug, $expDays] = $product;
+                $expDate = $expDays ? now()->addDays($expDays)->toDateString() : null;
+            }
+
             if (Product::where('ean', $ean)->exists()) continue;
 
             Product::create([
@@ -244,7 +262,7 @@ class ProductSeeder extends Seeder
                 'product_type'        => 'produto_fisico',
                 'nature'              => 'mercadoria_revenda',
                 'is_active'           => true,
-                'expiration_date'     => $expDays ? now()->addDays($expDays)->toDateString() : null,
+                'expiration_date'     => $expDate,
             ]);
             $inserted++;
         }
