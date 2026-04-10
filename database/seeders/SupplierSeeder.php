@@ -61,5 +61,7 @@ class SupplierSeeder extends Seeder
                 ['id' => (string) Str::uuid(), ...$supplier]
             );
         }
+
+        $this->command->info('✅ ' . count($suppliers) . ' fornecedores semeados.');
     }
 }

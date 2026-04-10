@@ -1,0 +1,353 @@
+/* ============================================================
+   CONTAS A PAGAR — Nexora ERP
+   ============================================================ */
+
+/* ── PAGE LAYOUT ─────────────────────────────────────────── */
+
+.nx-pagar-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── KPI GRID ─────────────────────────────────────────────── */
+
+.nx-pagar-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+@media (max-width: 1024px) {
+    .nx-pagar-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .nx-pagar-kpis {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Alert KPI (borda vermelha sutil) */
+.nx-kpi-card--alert {
+    border-left: 3px solid #EF4444;
+}
+
+/* ── TOOLBAR ──────────────────────────────────────────────── */
+
+.nx-pagar-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* ── STATUS TABS ──────────────────────────────────────────── */
+
+.nx-pagar-tabs {
+    display: flex;
+    gap: 4px;
+    background: #F1F5F9;
+    border-radius: 10px;
+    padding: 4px;
+    flex-shrink: 0;
+}
+
+.nx-pagar-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    white-space: nowrap;
+}
+
+.nx-pagar-tab:hover {
+    background: #FFFFFF;
+    color: #1E293B;
+}
+
+.nx-pagar-tab--active {
+    background: #FFFFFF;
+    color: #1E293B;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.nx-pagar-tab--pending.nx-pagar-tab--active { color: #D97706; }
+.nx-pagar-tab--overdue.nx-pagar-tab--active  { color: #B91C1C; }
+.nx-pagar-tab--paid.nx-pagar-tab--active     { color: #15803D; }
+.nx-pagar-tab--cancelled.nx-pagar-tab--active { color: #475569; }
+
+/* Tab dots */
+.nx-pagar-tab-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.nx-dot-pending   { background: #D97706; }
+.nx-dot-overdue   { background: #EF4444; }
+.nx-dot-paid      { background: #10B981; }
+.nx-dot-cancelled { background: #94A3B8; }
+
+/* ── TABLE SPECIFIC CELLS ─────────────────────────────────── */
+
+/* Overdue row tinting */
+.nx-row-overdue td {
+    background-color: #FFF8F8 !important;
+}
+
+.nx-row-overdue:hover td {
+    background: #FEF2F2 !important;
+}
+
+/* Due date cell */
+.nx-pagar-due-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.nx-pagar-due-date {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.nx-pagar-due-date.nx-due-today {
+    color: #D97706;
+}
+
+.nx-pagar-due-date.nx-due-overdue {
+    color: #B91C1C;
+}
+
+.nx-pagar-due-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #D97706;
+    background: #FEF9C3;
+    border: 1px solid #FDE68A;
+    border-radius: 4px;
+    padding: 1px 6px;
+    width: fit-content;
+}
+
+.nx-pagar-due-badge.nx-due-badge-overdue {
+    color: #B91C1C;
+    background: #FEE2E2;
+    border-color: #FECACA;
+}
+
+/* Description cell */
+.nx-pagar-desc-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nx-pagar-desc-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #0F172A;
+}
+
+.nx-pagar-desc-sub {
+    font-size: 12px;
+    color: #94A3B8;
+}
+
+/* Category tag */
+.nx-pagar-category-tag {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #475569;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 3px 8px;
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Amount cell */
+.nx-pagar-amount-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+}
+
+.nx-pagar-amount {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.nx-pagar-paid-amount {
+    font-size: 11px;
+    color: #10B981;
+    font-weight: 500;
+}
+
+/* ── ACTIONS DROPDOWN ─────────────────────────────────────── */
+
+.nx-pagar-actions {
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+}
+
+.nx-pagar-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 50;
+    min-width: 180px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+    padding: 4px;
+    overflow: hidden;
+}
+
+.nx-pagar-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.nx-pagar-dropdown-item:hover {
+    background: #F8FAFC;
+    color: #1E293B;
+}
+
+.nx-dropdown-pay {
+    color: #15803D;
+    font-weight: 600;
+}
+
+.nx-dropdown-pay:hover {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.nx-dropdown-cancel {
+    color: #D97706;
+}
+
+.nx-dropdown-cancel:hover {
+    background: #FEF9C3;
+    color: #92400E;
+}
+
+.nx-dropdown-delete {
+    color: #B91C1C;
+}
+
+.nx-dropdown-delete:hover {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.nx-pagar-dropdown-divider {
+    height: 1px;
+    background: #F1F5F9;
+    margin: 4px 0;
+}
+
+/* ── FORM SPECIFICS ───────────────────────────────────────── */
+
+.nx-required {
+    color: #EF4444;
+    font-size: 12px;
+}
+
+.nx-field-error {
+    color: #DC2626 !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    display: block;
+    margin-top: 3px;
+}
+
+.nx-pagar-recurring-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.nx-pagar-recurring-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    padding-top: 6px;
+}
+
+.nx-pagar-recurring-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #3B82F6;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* ── MODAL SIZE VARIANTS ──────────────────────────────────── */
+
+.nx-modal--sm {
+    max-width: 420px !important;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .nx-pagar-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nx-pagar-tabs {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .nx-pagar-category-tag {
+        max-width: 120px;
+    }
+}
+

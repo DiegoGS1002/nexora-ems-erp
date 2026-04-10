@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotas da API - Nexora EMS ERP</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 100%;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
+            font-size: 28px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #1e40af;
+            margin-top: 30px;
+            font-size: 22px;
+            border-bottom: 2px solid #93c5fd;
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            color: #1e3a8a;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        code {
+            background-color: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            color: #dc2626;
+        }
+
+        pre {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: #e2e8f0;
+            padding: 0;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        strong {
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #e5e7eb;
+            margin: 30px 0;
+        }
+
+        .endpoint {
+            background-color: #eff6ff;
+            padding: 10px;
+            border-left: 4px solid #2563eb;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+
+        .method-get { color: #059669; font-weight: bold; }
+        .method-post { color: #2563eb; font-weight: bold; }
+        .method-put { color: #d97706; font-weight: bold; }
+        .method-delete { color: #dc2626; font-weight: bold; }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+<h1>Rotas da API - Nexora EMS ERP</h1>
+
+<p>Este documento detalha as rotas da API disponíveis no sistema.</p>
+
+<h2>Movimentação de Estoque</h2>
+
+<h3>Listar todas as movimentações</h3>
+<pre><code>GET /api/stock-movements
+</code></pre>
+<p>Retorna todas as movimentações de estoque ordenadas por data de criação (mais recentes primeiro).</p>
+
+<h3>Exibir uma movimentação específica</h3>
+<pre><code>GET /api/stock-movements/{id}
+</code></pre>
+
+<h3>Criar nova movimentação</h3>
+<pre><code>POST /api/stock-movements
+</code></pre>
+<p><strong>Parâmetros:</strong></p>
+<ul>
+<li><code>name</code> (obrigatório): Nome da movimentação</li>
+<li><code>description</code> (opcional): Descrição da movimentação</li>
+</ul>
+
+<h3>Atualizar movimentação</h3>
+<pre><code>PUT/PATCH /api/stock-movements/{id}
+</code></pre>
+<p><strong>Parâmetros:</strong></p>
+<ul>
+<li><code>name</code> (obrigatório): Nome da movimentação</li>
+<li><code>description</code> (opcional): Descrição da movimentação</li>
+</ul>
+
+<h3>Excluir movimentação</h3>
+<pre><code>DELETE /api/stock-movements/{id}
+</code></pre>
+
+<hr>
+
+<h2>Contas a Pagar</h2>
+
+<h3>Listar todas as contas a pagar</h3>
+<pre><code>GET /api/accounts-payable
+</code></pre>
+<p>Retorna todas as contas a pagar ordenadas por data de vencimento (ascendente).</p>
+
+<h3>Exibir uma conta a pagar específica</h3>
+<pre><code>GET /api/accounts-payable/{id}
+</code></pre>
+
+<h3>Criar nova conta a pagar</h3>
+<pre><code>POST /api/accounts-payable
+</code></pre>
+<p><strong>Parâmetros:</strong></p>
+<ul>
+<li><code>name</code> (obrigatório): Nome da conta</li>
+<li><code>description</code> (opcional): Descrição da conta</li>
+<li><code>value</code> (obrigatório): Valor da conta (numérico, mínimo 0)</li>
+<li><code>due_date</code> (obrigatório): Data de vencimento (formato: YYYY-MM-DD)</li>
+</ul>
+
+<h3>Atualizar conta a pagar</h3>
+<pre><code>PUT/PATCH /api/accounts-payable/{id}
+</code></pre>
+<p><strong>Parâmetros:</strong></p>
+<ul>
+<li><code>name</code> (obrigatório): Nome da conta</li>
+<li><code>description</code> (opcional): Descrição da conta</li>
+<li><code>value</code> (obrigatório): Valor da conta (numérico, mínimo 0)</li>
+<li><code>due_date</code> (obrigatório): Data de vencimento (formato: YYYY-MM-DD)</li>
+</ul>
+
+<h3>Excluir conta a pagar</h3>
+<pre><code>DELETE /api/accounts-payable/{id}
+</code></pre>
+
+<hr>
+
+<h2>Contas a Receber</h2>
+
+<h3>Listar todas as contas a receber</h3>
+<pre><code>GET /api/accounts-receivable
+</code></pre>
+<p>Retorna todas as contas a receber ordenadas por data de criação (mais recentes primeiro).</p>
+
+<h3>Exibir uma conta a receber específica</h3>
+<pre><code>GET /api/accounts-receivable/{id}
+</code></pre>
+
+<h3>Criar nova conta a receber</h3>
+<pre><code>POST /api/accounts-receivable
+</code></pre>
+<p><strong>Parâmetros:</strong></p>
+<ul>
+<li><code>name</code> (obrigatório): Nome da conta</li>
+<li><code>description</code> (opcional): Descrição da conta</li>
+
+<h3>Atualizar conta a receber</h3>
+<pre><code>PUT/PATCH /api/accounts-receivable/{id}
+</code></pre>
+<p><strong>Parâmetros:</strong></p>
+<ul>
+<li><code>name</code> (obrigatório): Nome da conta</li>
+<li><code>description</code> (opcional): Descrição da conta</li>
+
+<h3>Excluir conta a receber</h3>
+<pre><code>DELETE /api/accounts-receivable/{id}
+</code></pre>
+
+<hr>
+
+<h2>Outras Rotas Disponíveis</h2>
+
+<h3>Produtos</h3>
+<ul>
+<li><code>GET /api/products</code> - Listar produtos</li>
+<li><code>POST /api/products</code> - Criar produto</li>
+<li><code>GET /api/products/{id}</code> - Exibir produto</li>
+<li><code>PUT/PATCH /api/products/{id}</code> - Atualizar produto</li>
+<li><code>DELETE /api/products/{id}</code> - Excluir produto</li>
+</ul>
+
+<h3>Fornecedores</h3>
+<ul>
+<li><code>GET /api/suppliers</code> - Listar fornecedores</li>
+<li><code>POST /api/suppliers</code> - Criar fornecedor</li>
+<li><code>GET /api/suppliers/{id}</code> - Exibir fornecedor</li>
+<li><code>PUT/PATCH /api/suppliers/{id}</code> - Atualizar fornecedor</li>
+<li><code>DELETE /api/suppliers/{id}</code> - Excluir fornecedor</li>
+</ul>
+
+<h3>Clientes</h3>
+<ul>
+<li><code>GET /api/clients</code> - Listar clientes</li>
+<li><code>POST /api/clients</code> - Criar cliente</li>
+<li><code>GET /api/clients/{id}</code> - Exibir cliente</li>
+<li><code>PUT/PATCH /api/clients/{id}</code> - Atualizar cliente</li>
+<li><code>DELETE /api/clients/{id}</code> - Excluir cliente</li>
+</ul>
+
+<h3>Produto x Fornecedor</h3>
+<ul>
+<li><code>GET /api/products/{product}/suppliers</code> - Listar fornecedores de um produto</li>
+<li><code>POST /api/products/{product}/suppliers</code> - Vincular fornecedor a produto</li>
+<li><code>DELETE /api/products/{product}/suppliers/{supplier}</code> - Desvincular fornecedor</li>
+</ul>
+
+<hr>
+
+<h2>Autenticação</h2>
+
+<p>Algumas rotas requerem autenticação:</p>
+<ul>
+<li><code>GET /api/proxy/cnpj/{cnpj}</code> - Consultar CNPJ (requer autenticação)</li>
+<li><code>GET /api/proxy/cep/{cep}</code> - Consultar CEP (requer autenticação)</li>
+</ul>
+
+<hr>
+
+<h2>Formato de Resposta</h2>
+
+<h3>Sucesso (GET)</h3>
+<pre><code>[
+  {
+    "id": 1,
+    "name": "Exemplo",
+    "description": "Descrição",
+    "created_at": "2026-04-09T00:00:00.000000Z",
+    "updated_at": "2026-04-09T00:00:00.000000Z"
+  }
+]
+</code></pre>
+
+<h3>Sucesso (POST/PUT)</h3>
+<pre><code>{
+  "message": "Registro criado/atualizado com sucesso",
+  "data": {
+    "id": 1,
+    "name": "Exemplo",
+    "description": "Descrição",
+    "created_at": "2026-04-09T00:00:00.000000Z",
+    "updated_at": "2026-04-09T00:00:00.000000Z"
+  }
+}
+</code></pre>
+
+<h3>Sucesso (DELETE)</h3>
+<pre><code>{
+  "message": "Registro removido com sucesso"
+}
+</code></pre>
+
+<h3>Erro de Validação</h3>
+<pre><code>{
+  "message": "The given data was invalid.",
+  "errors": {
+    "name": [
+      "O campo name é obrigatório."
+    ]
+  }
+}
+</code></pre>
+
+
+
+</body>
+</html>

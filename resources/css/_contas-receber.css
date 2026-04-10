@@ -1,0 +1,153 @@
+/* ============================================================
+   CONTAS A RECEBER — Nexora ERP
+   ============================================================ */
+
+/* ── PAGE LAYOUT ─────────────────────────────────────────── */
+
+.nx-receber-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── KPI GRID ─────────────────────────────────────────────── */
+
+.nx-receber-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+@media (max-width: 1024px) {
+    .nx-receber-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .nx-receber-kpis {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* KPI success (borda verde sutil) */
+.nx-kpi-card--success {
+    border-left: 3px solid #10B981;
+}
+
+/* ── TOOLBAR ──────────────────────────────────────────────── */
+
+.nx-receber-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* ── TAB EXTRAS ───────────────────────────────────────────── */
+
+.nx-receber-tab--pending.nx-pagar-tab--active { color: #D97706; }
+.nx-receber-tab--partial.nx-pagar-tab--active  { color: #1D4ED8; }
+
+.nx-dot-partial { background: #3B82F6; }
+
+/* ── PRIMARY BUTTON (green tone for receber) ──────────────── */
+
+.nx-btn-receber {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+}
+
+.nx-btn-receber:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35) !important;
+}
+
+/* ── INSTALLMENT BADGE ────────────────────────────────────── */
+
+.nx-receber-installment-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #1D4ED8;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+/* ── PAYMENT METHOD BADGES ────────────────────────────────── */
+
+.nx-receber-method-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 5px;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+
+.nx-method-pix {
+    color: #059669;
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+}
+
+.nx-method-boleto {
+    color: #D97706;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+}
+
+.nx-method-cartao {
+    color: #7C3AED;
+    background: #F5F3FF;
+    border: 1px solid #DDD6FE;
+}
+
+.nx-method-dinheiro {
+    color: #15803D;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+}
+
+.nx-method-duplicata {
+    color: #0369A1;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+}
+
+.nx-method-outros {
+    color: #64748B;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+}
+
+/* ── BADGE EXTRA — info (partial) ─────────────────────────── */
+
+.nx-badge-info {
+    color: #1D4ED8;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .nx-receber-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nx-pagar-tabs {
+        overflow-x: auto;
+        width: 100%;
+    }
+}
+
