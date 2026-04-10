@@ -29,7 +29,10 @@ class ProductCategorySeeder extends Seeder
         foreach ($categories as $data) {
             ProductCategory::firstOrCreate(
                 ['slug' => $data['slug']],
-                array_merge($data, ['is_active' => true])
+                array_merge($data, [
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'is_active' => true
+                ])
             );
         }
     }

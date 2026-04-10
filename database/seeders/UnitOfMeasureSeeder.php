@@ -33,7 +33,10 @@ class UnitOfMeasureSeeder extends Seeder
         foreach ($units as $data) {
             UnitOfMeasure::firstOrCreate(
                 ['abbreviation' => $data['abbreviation']],
-                array_merge($data, ['is_active' => true])
+                array_merge($data, [
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'is_active' => true
+                ])
             );
         }
     }
