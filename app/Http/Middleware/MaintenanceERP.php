@@ -44,7 +44,20 @@ class MaintenanceERP
             $request->routeIs('permissions.*') ||
             $request->routeIs('logs.*') ||
             // suporte
-            $request->routeIs('suporte.*')
+            $request->routeIs('suporte.*') ||
+            // logística — rotas e roteirização
+            $request->routeIs('route_management.*') ||
+            $request->routeIs('routing.*') ||
+            $request->routeIs('scheduling_of_deliveries.*') ||
+            // compras
+            $request->routeIs('compras.*') ||
+            // fiscal
+            $request->routeIs('fiscal.*') ||
+            // notificações
+            $request->routeIs('notifications.*') ||
+            // unidades e categorias de produto
+            $request->routeIs('unit-of-measures.*') ||
+            $request->routeIs('product-categories.*')
         ) {
             return $next($request);
         }

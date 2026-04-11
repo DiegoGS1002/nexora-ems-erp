@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RouteManagementController;
 use App\Http\Controllers\RoutingController;
-use App\Http\Controllers\SchedulingOfDeliveriesController;
+use App\Livewire\Logistica\AgendamentoEntregas;
 use App\Http\Controllers\MonitoringOfDeliveriesController;
 use App\Http\Controllers\DriverManagementController;
 use App\Http\Controllers\RomaneioController;
@@ -16,7 +16,7 @@ Route::get('/romaneio/print', [RomaneioController::class, 'print'])->name('roman
 
 Route::resource('route_management', RouteManagementController::class);
 Route::resource('routing', RoutingController::class);
-Route::resource('scheduling_of_deliveries', SchedulingOfDeliveriesController::class);
+Route::get('/logistica/agendamento-entregas', AgendamentoEntregas::class)->name('scheduling_of_deliveries.index');
 Route::resource('monitoring_of_deliveries', MonitoringOfDeliveriesController::class);
 Route::resource('driver_management', DriverManagementController::class);
 Route::resource('romaneio', RomaneioController::class);

@@ -1,4 +1,4 @@
-<div class="nx-list-page" x-data="{ activeTab: $wire.entangle('activeTab') }">
+<div class="nx-list-page">
 
     {{-- Cabeçalho --}}
     <div class="nx-form-header" style="margin-bottom:24px;">
@@ -37,27 +37,21 @@
     <form wire:submit="save">
 
         {{-- ── Abas de navegação ────────────────────────── --}}
-        <div style="display:flex;gap:2px;border-bottom:2px solid #E2E8F0;margin-bottom:24px;overflow-x:auto;">
+        <div class="nx-product-tabs">
             @php
                 $tabs = [
-                    'geral'      => ['icon' => '📋', 'label' => 'Geral'],
-                    'cfop'       => ['icon' => '🔢', 'label' => 'CFOP'],
-                    'icms'       => ['icon' => '🏛️', 'label' => 'ICMS'],
-                    'ipi'        => ['icon' => '🏭', 'label' => 'IPI'],
-                    'pis-cofins' => ['icon' => '💰', 'label' => 'PIS / COFINS'],
+                    ['key' => 'geral',      'label' => 'Geral',        'icon' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'],
+                    ['key' => 'cfop',       'label' => 'CFOP',         'icon' => '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>'],
+                    ['key' => 'icms',       'label' => 'ICMS',         'icon' => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'],
+                    ['key' => 'ipi',        'label' => 'IPI',          'icon' => '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>'],
+                    ['key' => 'pis-cofins', 'label' => 'PIS / COFINS', 'icon' => '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'],
                 ];
             @endphp
-            @foreach($tabs as $tabKey => $tabInfo)
-                <button
-                    type="button"
-                    @click="activeTab = '{{ $tabKey }}'"
-                    :class="activeTab === '{{ $tabKey }}' ? 'nx-tab-active' : 'nx-tab'"
-                    style="padding:10px 20px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;"
-                    :style="activeTab === '{{ $tabKey }}'
-                        ? 'color:#1D4ED8;border-bottom-color:#1D4ED8;font-weight:600;'
-                        : 'color:#64748B;border-bottom-color:transparent;'"
-                >
-                    {{ $tabInfo['icon'] }} {{ $tabInfo['label'] }}
+            @foreach($tabs as $tab)
+                <button type="button" wire:click="$set('activeTab', '{{ $tab['key'] }}')"
+                    class="nx-product-tab {{ $activeTab === $tab['key'] ? 'nx-product-tab--active' : '' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{!! $tab['icon'] !!}</svg>
+                    <span>{{ $tab['label'] }}</span>
                 </button>
             @endforeach
         </div>
@@ -65,7 +59,7 @@
         {{-- ══════════════════════════════════════════════════════ --}}
         {{-- ABA: GERAL                                            --}}
         {{-- ══════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'geral'" x-transition>
+        <div @class(['nx-tab-panel', 'nx-tab-panel--active' => $activeTab === 'geral'])>
             <div class="nx-form-card">
                 <div class="nx-form-section" style="border-bottom:none;">
                     <div class="nx-form-section-header">
@@ -133,7 +127,7 @@
         {{-- ══════════════════════════════════════════════════════ --}}
         {{-- ABA: CFOP                                             --}}
         {{-- ══════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'cfop'" x-transition>
+        <div @class(['nx-tab-panel', 'nx-tab-panel--active' => $activeTab === 'cfop'])>
             <div class="nx-form-card">
                 <div class="nx-form-section" style="border-bottom:none;">
                     <div class="nx-form-section-header">
@@ -190,7 +184,7 @@
         {{-- ══════════════════════════════════════════════════════ --}}
         {{-- ABA: ICMS                                             --}}
         {{-- ══════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'icms'" x-transition>
+        <div @class(['nx-tab-panel', 'nx-tab-panel--active' => $activeTab === 'icms'])>
             <div class="nx-form-card">
                 <div class="nx-form-section" style="border-bottom:none;">
                     <div class="nx-form-section-header">
@@ -249,7 +243,7 @@
         {{-- ══════════════════════════════════════════════════════ --}}
         {{-- ABA: IPI                                              --}}
         {{-- ══════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'ipi'" x-transition>
+        <div @class(['nx-tab-panel', 'nx-tab-panel--active' => $activeTab === 'ipi'])>
             <div class="nx-form-card">
                 <div class="nx-form-section" style="border-bottom:none;">
                     <div class="nx-form-section-header">
@@ -301,7 +295,7 @@
         {{-- ══════════════════════════════════════════════════════ --}}
         {{-- ABA: PIS / COFINS                                     --}}
         {{-- ══════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'pis-cofins'" x-transition>
+        <div @class(['nx-tab-panel', 'nx-tab-panel--active' => $activeTab === 'pis-cofins'])>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
 
                 {{-- PIS --}}

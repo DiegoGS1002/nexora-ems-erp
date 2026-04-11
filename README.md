@@ -10,7 +10,18 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 **Status:** desenvolvimento ativo.
 
-**Última atualização da documentação:** 2026-04-10 (README revisado).
+**Última atualização da documentação:** 2026-04-11 (README revisado).
+
+## Índice Rápido
+
+- [Módulos](#módulos)
+- [Instalação e Execução](#instalação-e-execução)
+- [Configuração de Banco de Dados](#configuração-de-banco-de-dados)
+- [Configurações do Sistema](#configurações-do-sistema-configuracoes)
+- [Middleware](#middleware)
+- [Detalhamento de Rotas](#detalhamento-de-rotas)
+- [API REST](#api-rest-routesapiphp)
+- [Diretrizes de Desenvolvimento](#diretrizes-de-desenvolvimento)
 
 
 ### Módulos
@@ -42,6 +53,12 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Fiscal (Entradas, Saídas) | 🚧 Em desenvolvimento |
 | Transporte / Logística | 🚧 Em desenvolvimento |
 | Painel Administrativo Filament (`/admin`) | ✅ Ativo |
+
+## Mudanças Recentes no README
+
+- Correção da seção de API REST para incluir endpoints já implementados em `routes/api.php`.
+- Correção da whitelist documentada do middleware `MaintenanceERP` conforme `app/Http/Middleware/MaintenanceERP.php`.
+- Inclusão do heading da seção de Configurações do Sistema para melhorar navegação e âncoras.
 
 ---
 
@@ -995,6 +1012,8 @@ Implementado como componente Livewire (`App\Livewire\Estoque\Movimentacao`). A r
 
 ---
 
+## Configurações do Sistema (`/configuracoes`)
+
 Acessível em `/configuracoes` (link no dropdown do usuário na sidebar). Restrito a administradores via middleware.
 
 ### Arquitetura
@@ -1163,11 +1182,16 @@ Aplicado ao grupo de rotas autenticadas em `routes/web.php`. Rotas **liberadas**
 - `permissions.*` — gerenciamento de permissões
 - `logs.*` — logs do sistema
 - `suporte.*` — módulo de suporte
+- `route_management.*`, `routing.*`, `scheduling_of_deliveries.*` — logística liberada no middleware
+- `compras.*` — telas de compras em desenvolvimento
+- `fiscal.*` — rotas fiscais liberadas
+- `notifications.*` — central de notificações
+- `unit-of-measures.*`, `product-categories.*` — cadastros complementares
 
 Todas as demais rotas retornam a view `system.desenvolvimento` ("Em Breve") até que o módulo esteja pronto.
 
 > **Atenção:** ao implementar uma nova rota que deve estar acessível, adicione o padrão `rotaNova.*` no bloco `if` do método `handle()` em `MaintenanceERP.php`.
-> As rotas `plans_of_accounts.*`, `contas_bancarias.*`, `notifications.*`, `accounts_payable.*`, `accounts_receivable.*`, `cash_flow.*`, `working_day.*`, `payroll.*`, `product-categories.*`, `unit-of-measures.*` e `stock_movements.*` ainda **não** estão no whitelist do middleware — adicione-as ao liberar esses módulos para os usuários.
+> No estado atual, rotas como `plans_of_accounts.*`, `contas_bancarias.*`, `accounts_payable.*`, `accounts_receivable.*`, `cash_flow.*`, `working_day.*` e `payroll.*` ainda não estão no whitelist e continuam exibindo "Em Breve" para usuários comuns.
 
 ### `EnforceMidnightSession`
 
@@ -1739,6 +1763,54 @@ Todos os endpoints ficam sob o prefixo `/api`.
 | `GET` | `/api/products/{product}/suppliers` | Listar fornecedores do produto |
 | `POST` | `/api/products/{product}/suppliers` | Vincular fornecedor ao produto |
 | `DELETE` | `/api/products/{product}/suppliers/{supplier}` | Desvincular fornecedor |
+
+### Movimentações de Estoque (middleware `api`)
+
+| Método | URI | Descrição |
+|---|---|---|
+| `GET` | `/api/stock-movements` | Listar movimentações |
+| `POST` | `/api/stock-movements` | Criar movimentação |
+| `GET` | `/api/stock-movements/{stockMovement}` | Detalhar movimentação |
+| `PUT / PATCH` | `/api/stock-movements/{stockMovement}` | Atualizar movimentação |
+| `DELETE` | `/api/stock-movements/{stockMovement}` | Remover movimentação |
+
+### Contas a Pagar (middleware `api`)
+
+| Método | URI | Descrição |
+|---|---|---|
+| `GET` | `/api/accounts-payable` | Listar contas a pagar |
+| `POST` | `/api/accounts-payable` | Criar conta a pagar |
+| `GET` | `/api/accounts-payable/{accountPayable}` | Detalhar conta a pagar |
+| `PUT / PATCH` | `/api/accounts-payable/{accountPayable}` | Atualizar conta a pagar |
+| `DELETE` | `/api/accounts-payable/{accountPayable}` | Remover conta a pagar |
+
+### Contas a Receber (middleware `api`)
+
+| Método | URI | Descrição |
+|---|---|---|
+| `GET` | `/api/accounts-receivable` | Listar contas a receber |
+| `POST` | `/api/accounts-receivable` | Criar conta a receber |
+| `GET` | `/api/accounts-receivable/{accountReceivable}` | Detalhar conta a receber |
+| `PUT / PATCH` | `/api/accounts-receivable/{accountReceivable}` | Atualizar conta a receber |
+| `DELETE` | `/api/accounts-receivable/{accountReceivable}` | Remover conta a receber |
+
+### Pedidos de Venda (middleware `api`)
+
+Prefixo: `/api/sales-orders`
+
+| Método | URI | Descrição |
+|---|---|---|
+| `GET` | `/api/sales-orders` | Listar pedidos |
+| `POST` | `/api/sales-orders` | Criar pedido |
+| `GET` | `/api/sales-orders/statistics` | Estatísticas de pedidos |
+| `POST` | `/api/sales-orders/calculate` | Simulação/cálculo de pedido |
+| `GET` | `/api/sales-orders/{order}` | Detalhar pedido |
+| `PUT / PATCH` | `/api/sales-orders/{order}` | Atualizar pedido |
+| `DELETE` | `/api/sales-orders/{order}` | Remover pedido |
+| `POST` | `/api/sales-orders/{order}/approve` | Aprovar pedido |
+| `POST` | `/api/sales-orders/{order}/cancel` | Cancelar pedido |
+| `GET` | `/api/sales-orders/{order}/logs` | Histórico/logs do pedido |
+| `GET` | `/api/sales-orders/{order}/attachments` | Listar anexos do pedido |
 
 ---
 

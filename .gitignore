@@ -1,6 +1,7 @@
 *.log
 .DS_Store
 .env
+.env.bak
 .env.backup
 .env.production
 .phpactor.json
@@ -22,5 +23,5 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/nexora-desktop/node_modules/
-/nexora-desktop/dist/
+/docs
+/prompts

@@ -2,20 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\RouteManagement;
 use Illuminate\Http\Request;
 
 class RouteManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('system.desenvolvimento', [
-            'title'       => 'Gestão de Rotas',
-            'description' => 'Administração e cadastro de rotas de transporte',
-            'color'       => '#0EA5E9',
-            'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="3" cy="12" r="2"/><circle cx="21" cy="5" r="2"/><circle cx="21" cy="19" r="2"/><line x1="5" y1="12" x2="19" y2="5.5"/><line x1="5" y1="12" x2="19" y2="18.5"/></svg>',
-            'moduleSlug'  => 'transporte',
-            'moduleName'  => 'Transporte',
+        $search = trim((string) $request->query('search', ''));
+
+        $routes = RouteManagement::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->orderByDesc('created_at')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('logistica.route_management.index', [
+            'routes' => $routes,
+            'search' => $search,
+            'stats' => [
+                'total' => RouteManagement::count(),
+                'withDescription' => RouteManagement::whereNotNull('description')
+                    ->where('description', '!=', '')
+                    ->count(),
+                'createdToday' => RouteManagement::whereDate('created_at', today())->count(),
+            ],
+            'routingTypes' => [
+                'Manual',
+                'Automatica',
+                'Semi-automatica',
+            ],
+            'parameters' => [
+                'Distancia entre pontos',
+                'Tempo estimado',
+                'Capacidade do veiculo',
+                'Janela de entrega',
+                'Prioridade do pedido',
+                'Regiao de entrega',
+            ],
         ]);
     }
 }
