@@ -1,0 +1,362 @@
+/* ═══════════════════════════════════════════════════
+   PEDIDOS DE VENDA — Nexora ERP
+   ═══════════════════════════════════════════════════ */
+
+/* ── Page ───────────────────────────────────────── */
+.nx-so-page { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Status Badges ──────────────────────────────── */
+.nx-so-badge--draft     { background: rgba(148,163,184,0.15); color: #64748B; }
+.nx-so-badge--open      { background: rgba(59,130,246,0.1);   color: #2563EB; }
+.nx-so-badge--aberto    { background: rgba(59,130,246,0.1);   color: #2563EB; }
+.nx-so-badge--approved  { background: rgba(16,185,129,0.1);   color: #059669; }
+.nx-so-badge--picking   { background: rgba(245,158,11,0.1);   color: #B45309; }
+.nx-so-badge--invoiced  { background: rgba(245,158,11,0.1);   color: #D97706; }
+.nx-so-badge--delivered { background: rgba(16,185,129,0.1);   color: #059669; }
+.nx-so-badge--cancelled { background: rgba(239,68,68,0.1);    color: #DC2626; }
+.nx-so-badge--em_separacao { background: rgba(245,158,11,0.1); color: #B45309; }
+
+/* ── Modal Wrap / Overlay ───────────────────────── */
+.nx-so-modal-wrap {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.55);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 2000;
+    padding: 24px 16px;
+    overflow-y: auto;
+}
+
+/* ── Modal Container ────────────────────────────── */
+.nx-so-modal {
+    background: #FFFFFF;
+    border-radius: 18px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    width: 100%;
+    max-width: 1040px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+}
+
+/* ── Tabs Navigation ────────────────────────────── */
+.nx-so-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 20px;
+    background: #F8FAFC;
+    border-bottom: 1px solid #E2E8F0;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.nx-so-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #64748B;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+.nx-so-tab:hover { color: #1E293B; }
+
+.nx-so-tab.active {
+    color: #6366F1;
+    border-bottom-color: #6366F1;
+    font-weight: 700;
+}
+
+.nx-so-tab svg { opacity: 0.6; transition: opacity 0.15s; }
+.nx-so-tab.active svg, .nx-so-tab:hover svg { opacity: 1; }
+
+/* ── Modal Body ─────────────────────────────────── */
+.nx-so-modal-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 24px 28px;
+}
+
+/* ── Modal Footer ───────────────────────────────── */
+.nx-so-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-top: 1px solid #F1F5F9;
+    background: #FAFBFC;
+    flex-shrink: 0;
+    gap: 12px;
+}
+
+/* ── Tab Content ────────────────────────────────── */
+.nx-so-tab-content { display: flex; flex-direction: column; gap: 0; }
+
+/* ── Section Title ──────────────────────────────── */
+.nx-so-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #6366F1;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #EEF2FF;
+}
+
+/* ── Grid Helpers ───────────────────────────────── */
+.nx-so-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.nx-so-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.nx-so-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+
+@media (max-width: 640px) {
+    .nx-so-grid-2, .nx-so-grid-3, .nx-so-grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ── Client Info Card ───────────────────────────── */
+.nx-so-client-info {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+}
+
+.nx-so-client-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.nx-so-client-info-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #0284C7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ── Product Search Results ─────────────────────── */
+.nx-so-search-results {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.nx-so-search-result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 13px;
+    transition: background 0.15s;
+}
+
+.nx-so-search-result-item:hover { background: #F5F3FF; }
+.nx-so-search-result-item:last-child { border-bottom: none; }
+
+/* ── Item Card ──────────────────────────────────── */
+.nx-so-item-card {
+    background: #FAFBFF;
+    border: 1px solid #E8EEF8;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.nx-so-item-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #E8EEF8;
+    background: #F0F4FF;
+}
+
+.nx-so-item-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #6366F1;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.nx-so-item-fields {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    padding: 12px 16px;
+}
+
+@media (max-width: 900px) {
+    .nx-so-item-fields { grid-template-columns: repeat(3, 1fr); }
+}
+
+.nx-so-item-total {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid #E8EEF8;
+    background: #F8FAFF;
+}
+
+/* ── Items Summary Bar ──────────────────────────── */
+.nx-so-items-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 10px;
+    margin-top: 12px;
+}
+
+/* ── Empty Items ────────────────────────────────── */
+.nx-so-empty-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    color: #CBD5E1;
+    font-size: 14px;
+}
+
+/* ── Fiscal Card ────────────────────────────────── */
+.nx-so-fiscal-card {
+    background: #FAFBFF;
+    border: 1px solid #E0E7FF;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+
+.nx-so-fiscal-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 0;
+}
+
+/* ── Totals Box ─────────────────────────────────── */
+.nx-so-totals-box {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 20px;
+}
+
+.nx-so-totals-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    color: #475569;
+}
+
+.nx-so-totals-divider {
+    height: 1px;
+    background: #E2E8F0;
+    margin: 10px 0;
+}
+
+.nx-so-totals-final {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 18px;
+    font-weight: 800;
+    color: #059669;
+    font-family: monospace;
+}
+
+/* ── Detail Grid ────────────────────────────────── */
+.nx-so-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.nx-so-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.nx-so-detail-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.nx-so-detail-value {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+/* ── Table helpers ──────────────────────────────── */
+.nx-table td.nx-td-empty {
+    text-align: center;
+    color: #94A3B8;
+    font-size: 13px;
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+.nx-action-btn.nx-action-danger {
+    color: #EF4444;
+}
+
+.nx-action-btn.nx-action-danger:hover {
+    background: #FEE2E2;
+    border-color: #FECACA;
+    color: #DC2626;
+}

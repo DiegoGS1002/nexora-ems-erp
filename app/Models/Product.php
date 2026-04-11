@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
@@ -22,6 +23,10 @@ class Product extends Model
         'product_code',
         'name',
         'ean',
+        'ncm',
+        'cfop_saida',
+        'cfop_entrada',
+        'grupo_tributario_id',
         'description',
         'short_description',
         'brand',
@@ -78,6 +83,11 @@ class Product extends Model
     public function suppliers(): BelongsToMany
     {
         return $this->belongsToMany(Supplier::class, 'product_supplier');
+    }
+
+    public function grupoTributario(): BelongsTo
+    {
+        return $this->belongsTo(GrupoTributario::class, 'grupo_tributario_id');
     }
 
     public function getImageUrlAttribute(): string

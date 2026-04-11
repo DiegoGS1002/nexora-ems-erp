@@ -10,7 +10,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 **Status:** desenvolvimento ativo.
 
-**Última atualização da documentação:** 2026-04-07 (README revisado).
+**Última atualização da documentação:** 2026-04-10 (README revisado).
 
 
 ### Módulos
@@ -18,6 +18,8 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Módulo | Status |
 |---|---|
 | Cadastro (Clientes, Fornecedores, Produtos, Funcionários, Funções, Veículos) | ✅ Ativo |
+| Cadastro — Categorias de Produto (`/product-categories`) | ✅ Implementado (CRUD Livewire) |
+| Cadastro — Unidades de Medida (`/unit-of-measures`) | ✅ Implementado (CRUD Livewire) |
 | Dashboard — Visão Geral (`/dashboard`) | 🔶 Implementado (dados de exemplo) |
 | Dashboard — Indicadores KPI (`/dashboard/kpi`) | 🔶 Implementado (dados de exemplo) |
 | Controle de Usuários (`/users`) | ✅ Ativo (CRUD + status + licença + módulos) |
@@ -28,13 +30,16 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Perfil do Usuário (`/perfil`) | ✅ Ativo (info, senha, avatar) |
 | Financeiro — Plano de Contas (`/plans_of_accounts`) | ✅ Implementado (tree view hierárquico) |
 | Financeiro — Contas Bancárias (`/contas-bancarias`) | ✅ Implementado (cards + transferência + conciliação) |
+| Financeiro — Contas a Pagar (`/accounts_payable`) | ✅ Implementado (CRUD + baixa + reagendamento + KPIs) |
+| Financeiro — Contas a Receber (`/accounts_receivable`) | ✅ Implementado (CRUD + baixa + reagendamento + KPIs) |
+| Financeiro — Fluxo de Caixa (`/cash_flow`) | ✅ Implementado (regime caixa/competência + gráfico diário) |
+| RH — Jornada / Ponto (`/working_day`) | ✅ Implementado (turnos + registros de ponto + KPIs) |
+| RH — Folha de Pagamento (`/payroll`) | ✅ Implementado (geração + holerite + fechamento + pagamento) |
+| Estoque — Movimentações | ✅ Implementado (componente Livewire, rota em breve) |
 | Produção (Ordens de Produção) | 🚧 Em desenvolvimento |
-| Estoque | 🚧 Em desenvolvimento |
 | Vendas (Pedidos, CRM, Relatórios) | 🚧 Em desenvolvimento |
 | Compras (Solicitações, Pedidos, Cotações) | 🚧 Em desenvolvimento |
 | Fiscal (Entradas, Saídas) | 🚧 Em desenvolvimento |
-| Financeiro (Contas a Pagar, Contas a Receber, Caixa, DRE) | 🚧 Em desenvolvimento |
-| RH (Jornada, Ponto, Folha, Relatórios) | 🚧 Em desenvolvimento |
 | Transporte / Logística | 🚧 Em desenvolvimento |
 | Painel Administrativo Filament (`/admin`) | ✅ Ativo |
 
@@ -85,8 +90,12 @@ app/
     CombustivelVeiculo.php
     EspecieVeiculo.php
     NaturezaProduto.php
+    PayableStatus.php         # Contas a Pagar: pending, paid, overdue, cancelled
+    PayrollStatus.php         # Folha de Pagamento: draft, closed, paid
     PrioridadeTicketSuporte.php
+    ReceivableStatus.php      # Contas a Receber: pending, received, overdue, partial, cancelled
     StatusTicketSuporte.php
+    TimeRecordStatus.php      # Ponto: active, break, absent, completed
     TipoPessoa.php
     TipoProduto.php
     TipoVeiculo.php
@@ -111,37 +120,60 @@ app/
       Logs/             # Index — listagem de logs de auditoria (somente admin)
       Notifications/    # Index — central de notificações (paginada, com filtros)
     Cadastro/
+      CategoriaProduto/ # Index + Form (Categorias de Produto)
       Clientes/         # Index + Form (full-page)
       Fornecedores/     # Index + Form
       Funcionarios/     # Index + Form
       Funcoes/          # Index + Form (Funções/Cargos)
       Produtos/         # Index + Form
+      UnidadeMedida/    # Index + Form (Unidades de Medida)
       Veiculos/         # Index + Form
     Dashboard/
       Overview.php      # Visão Geral do Dashboard
       KpiReport.php     # Indicadores KPI com drill-down
+    Estoque/
+      Movimentacao.php  # Movimentações de estoque (entrada, saída, ajuste, transferência)
     Financeiro/
       PlanoContas.php   # Plano de Contas (tree view hierárquico, full-page)
       ContaBancaria.php # Contas Bancárias (cards + transferência + conciliação, full-page)
+      ContasPagar.php   # Contas a Pagar (CRUD + baixa + reagendamento + KPIs)
+      ContasReceber.php # Contas a Receber (CRUD + baixa + reagendamento + KPIs)
+      FluxoCaixa.php    # Fluxo de Caixa (regime caixa/competência + gráfico diário)
     Forms/
       NovoTicketForm.php  # Livewire Form Object para criação de tickets
     Suporte/
       Chat.php          # Chat de suporte com tickets em tempo real
+    Rh/
+      JornadaTrabalho.php # Jornada/Ponto (turnos + registros de ponto + KPIs)
+      FolhaPagamento.php  # Folha de Pagamento (geração + holerite + fechamento + pagamento)
     NotificationDropdown.php  # Dropdown de notificações no topbar
   Models/               # Modelos Eloquent
+    AccountPayable.php    # Contas a Pagar (status, vencimento, recorrência, vínculo com Plano de Contas)
+    AccountReceivable.php # Contas a Receber (status, parcelas, forma de pagamento, vínculo com Plano de Contas)
     BaccaratAccount.php   # Conta bancária (saldo, conciliação, vínculo com Plano de Contas)
     MensagemSuporte.php   # Mensagens de tickets de suporte
+    Payroll.php           # Folha de pagamento (salário base, proventos, descontos, líquido)
+    PayrollItem.php       # Itens da folha (provento/desconto)
     PlanOfAccount.php     # Plano de contas hierárquico (parent-child)
+    ProductCategory.php   # Categorias de produto (UUID, slug, cor)
     Setting.php           # Configurações do sistema (key-value com cache)
+    StockMovement.php     # Movimentações de estoque (entrada, saída, ajuste, transferência)
     SystemLog.php         # Registros de auditoria do sistema
     TicketSuporte.php     # Tickets de suporte
+    TimeRecord.php        # Registros de ponto (clock_in/out, pausa, horas trabalhadas)
+    UnitOfMeasure.php     # Unidades de medida (UUID, abreviação padronizada)
+    WorkShift.php         # Turnos de trabalho (horário início/fim, duração de pausa)
   Providers/
     Filament/           # AdminPanelProvider (Filament)
   Services/             # Service classes com lógica de negócio
     BrasilAPIService.php        # Integração com BrasilAPI (CNPJ e CEP)
+    ContasPagarService.php      # CRUD, baixa, reagendamento, cancelamento e KPIs de contas a pagar
+    ContasReceberService.php    # CRUD, baixa de recebimento, reagendamento, cancelamento e KPIs de contas a receber
     Dashboard/
       DashboardMetricsService.php
+    JornadaService.php          # KPIs, grade de presença, timeline e gerenciamento de turnos (WorkShift)
     LogService.php              # Registro centralizado de logs de auditoria
+    PayrollService.php          # Geração de folha, itens (proventos/descontos), fechamento e pagamento
     RoleService.php             # Lógica de negócio de funções/cargos
     SuporteService.php          # Criação e gestão de tickets de suporte
 config/
@@ -182,20 +214,28 @@ resources/
         table.blade.php
     layouts/
       app.blade.php     # Layout principal — inclui modal de aviso de licença
-    livewire/
-      administracao/
-        logs/           # View do componente de logs de auditoria
-        notifications/  # View da central de notificações
-      cadastro/         # Views Livewire de cadastro
-      dashboard/
-        overview.blade.php    # View da Visão Geral
-        kpi-report.blade.php  # View dos Indicadores KPI
-      financeiro/
-        plano-contas/   # View do Plano de Contas (tree view)
-        conta-bancaria/ # View das Contas Bancárias (cards + modal)
-      suporte/
-        chat.blade.php  # Interface de chat de suporte (tickets)
-      notification-dropdown.blade.php  # Dropdown de notificações no topbar
+      livewire/
+        administracao/
+          logs/           # View do componente de logs de auditoria
+          notifications/  # View da central de notificações
+        cadastro/         # Views Livewire de cadastro (inclui product-categories e unit-of-measures)
+        dashboard/
+          overview.blade.php    # View da Visão Geral
+          kpi-report.blade.php  # View dos Indicadores KPI
+        estoque/
+          movimentacao.blade.php # View de movimentações de estoque
+        financeiro/
+          plano-contas/   # View do Plano de Contas (tree view)
+          conta-bancaria/ # View das Contas Bancárias (cards + modal)
+          contas-pagar/   # View das Contas a Pagar (tabela + modais de baixa/reagendamento)
+          contas-receber/ # View das Contas a Receber (tabela + modais de baixa/reagendamento)
+          fluxo-caixa/    # View do Fluxo de Caixa (gráfico + tabela diária)
+        rh/
+          jornada-trabalho/ # View da Jornada de Trabalho (grade presença + timeline)
+          folha-pagamento/  # View da Folha de Pagamento (tabela + holerite modal)
+        suporte/
+          chat.blade.php  # Interface de chat de suporte (tickets)
+        notification-dropdown.blade.php  # Dropdown de notificações no topbar
     modules/            # Página de detalhes do módulo (show.blade.php)
     partials/           # Partials reutilizáveis (navbar.blade.php)
     perfil/             # Views de perfil do usuário
@@ -645,7 +685,315 @@ Implementado como componente Livewire full-page (`App\Livewire\Financeiro\ContaB
 
 ---
 
-## Configurações do Sistema
+## Financeiro — Contas a Pagar (`/accounts_payable`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Financeiro\ContasPagar`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal (criar, editar, excluir com confirmação)
+- **Baixa de pagamento** — registra data, valor pago e observação; muda status para `Pago`
+- **Reagendamento** — altera a data de vencimento e redefine o status para `Pendente`
+- **Cancelamento** de conta individual
+- **Recorrência** — flag `is_recurring` com dia do mês para geração futura
+- **Sincronização automática de vencidos** na abertura da página (`syncOverdueStatus`)
+- **Filtros:** busca (título/fornecedor), por status, por mês de vencimento
+- **KPIs:** total a pagar hoje, a pagar na semana, total pendente, total pago no mês, contas vencidas
+
+### Modelo `AccountPayable`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `description_title` | string | Título/descrição da conta |
+| `supplier_id` | bigint (nullable) | FK para `suppliers` |
+| `chart_of_account_id` | bigint (nullable) | FK para `plans_of_accounts` (tipo `despesa`) |
+| `amount` | decimal:2 | Valor original |
+| `paid_amount` | decimal:2 | Valor pago na baixa |
+| `due_date_at` | date | Data de vencimento |
+| `payment_date` | date (nullable) | Data efetiva do pagamento |
+| `status` | enum | Cast `PayableStatus` |
+| `observation` | text (nullable) | Observações |
+| `attachment_path` | string (nullable) | Caminho do comprovante |
+| `is_recurring` | boolean | Conta recorrente |
+| `recurrence_day` | integer (nullable) | Dia do mês de recorrência |
+
+**Scopes:** `scopeDueToday()`, `scopeDueThisWeek()`.
+
+**Relacionamentos:** `supplier()` → `BelongsTo(Supplier)`, `chartOfAccount()` → `BelongsTo(PlanOfAccount)`.
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/accounts_payable` | `accounts_payable.index` | `App\Livewire\Financeiro\ContasPagar` |
+
+---
+
+## Financeiro — Contas a Receber (`/accounts_receivable`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Financeiro\ContasReceber`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal
+- **Baixa de recebimento** — registra data, valor recebido e observação; muda status para `Recebido`
+- **Reagendamento** da data de vencimento
+- **Cancelamento** de conta individual
+- **Sincronização automática de vencidos** na abertura da página
+- **Filtros:** busca (título/cliente), por status, por mês, por forma de pagamento
+- **KPIs:** total a receber hoje, a receber na semana, total pendente, total recebido no mês, contas vencidas
+
+### Modelo `AccountReceivable`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `description_title` | string | Título/descrição da conta |
+| `client_id` | string/UUID (nullable) | FK para `clients` |
+| `chart_of_account_id` | bigint (nullable) | FK para `plans_of_accounts` (tipo `receita`) |
+| `amount` | decimal:2 | Valor original |
+| `received_amount` | decimal:2 | Valor efetivamente recebido |
+| `due_date_at` | date | Data de vencimento |
+| `received_at` | date (nullable) | Data do recebimento |
+| `payment_method` | string (nullable) | Forma de pagamento |
+| `installment_number` | integer | Número da parcela (padrão: 1) |
+| `status` | enum | Cast `ReceivableStatus` |
+| `observation` | text (nullable) | Observações |
+
+**Relacionamentos:** `client()` → `BelongsTo(Client)`, `chartOfAccount()` → `BelongsTo(PlanOfAccount)`.
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/accounts_receivable` | `accounts_receivable.index` | `App\Livewire\Financeiro\ContasReceber` |
+
+---
+
+## Financeiro — Fluxo de Caixa (`/cash_flow`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Financeiro\FluxoCaixa`).
+
+### Funcionalidades
+
+- **Regime de Caixa** — considera apenas valores efetivamente pagos/recebidos
+- **Regime de Competência** — considera todos os lançamentos (exceto cancelados)
+- **Períodos predefinidos:** semana, mês (padrão), trimestre, ano (com datas ajustáveis)
+- **KPIs:** saldo inicial (soma das contas bancárias ativas), total entradas, total saídas, saldo final, contas pendentes a receber/pagar, saldo projetado
+- **Gráfico de barras diário** (ApexCharts) — entradas vs. saídas por dia
+- **Tabela de fluxo diário** — somente dias com movimentação, com saldo acumulado e indicação de hoje/futuro
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/cash_flow` | `cash_flow.index` | `App\Livewire\Financeiro\FluxoCaixa` |
+
+---
+
+## RH — Jornada de Trabalho / Ponto (`/working_day`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Rh\JornadaTrabalho`).
+
+### Funcionalidades
+
+- **Gestão de Turnos (`WorkShift`)** — criar, editar, excluir turnos com horário de início/fim e duração de pausa
+- **Registro de Ponto** — criar e editar registros de entrada, início de pausa, fim de pausa e saída
+- **Grade de Presença** — exibe todos os funcionários ativos com status do dia (Presente / Em Pausa / Ausente / Concluído)
+- **Timeline** — lista cronológica dos registros do dia
+- **Filtro por data** — default: dia atual
+- **Busca e filtro por status** na grade de presença
+- **KPIs:** total de funcionários, presentes, em pausa, ausentes, banco de horas
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `WorkShift` | `work_shifts` | Turno (nome, início, fim, pausa em minutos) |
+| `TimeRecord` | `time_records` | Registro de ponto por funcionário/dia (clock_in/out, pausa, status, localização) |
+
+#### `WorkShift`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `name` | string | Nome do turno (ex.: `Manhã`, `Tarde`) |
+| `description` | text (nullable) | Descrição opcional |
+| `start_time` | string | Horário de início (`HH:MM`) |
+| `end_time` | string | Horário de encerramento (`HH:MM`) |
+| `break_duration` | integer | Duração da pausa em minutos |
+| `is_active` | boolean | |
+
+**Accessor:** `work_hours` — retorna `"start_time - end_time"`.
+
+#### `TimeRecord`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `employee_id` | UUID | FK para `employees` |
+| `work_shift_id` | bigint (nullable) | FK para `work_shifts` |
+| `date` | date | Data do registro |
+| `clock_in` | datetime | Entrada |
+| `break_start` | datetime (nullable) | Início da pausa |
+| `break_end` | datetime (nullable) | Fim da pausa |
+| `clock_out` | datetime (nullable) | Saída |
+| `status` | enum | Cast `TimeRecordStatus` |
+| `ip_address` | string (nullable) | IP do registro |
+| `latitude` / `longitude` | decimal:8 (nullable) | Geolocalização |
+| `observation` | text (nullable) | Observações |
+
+**Accessors:** `worked_minutes` (int), `worked_hours_formatted` (string `HHhMM`).
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/working_day` | `working_day.index` | `App\Livewire\Rh\JornadaTrabalho` |
+
+---
+
+## RH — Folha de Pagamento (`/payroll`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Rh\FolhaPagamento`).
+
+### Funcionalidades
+
+- **Geração de folha** individual por funcionário ou em lote para todos os ativos (idempotente)
+- **Holerite (modal)** — visualiza e edita proventos e descontos do funcionário
+- **Itens da folha** — adicionar/editar/remover proventos (`earning`) e descontos (`deduction`) com recalculação automática
+- **Fechar folha** — altera status de `Rascunho` → `Fechada`
+- **Marcar como pago** — altera status de `Fechada` → `Paga` com data de pagamento
+- **Filtro por mês de referência** (padrão: mês atual)
+- **KPIs:** total de proventos, descontos, líquido, contagem por status
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `Payroll` | `payrolls` | Folha de pagamento por funcionário/mês |
+| `PayrollItem` | `payroll_items` | Itens da folha (provento ou desconto) |
+
+#### `Payroll`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `employee_id` | UUID | FK para `employees` |
+| `reference_month` | date | Mês de referência (dia 01) |
+| `base_salary` | decimal:2 | Salário base do funcionário |
+| `total_earnings` | decimal:2 | Soma dos proventos extras |
+| `total_deductions` | decimal:2 | Soma dos descontos |
+| `net_salary` | decimal:2 | Salário líquido (`base + earnings - deductions`) |
+| `status` | enum | Cast `PayrollStatus` |
+| `payment_date` | date (nullable) | Data efetiva do pagamento |
+| `observations` | text (nullable) | Observações |
+
+**Método:** `recalculate()` — recalcula totais a partir dos itens.
+
+#### `PayrollItem`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `payroll_id` | bigint | FK para `payrolls` |
+| `description` | string | Descrição do item |
+| `type` | string | `earning` (provento) ou `deduction` (desconto) |
+| `amount` | decimal:2 | Valor |
+
+**Método:** `typeLabel()` — retorna `"Provento"` ou `"Desconto"`.
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/payroll` | `payroll.index` | `App\Livewire\Rh\FolhaPagamento` |
+
+---
+
+## Estoque — Movimentações
+
+Implementado como componente Livewire (`App\Livewire\Estoque\Movimentacao`). A rota dedicada está prevista para breve.
+
+### Funcionalidades
+
+- **Registrar movimentação** — entrada, saída, ajuste ou transferência; atualiza automaticamente o estoque do produto
+- **Editar / excluir** — exclusão reverte o estoque do produto
+- **Filtros:** busca por produto, tipo, produto específico, período (início/fim)
+- **KPIs:** total de movimentações, total entradas, total saídas, total ajustes
+
+### Modelo `StockMovement`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `product_id` | UUID | FK para `products` |
+| `user_id` | bigint | FK para `users` |
+| `quantity` | decimal:3 | Quantidade movimentada |
+| `type` | string | `input`, `output`, `adjustment`, `transfer` |
+| `origin` | string | Origem/documento da movimentação |
+| `unit_cost` | decimal:2 (nullable) | Custo unitário |
+| `observation` | text (nullable) | Observações |
+
+---
+
+## Cadastro — Categorias de Produto (`/product-categories`)
+
+### Funcionalidades
+
+- **CRUD completo** via componentes Livewire (`Index` + `Form`)
+- **Slug automático** gerado a partir do nome
+- **Cor** associada para identificação visual
+- **Soft delete**
+- Relacionamento `HasMany` com `Product` via `product_category_id`
+
+### Modelo `ProductCategory`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID | Gerado automaticamente |
+| `name` | string | Nome da categoria |
+| `slug` | string | Slug único (auto-gerado) |
+| `description` | text (nullable) | Descrição opcional |
+| `color` | string (nullable) | Cor hex para identificação visual |
+| `is_active` | boolean | |
+
+### Rotas
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/product-categories` | `product-categories.index` | `App\Livewire\Cadastro\CategoriaProduto\Index` |
+| `GET` | `/product-categories/create` | `product-categories.create` | `App\Livewire\Cadastro\CategoriaProduto\Form` |
+| `GET` | `/product-categories/{category}/edit` | `product-categories.edit` | `App\Livewire\Cadastro\CategoriaProduto\Form` |
+
+---
+
+## Cadastro — Unidades de Medida (`/unit-of-measures`)
+
+### Funcionalidades
+
+- **CRUD completo** via componentes Livewire (`Index` + `Form`)
+- **Abreviação em maiúsculas** — normalizada automaticamente (ex.: `kg`, `UN` → `KG`, `UN`)
+- **Soft delete**
+- Relacionamento `HasMany` com `Product` via `unit_of_measure_id`
+
+### Modelo `UnitOfMeasure`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID | Gerado automaticamente |
+| `name` | string | Nome completo (ex.: `Quilograma`) |
+| `abbreviation` | string | Abreviação em maiúsculas (ex.: `KG`) |
+| `description` | text (nullable) | Descrição opcional |
+| `is_active` | boolean | |
+
+**Accessor:** `label` — retorna `"ABBREVIATION — name"`.
+
+### Rotas
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/unit-of-measures` | `unit-of-measures.index` | `App\Livewire\Cadastro\UnidadeMedida\Index` |
+| `GET` | `/unit-of-measures/create` | `unit-of-measures.create` | `App\Livewire\Cadastro\UnidadeMedida\Form` |
+| `GET` | `/unit-of-measures/{unit}/edit` | `unit-of-measures.edit` | `App\Livewire\Cadastro\UnidadeMedida\Form` |
+
+---
 
 Acessível em `/configuracoes` (link no dropdown do usuário na sidebar). Restrito a administradores via middleware.
 
@@ -819,7 +1167,7 @@ Aplicado ao grupo de rotas autenticadas em `routes/web.php`. Rotas **liberadas**
 Todas as demais rotas retornam a view `system.desenvolvimento` ("Em Breve") até que o módulo esteja pronto.
 
 > **Atenção:** ao implementar uma nova rota que deve estar acessível, adicione o padrão `rotaNova.*` no bloco `if` do método `handle()` em `MaintenanceERP.php`.
-> As rotas `plans_of_accounts.*`, `contas_bancarias.*` e `notifications.*` ainda **não** estão no whitelist do middleware — adicione-as ao liberar esses módulos para os usuários.
+> As rotas `plans_of_accounts.*`, `contas_bancarias.*`, `notifications.*`, `accounts_payable.*`, `accounts_receivable.*`, `cash_flow.*`, `working_day.*`, `payroll.*`, `product-categories.*`, `unit-of-measures.*` e `stock_movements.*` ainda **não** estão no whitelist do middleware — adicione-as ao liberar esses módulos para os usuários.
 
 ### `EnforceMidnightSession`
 
@@ -862,6 +1210,10 @@ Todos os enums ficam em `app/Enums/` e são usados como cast nos modelos.
 | `CombustivelVeiculo` | `Vehicle` | Tipo de combustível |
 | `StatusTicketSuporte` | `TicketSuporte` | `aberto`, `em_andamento`, `resolvido`, `fechado` |
 | `PrioridadeTicketSuporte` | `TicketSuporte` | `baixa`, `media`, `alta`, `critica` |
+| `PayableStatus` | `AccountPayable` | `pending`, `paid`, `overdue`, `cancelled` |
+| `ReceivableStatus` | `AccountReceivable` | `pending`, `received`, `overdue`, `partial`, `cancelled` |
+| `PayrollStatus` | `Payroll` | `draft`, `closed`, `paid` |
+| `TimeRecordStatus` | `TimeRecord` | `active`, `break`, `absent`, `completed` |
 
 ---
 
@@ -1145,6 +1497,42 @@ Ver documentação completa em [Financeiro — Contas Bancárias](#financeiro--c
 | `is_reconciled` | boolean | |
 | `last_reconciled_at` | date (nullable) | |
 
+### `AccountPayable`
+
+Ver documentação completa em [Financeiro — Contas a Pagar](#financeiro--contas-a-pagar-accountspayable).
+
+### `AccountReceivable`
+
+Ver documentação completa em [Financeiro — Contas a Receber](#financeiro--contas-a-receber-accountsreceivable).
+
+### `Payroll`
+
+Ver documentação completa em [RH — Folha de Pagamento](#rh--folha-de-pagamento-payroll).
+
+### `PayrollItem`
+
+Ver documentação completa em [RH — Folha de Pagamento](#rh--folha-de-pagamento-payroll).
+
+### `WorkShift`
+
+Ver documentação completa em [RH — Jornada de Trabalho / Ponto](#rh--jornada-de-trabalho--ponto-workingday).
+
+### `TimeRecord`
+
+Ver documentação completa em [RH — Jornada de Trabalho / Ponto](#rh--jornada-de-trabalho--ponto-workingday).
+
+### `StockMovement`
+
+Ver documentação completa em [Estoque — Movimentações](#estoque--movimentações).
+
+### `ProductCategory`
+
+Ver documentação completa em [Cadastro — Categorias de Produto](#cadastro--categorias-de-produto-product-categories).
+
+### `UnitOfMeasure`
+
+Ver documentação completa em [Cadastro — Unidades de Medida](#cadastro--unidades-de-medida-unit-of-measures).
+
 ---
 
 ## Services
@@ -1152,10 +1540,14 @@ Ver documentação completa em [Financeiro — Contas Bancárias](#financeiro--c
 | Service | Descrição |
 |---|---|
 | `BrasilAPIService` | Consulta CNPJ (`consultarCnpj`) e CEP (`consultarCep`) via BrasilAPI |
+| `ContasPagarService` | CRUD, baixa (`registerPayment`), reagendamento (`reschedule`), cancelamento, KPIs e sync de vencidos |
+| `ContasReceberService` | CRUD, baixa (`registerReceipt`), reagendamento (`reschedule`), cancelamento, KPIs e sync de vencidos |
+| `JornadaService` | KPIs de presença, grade de presença (`getPresenceGrid`), timeline, save/delete de registros, turnos ativos |
 | `LogService` | Registro centralizado de logs: `::success()`, `::warning()`, `::error()` |
-| `SuporteService` | Criação de tickets, envio de mensagens, atualização de status e marcação de leitura |
+| `PayrollService` | Geração por funcionário/lote, itens de folha (`saveItem`/`removeItem`), fechamento, pagamento, KPIs |
 | `RoleService` | Lógica de negócio de funções/cargos |
-| `DashboardMetricsService` | Métricas e dados agregados para o dashboard |
+| `SuporteService` | Criação de tickets, envio de mensagens, atualização de status e marcação de leitura |
+| `DashboardMetricsService` | Métricas e dados agregados para o dashboard (usa `stock_movements`) |
 
 ---
 
@@ -1217,6 +1609,8 @@ Todas as rotas abaixo usam componentes **Livewire** (GET):
 - `employees.index`, `employees.create`, `employees.edit`
 - `roles.index`, `roles.create`, `roles.edit`
 - `vehicles.index`, `vehicles.create`, `vehicles.edit`
+- `product-categories.index`, `product-categories.create`, `product-categories.edit`
+- `unit-of-measures.index`, `unit-of-measures.create`, `unit-of-measures.edit`
 
 Rotas extras de impressão:
 - `GET /clients/print` → `clients.print`
@@ -1259,17 +1653,23 @@ Relacionamento produto × fornecedor:
 |---|---|---|---|
 | `GET` | `/plans_of_accounts` | `plans_of_accounts.index` | `Livewire\Financeiro\PlanoContas` |
 | `GET` | `/contas-bancarias` | `contas_bancarias.index` | `Livewire\Financeiro\ContaBancaria` |
+| `GET` | `/accounts_payable` | `accounts_payable.index` | `Livewire\Financeiro\ContasPagar` |
+| `GET` | `/accounts_receivable` | `accounts_receivable.index` | `Livewire\Financeiro\ContasReceber` |
+| `GET` | `/cash_flow` | `cash_flow.index` | `Livewire\Financeiro\FluxoCaixa` |
 | `GET` | `/financialReports/print` | `financialReports.print` | `FinancialReportsController` |
 | `Route::resource` | `baccarat_accounts` | `baccarat_accounts.*` | `BaccaratAccountsController` |
-| `Route::resource` | `accounts_payable` | `accounts_payable.*` | `AccountsPayableController` |
-| `Route::resource` | `accounts_receivable` | `accounts_receivable.*` | `AccountsReceivableController` |
-| `Route::resource` | `cash_flow` | `cash_flow.*` | `CashFlowController` |
 | `Route::resource` | `financial_reports` | `financial_reports.*` | `FinancialReportsController` |
 
 #### RH (`routes/rh.php`)
 
-- `GET /rhReports/print` → `rhReports.print`
-- `Route::resource` → `working_day`, `stitch_beat`, `payroll`, `employee_management`, `rh_reports`
+| Método | URI | Nome | Componente / Controller |
+|---|---|---|---|
+| `GET` | `/working_day` | `working_day.index` | `Livewire\Rh\JornadaTrabalho` |
+| `GET` | `/payroll` | `payroll.index` | `Livewire\Rh\FolhaPagamento` |
+| `GET` | `/rhReports/print` | `rhReports.print` | `RhReportsController` |
+| `Route::resource` | `stitch_beat` | `stitch_beat.*` | `StitchBeatController` |
+| `Route::resource` | `employee_management` | `employee_management.*` | `EmployeeManagementController` |
+| `Route::resource` | `rh_reports` | `rh_reports.*` | `RhReportsController` |
 
 #### Logística (`routes/logistica.php`)
 
@@ -1414,6 +1814,12 @@ php artisan about
 - **Avatar de usuário**: armazenado em `storage/app/public/avatars/`; acessar via `Storage::url($user->avatar)`. Usar `ProfileController::uploadAvatar()` e `removeAvatar()` para gerenciar.
 - **Plano de Contas**: usar `PlanOfAccount` com hierarquia `parent_id`; contas sintéticas (`isSynthetic()`) não devem receber lançamentos diretos.
 - **Contas Bancárias**: usar `BaccaratAccount`; vincular sempre a uma conta do Plano de Contas do tipo `ativo` e `is_selectable = true`. Transferências entre contas usam `increment`/`decrement` em transação.
+- **Contas a Pagar/Receber**: usar `ContasPagarService` / `ContasReceberService` para todas as operações. O método `syncOverdueStatus()` é chamado automaticamente ao montar o componente Livewire.
+- **Folha de Pagamento**: usar `PayrollService`; folhas em status `Draft` ainda aceitam itens; `Closed` e `Paid` são imutáveis. O método `recalculate()` no modelo `Payroll` recalcula totais a partir dos itens.
+- **Jornada/Ponto**: usar `JornadaService`; registros de ponto são únicos por `employee_id + date` (upsert automático). Horas trabalhadas calculadas via accessor `worked_minutes` descontando a pausa.
+- **Movimentações de Estoque**: ao criar/excluir um `StockMovement`, atualizar o campo `stock` do `Product` correspondente manualmente (não há observer automático ainda).
+- **Categorias de Produto**: usar `ProductCategory` com `product_category_id` na tabela `products`. Slug gerado automaticamente a partir do nome.
+- **Unidades de Medida**: usar `UnitOfMeasure` com `unit_of_measure_id` na tabela `products`. Abreviação sempre normalizada para maiúsculas.
 
 ---
 

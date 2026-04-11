@@ -111,38 +111,13 @@ class FolhaPagamento extends Component
     }
 
     /* ─────────────────────────────────────
-      COMPUTED — Current Holerite
+      GENERATE SINGLE — One employee
      ─────────────────────────────────────*/
-    #[Computed]
-    public function currentPayroll(): ?Payroll
+    public function generatePayroll(string $employeeId, \App\Services\PayrollService $service): void
     {
-        if (! $this->holeriteId) return null;
-        return Payroll::with(['employee', 'items'])->find($this->holeriteId);
-    }
+        $payroll = $service->generateForEmployee($employeeId, $this->refDate());
 
-    /* ─────────────────────────────────────
-      GENERATE — Single employee
-     ─────────────────────────────────────*/
-    public function generatePayroll(string $employeeId): void
-    {
-        $employee = Employees::findOrFail($employeeId);
-        $date     = $this->refDate();
-
-        $payroll = Payroll::firstOrCreate(
-            [
-                'employee_id'     => $employeeId,
-                'reference_month' => $date->format('Y-m-d'),
-            ],
-            [
-                'base_salary'      => $employee->salary ?? 0,
-                'total_earnings'   => 0,
-                'total_deductions' => 0,
-                'net_salary'       => $employee->salary ?? 0,
-                'status'           => PayrollStatus::Draft->value,
-            ]
-        );
-
-        session()->flash('success', "Folha gerada para {$employee->name}.");
+        unset($this->rows, $this->kpis);
 
         $this->openHolerite($payroll->id);
     }
@@ -150,34 +125,15 @@ class FolhaPagamento extends Component
     /* ─────────────────────────────────────
       GENERATE ALL — All active employees
      ─────────────────────────────────────*/
-    public function generateAllPayrolls(): void
+    public function generateAllPayrolls(\App\Services\PayrollService $service): void
     {
-        $date      = $this->refDate();
-        $employees = Employees::where('is_active', true)->get();
-        $count     = 0;
-
-        foreach ($employees as $emp) {
-            $already = Payroll::where('employee_id', $emp->id)
-                ->whereYear('reference_month', $date->year)
-                ->whereMonth('reference_month', $date->month)
-                ->exists();
-
-            if (! $already) {
-                Payroll::create([
-                    'employee_id'      => $emp->id,
-                    'reference_month'  => $date->format('Y-m-d'),
-                    'base_salary'      => $emp->salary ?? 0,
-                    'total_earnings'   => 0,
-                    'total_deductions' => 0,
-                    'net_salary'       => $emp->salary ?? 0,
-                    'status'           => PayrollStatus::Draft->value,
-                ]);
-                $count++;
-            }
-        }
+        $date  = $this->refDate();
+        $count = $service->generateForAllEmployees($date);
 
         $this->showGenerateAllModal = false;
-        session()->flash('success', "{$count} folha(s) gerada(s) para " . now()->setMonth($date->month)->translatedFormat('F/Y') . '.');
+        unset($this->rows, $this->kpis);
+
+        session()->flash('success', "Folha gerada para {$count} funcionário(s).");
     }
 
     /* ─────────────────────────────────────
@@ -185,19 +141,19 @@ class FolhaPagamento extends Component
      ─────────────────────────────────────*/
     public function openHolerite(int $id): void
     {
-        $this->holeriteId    = $id;
-        $this->showHolerite  = true;
-        $this->showItemForm  = false;
-        $this->resetItemForm();
+        $this->holeriteId   = $id;
+        $this->showHolerite = true;
+        unset($this->currentPayroll);
     }
 
     public function closeHolerite(): void
     {
-        $this->showHolerite   = false;
-        $this->holeriteId     = null;
-        $this->editingItemId  = null;
-        $this->showItemForm   = false;
+        $this->showHolerite  = false;
+        $this->holeriteId    = null;
+        $this->showItemForm  = false;
+        $this->editingItemId = null;
         $this->resetItemForm();
+        unset($this->currentPayroll);
     }
 
     /* ─────────────────────────────────────
@@ -206,19 +162,20 @@ class FolhaPagamento extends Component
     public function openItemForm(?int $itemId = null): void
     {
         $this->editingItemId = $itemId;
-        $this->showItemForm  = true;
 
         if ($itemId) {
-            $item = PayrollItem::findOrFail($itemId);
+            $item                  = PayrollItem::findOrFail($itemId);
             $this->itemDescription = $item->description;
             $this->itemType        = $item->type;
-            $this->itemAmount      = number_format((float) $item->amount, 2, ',', '.');
+            $this->itemAmount      = (string) $item->amount;
         } else {
             $this->resetItemForm();
         }
+
+        $this->showItemForm = true;
     }
 
-    public function saveItem(): void
+    public function saveItem(\App\Services\PayrollService $service): void
     {
         $this->validate([
             'itemDescription' => 'required|string|max:255',
@@ -232,24 +189,13 @@ class FolhaPagamento extends Component
 
         $amount = (float) str_replace(['.', ','], ['', '.'], $this->itemAmount);
 
-        if ($this->editingItemId) {
-            PayrollItem::findOrFail($this->editingItemId)->update([
-                'description' => $this->itemDescription,
-                'type'        => $this->itemType,
-                'amount'      => $amount,
-            ]);
-        } else {
-            PayrollItem::create([
-                'payroll_id'  => $this->holeriteId,
-                'description' => $this->itemDescription,
-                'type'        => $this->itemType,
-                'amount'      => $amount,
-            ]);
-        }
-
-        // Recalculate totals
-        $payroll = Payroll::findOrFail($this->holeriteId);
-        $payroll->recalculate();
+        $service->saveItem(
+            $this->holeriteId,
+            $this->itemDescription,
+            $this->itemType,
+            $amount,
+            $this->editingItemId
+        );
 
         $this->showItemForm  = false;
         $this->editingItemId = null;
@@ -257,13 +203,9 @@ class FolhaPagamento extends Component
         unset($this->currentPayroll);
     }
 
-    public function removeItem(int $itemId): void
+    public function removeItem(int $itemId, \App\Services\PayrollService $service): void
     {
-        PayrollItem::findOrFail($itemId)->delete();
-
-        $payroll = Payroll::findOrFail($this->holeriteId);
-        $payroll->recalculate();
-
+        $service->removeItem($itemId);
         unset($this->currentPayroll);
     }
 
@@ -284,10 +226,10 @@ class FolhaPagamento extends Component
         $this->showCloseModal = true;
     }
 
-    public function closePayroll(): void
+    public function closePayroll(\App\Services\PayrollService $service): void
     {
         if ($this->closingId) {
-            Payroll::findOrFail($this->closingId)->update(['status' => PayrollStatus::Closed->value]);
+            $service->closePayroll($this->closingId);
             session()->flash('success', 'Folha fechada com sucesso!');
         }
 
@@ -306,7 +248,7 @@ class FolhaPagamento extends Component
         $this->showPaidModal = true;
     }
 
-    public function markAsPaid(): void
+    public function markAsPaid(\App\Services\PayrollService $service): void
     {
         $this->validate([
             'paymentDate' => 'required|date',
@@ -315,10 +257,10 @@ class FolhaPagamento extends Component
         ]);
 
         if ($this->payingId) {
-            Payroll::findOrFail($this->payingId)->update([
-                'status'       => PayrollStatus::Paid->value,
-                'payment_date' => $this->paymentDate,
-            ]);
+            $service->markAsPaid(
+                $this->payingId,
+                \Carbon\Carbon::parse($this->paymentDate)
+            );
             session()->flash('success', 'Salário marcado como pago!');
         }
 
@@ -330,9 +272,9 @@ class FolhaPagamento extends Component
     /* ─────────────────────────────────────
       DELETE PAYROLL
      ─────────────────────────────────────*/
-    public function deletePayroll(int $id): void
+    public function deletePayroll(int $id, \App\Services\PayrollService $service): void
     {
-        Payroll::findOrFail($id)->delete();
+        $service->deletePayroll($id);
         session()->flash('success', 'Registro removido.');
         unset($this->rows, $this->kpis);
     }

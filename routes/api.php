@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ClientApiController;
 use App\Http\Controllers\Api\StockMovementApiController;
 use App\Http\Controllers\Api\AccountsPayableApiController;
 use App\Http\Controllers\Api\AccountsReceivableApiController;
+use App\Http\Controllers\Api\SalesOrderController;
 use App\Http\Controllers\ExternalApiProxyController;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +69,24 @@ Route::middleware('api')->group(function () {
     Route::put('/accounts-receivable/{accountReceivable}', [AccountsReceivableApiController::class, 'update']);
     Route::patch('/accounts-receivable/{accountReceivable}', [AccountsReceivableApiController::class, 'update']);
     Route::delete('/accounts-receivable/{accountReceivable}', [AccountsReceivableApiController::class, 'destroy']);
+
+    // Sales Orders
+    Route::prefix('sales-orders')->group(function () {
+        Route::get('/', [SalesOrderController::class, 'index'])->name('api.sales-orders.index');
+        Route::post('/', [SalesOrderController::class, 'store'])->name('api.sales-orders.store');
+        Route::get('/statistics', [SalesOrderController::class, 'statistics'])->name('api.sales-orders.statistics');
+        Route::post('/calculate', [SalesOrderController::class, 'calculate'])->name('api.sales-orders.calculate');
+        Route::get('/{order}', [SalesOrderController::class, 'show'])->name('api.sales-orders.show');
+        Route::put('/{order}', [SalesOrderController::class, 'update'])->name('api.sales-orders.update');
+        Route::patch('/{order}', [SalesOrderController::class, 'update'])->name('api.sales-orders.update');
+        Route::delete('/{order}', [SalesOrderController::class, 'destroy'])->name('api.sales-orders.destroy');
+
+        // Ações específicas
+        Route::post('/{order}/approve', [SalesOrderController::class, 'approve'])->name('api.sales-orders.approve');
+        Route::post('/{order}/cancel', [SalesOrderController::class, 'cancel'])->name('api.sales-orders.cancel');
+        Route::get('/{order}/logs', [SalesOrderController::class, 'logs'])->name('api.sales-orders.logs');
+        Route::get('/{order}/attachments', [SalesOrderController::class, 'attachments'])->name('api.sales-orders.attachments');
+    });
 });
 
 

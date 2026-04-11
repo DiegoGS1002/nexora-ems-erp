@@ -20,3 +20,12 @@
 @import './_notifications.css';
 @import './_plano-contas.css';
 @import './_conta-bancaria.css';
+@import './_folha-pagamento.css';
+@import './_jornada.css';
+@import './_fluxo-caixa.css';
+@import './_movimentacao.css';
+@import './_contas-pagar.css';
+@import './_contas-receber.css';
+@import './_nfe.css';
+@import './_producao.css';
+@import './_pedidos.css';

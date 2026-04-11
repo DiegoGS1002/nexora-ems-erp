@@ -113,16 +113,17 @@
                             <div class="grid grid-2" style="margin-bottom:16px;">
                                 <div class="nx-field">
                                     <label>Categoria <span class="nx-required">*</span></label>
-                                    <select wire:model.blur="form.category">
-                                        <option value="">Selecione a categoria</option>
-                                        <option value="informatica">Informática</option>
-                                        <option value="moveis">Móveis</option>
-                                        <option value="eletronicos">Eletrônicos</option>
-                                        <option value="alimentos">Alimentos</option>
-                                        <option value="vestuario">Vestuário</option>
-                                        <option value="ferramentas">Ferramentas</option>
-                                        <option value="outro">Outro</option>
-                                    </select>
+                                    <div style="display:flex;gap:8px;">
+                                        <select wire:model.blur="form.category" style="flex:1;">
+                                            <option value="">Selecione a categoria</option>
+                                            @foreach($categories as $cat)
+                                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" wire:click="openCategoryModal" class="nx-btn-icon" title="Criar nova categoria">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        </button>
+                                    </div>
                                     @error('form.category') <span class="nx-field-error">{{ $message }}</span> @enderror
                                 </div>
                                 <div class="nx-field">
@@ -136,15 +137,17 @@
                             <div class="grid grid-2" style="margin-bottom:16px;">
                                 <div class="nx-field">
                                     <label>Unidade de Medida <span class="nx-required">*</span></label>
-                                    <select wire:model.blur="form.unit_of_measure">
-                                        <option value="UN">UN — Unidade</option>
-                                        <option value="CX">CX — Caixa</option>
-                                        <option value="KG">KG — Quilograma</option>
-                                        <option value="LT">LT — Litro</option>
-                                        <option value="MT">MT — Metro</option>
-                                        <option value="PC">PC — Peça</option>
-                                        <option value="DZ">DZ — Dúzia</option>
-                                    </select>
+                                    <div style="display:flex;gap:8px;">
+                                        <select wire:model.blur="form.unit_of_measure" style="flex:1;">
+                                            <option value="">Selecione a unidade</option>
+                                            @foreach($units as $unit)
+                                                <option value="{{ $unit->id }}">{{ $unit->abbreviation }} — {{ $unit->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" wire:click="openUnitModal" class="nx-btn-icon" title="Criar nova unidade">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        </button>
+                                    </div>
                                     @error('form.unit_of_measure') <span class="nx-field-error">{{ $message }}</span> @enderror
                                 </div>
                                 <div class="nx-field">
@@ -435,9 +438,70 @@
                                 </div>
                                 <h3 class="nx-form-section-title">Tributação Fiscal</h3>
                             </div>
-                            <div class="nx-inline-alert nx-inline-alert--warn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                <span>Módulo fiscal em desenvolvimento. As configurações de NCM, CFOP, CST/CSOSN estarão disponíveis em breve.</span>
+
+                            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px;margin-bottom:20px;font-size:12px;color:#1E40AF;">
+                                💡 Vincule um <strong>Grupo Tributário</strong> para pré-preencher NCM, CFOP e CST automaticamente. Ou configure manualmente os campos abaixo.
+                            </div>
+
+                            <div class="nx-field" style="margin-bottom:20px;">
+                                <label>Grupo Tributário</label>
+                                <select wire:model.live="form.grupo_tributario_id">
+                                    <option value="">— Nenhum —</option>
+                                    @foreach($gruposTributarios as $gt)
+                                        <option value="{{ $gt->id }}">[{{ $gt->codigo }}] {{ $gt->nome }} @if($gt->ncm)– NCM {{ $gt->ncm }}@endif</option>
+                                    @endforeach
+                                </select>
+                                <span style="font-size:11px;color:#94A3B8;">Ao selecionar um grupo, os campos abaixo serão preenchidos automaticamente</span>
+                                @error('form.grupo_tributario_id') <span class="nx-field-error">{{ $message }}</span> @enderror
+                            </div>
+
+                            @if($form->grupo_tributario_id)
+                                @php $grupoSel = $gruposTributarios->find($form->grupo_tributario_id); @endphp
+                                @if($grupoSel)
+                                <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:12px 16px;margin-bottom:20px;">
+                                    <div style="font-size:12px;font-weight:600;color:#15803D;margin-bottom:6px;">✓ Grupo Tributário Aplicado</div>
+                                    <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#166534;">
+                                        <span><strong>Código:</strong> {{ $grupoSel->codigo }}</span>
+                                        @if($grupoSel->ncm)
+                                            <span><strong>NCM:</strong> {{ $grupoSel->ncm }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endif
+                            @endif
+
+                            <div class="grid grid-3" style="margin-bottom:16px;">
+                                <div class="nx-field">
+                                    <label>NCM</label>
+                                    <input type="text" wire:model.blur="form.ncm" placeholder="00000000" maxlength="8"
+                                        style="font-family:monospace;font-size:14px;font-weight:700;letter-spacing:2px;text-align:center;">
+                                    <span style="font-size:11px;color:#94A3B8;">8 dígitos – Nomenclatura Comum do Mercosul</span>
+                                    @if($form->ncm && strlen(preg_replace('/\D/', '', $form->ncm)) === 8)
+                                        @php $ncmDigits = preg_replace('/\D/', '', $form->ncm); @endphp
+                                        <div style="margin-top:4px;font-family:monospace;font-size:12px;font-weight:700;color:#1D4ED8;">
+                                            {{ substr($ncmDigits,0,4) }}.{{ substr($ncmDigits,4,2) }}.{{ substr($ncmDigits,6,2) }}
+                                        </div>
+                                    @endif
+                                    @error('form.ncm') <span class="nx-field-error">{{ $message }}</span> @enderror
+                                </div>
+                                <div class="nx-field">
+                                    <label>CFOP Saída</label>
+                                    <input type="text" wire:model.blur="form.cfop_saida" placeholder="5102" maxlength="4"
+                                        style="font-family:monospace;font-size:14px;font-weight:700;letter-spacing:3px;text-align:center;">
+                                    <span style="font-size:11px;color:#94A3B8;">CFOP para vendas / saídas</span>
+                                    @error('form.cfop_saida') <span class="nx-field-error">{{ $message }}</span> @enderror
+                                </div>
+                                <div class="nx-field">
+                                    <label>CFOP Entrada</label>
+                                    <input type="text" wire:model.blur="form.cfop_entrada" placeholder="1102" maxlength="4"
+                                        style="font-family:monospace;font-size:14px;font-weight:700;letter-spacing:3px;text-align:center;">
+                                    <span style="font-size:11px;color:#94A3B8;">CFOP para compras / entradas</span>
+                                    @error('form.cfop_entrada') <span class="nx-field-error">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+
+                            <div style="background:#FEF9C3;border:1px solid #FDE047;border-radius:10px;padding:12px 14px;margin-top:16px;font-size:11px;color:#854D0E;">
+                                <strong>💡 Dica:</strong> Para configurações avançadas de ICMS, IPI, PIS e COFINS, edite o <strong>Grupo Tributário</strong> ou vá em <strong>Fiscal → Grupos Tributários</strong>.
                             </div>
                         </div>
                     </div>
@@ -587,5 +651,85 @@
         </div>
 
     </form>
+
+    {{-- ═══════════════════════════════════════════════════════════
+         MODAL: CRIAR CATEGORIA
+    ═══════════════════════════════════════════════════════════ --}}
+    @if($showCategoryModal)
+        <div class="nx-modal-overlay" wire:click="closeCategoryModal">
+            <div class="nx-modal" wire:click.stop style="max-width:500px;">
+                <div class="nx-modal-header">
+                    <h3 class="nx-modal-title">Nova Categoria</h3>
+                    <button type="button" wire:click="closeCategoryModal" class="nx-modal-close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <div class="nx-modal-body">
+                    <div class="nx-field" style="margin-bottom:16px;">
+                        <label>Nome da Categoria <span class="nx-required">*</span></label>
+                        <input type="text" wire:model="newCategoryName" placeholder="Ex: Eletrônicos" maxlength="100" autofocus>
+                        @error('newCategoryName') <span class="nx-field-error">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="nx-field" style="margin-bottom:16px;">
+                        <label>Descrição</label>
+                        <textarea wire:model="newCategoryDescription" rows="3" placeholder="Descrição opcional da categoria"></textarea>
+                    </div>
+                    <div class="nx-field">
+                        <label>Cor</label>
+                        <input type="color" wire:model="newCategoryColor" style="height:40px;">
+                    </div>
+                </div>
+                <div class="nx-modal-footer">
+                    <button type="button" wire:click="closeCategoryModal" class="nx-btn nx-btn-ghost">Cancelar</button>
+                    <button type="button" wire:click="saveCategory" wire:loading.attr="disabled" class="nx-btn nx-btn-primary">
+                        <span wire:loading.remove wire:target="saveCategory">Criar Categoria</span>
+                        <span wire:loading wire:target="saveCategory">Salvando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════════════════
+         MODAL: CRIAR UNIDADE DE MEDIDA
+    ═══════════════════════════════════════════════════════════ --}}
+    @if($showUnitModal)
+        <div class="nx-modal-overlay" wire:click="closeUnitModal">
+            <div class="nx-modal" wire:click.stop style="max-width:500px;">
+                <div class="nx-modal-header">
+                    <h3 class="nx-modal-title">Nova Unidade de Medida</h3>
+                    <button type="button" wire:click="closeUnitModal" class="nx-modal-close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <div class="nx-modal-body">
+                    <div class="grid grid-2" style="margin-bottom:16px;">
+                        <div class="nx-field">
+                            <label>Nome <span class="nx-required">*</span></label>
+                            <input type="text" wire:model="newUnitName" placeholder="Ex: Quilograma" maxlength="50" autofocus>
+                            @error('newUnitName') <span class="nx-field-error">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="nx-field">
+                            <label>Sigla <span class="nx-required">*</span></label>
+                            <input type="text" wire:model="newUnitAbbreviation" placeholder="Ex: KG" maxlength="10" style="text-transform:uppercase;">
+                            @error('newUnitAbbreviation') <span class="nx-field-error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="nx-field">
+                        <label>Descrição</label>
+                        <textarea wire:model="newUnitDescription" rows="3" placeholder="Descrição opcional da unidade"></textarea>
+                    </div>
+                </div>
+                <div class="nx-modal-footer">
+                    <button type="button" wire:click="closeUnitModal" class="nx-btn nx-btn-ghost">Cancelar</button>
+                    <button type="button" wire:click="saveUnit" wire:loading.attr="disabled" class="nx-btn nx-btn-primary">
+                        <span wire:loading.remove wire:target="saveUnit">Criar Unidade</span>
+                        <span wire:loading wire:target="saveUnit">Salvando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>
 

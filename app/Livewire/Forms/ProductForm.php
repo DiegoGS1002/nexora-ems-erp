@@ -18,6 +18,19 @@ class ProductForm extends Form
     #[Validate('nullable|string|size:13')]
     public ?string $ean            = null;
 
+    // ── Tributação ───────────────────────────────────
+    #[Validate('nullable|string|size:8')]
+    public ?string $ncm            = null;
+
+    #[Validate('nullable|string|size:4')]
+    public ?string $cfop_saida     = null;
+
+    #[Validate('nullable|string|size:4')]
+    public ?string $cfop_entrada   = null;
+
+    #[Validate('nullable|integer|exists:grupo_tributarios,id')]
+    public ?string $grupo_tributario_id = null;
+
     #[Validate('nullable|string|max:200')]
     public ?string $short_description = null;
 

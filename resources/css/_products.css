@@ -64,6 +64,32 @@
 
 .nx-btn--loading { opacity: 0.7; cursor: wait; }
 
+.nx-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: #F1F5F9;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.18s;
+    color: #64748B;
+}
+
+.nx-btn-icon:hover {
+    background: #E2E8F0;
+    border-color: #CBD5E1;
+    color: #1E293B;
+    transform: scale(1.05);
+}
+
+.nx-btn-icon:active {
+    transform: scale(0.95);
+}
+
 @keyframes nx-spin-anim { to { transform: rotate(360deg); } }
 .nx-spin { animation: nx-spin-anim 0.7s linear infinite; }
 

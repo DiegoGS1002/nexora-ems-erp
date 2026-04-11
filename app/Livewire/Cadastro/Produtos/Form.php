@@ -5,9 +5,13 @@ namespace App\Livewire\Cadastro\Produtos;
 use App\Enums\NaturezaProduto;
 use App\Enums\TipoProduto;
 use App\Livewire\Forms\ProductForm;
+use App\Models\GrupoTributario;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Supplier;
+use App\Models\UnitOfMeasure;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -32,6 +36,17 @@ class Form extends Component
     public string $highlightInput = '';
     public string $tagInput       = '';
 
+    // Modal properties for inline creation
+    public bool $showCategoryModal = false;
+    public string $newCategoryName = '';
+    public string $newCategoryDescription = '';
+    public string $newCategoryColor = '#3B82F6';
+
+    public bool $showUnitModal = false;
+    public string $newUnitName = '';
+    public string $newUnitAbbreviation = '';
+    public string $newUnitDescription = '';
+
     public function mount(?Product $product = null): void
     {
         $this->product = $product && $product->exists ? $product->load('suppliers') : null;
@@ -40,6 +55,11 @@ class Form extends Component
             $this->form->product_code      = $this->product->product_code ?? '';
             $this->form->name              = $this->product->name;
             $this->form->ean               = $this->product->ean;
+            $this->form->ncm               = $this->product->ncm;
+            $this->form->cfop_saida        = $this->product->cfop_saida;
+            $this->form->cfop_entrada      = $this->product->cfop_entrada;
+            $this->form->grupo_tributario_id = $this->product->grupo_tributario_id
+                ? (string) $this->product->grupo_tributario_id : null;
             $this->form->short_description = $this->product->short_description;
             $this->form->category          = $this->product->category;
             $this->form->brand             = $this->product->brand;
@@ -98,6 +118,84 @@ class Form extends Component
     {
         array_splice($this->form->tags, $index, 1);
         $this->form->tags = array_values($this->form->tags);
+    }
+
+    // Category Modal Methods
+    public function openCategoryModal(): void
+    {
+        $this->showCategoryModal = true;
+        $this->newCategoryName = '';
+        $this->newCategoryDescription = '';
+        $this->newCategoryColor = '#3B82F6';
+    }
+
+    public function closeCategoryModal(): void
+    {
+        $this->showCategoryModal = false;
+        $this->resetErrorBag(['newCategoryName']);
+    }
+
+    public function saveCategory(): void
+    {
+        $this->validate([
+            'newCategoryName' => 'required|string|max:100|unique:product_categories,name',
+        ], [
+            'newCategoryName.required' => 'O nome da categoria é obrigatório.',
+            'newCategoryName.unique' => 'Esta categoria já existe.',
+        ]);
+
+        $category = ProductCategory::create([
+            'name' => $this->newCategoryName,
+            'slug' => Str::slug($this->newCategoryName),
+            'description' => $this->newCategoryDescription,
+            'color' => $this->newCategoryColor,
+            'is_active' => true,
+        ]);
+
+        $this->form->category = (string) $category->id;
+        $this->showCategoryModal = false;
+
+        session()->flash('success', 'Categoria criada com sucesso!');
+    }
+
+    // Unit Modal Methods
+    public function openUnitModal(): void
+    {
+        $this->showUnitModal = true;
+        $this->newUnitName = '';
+        $this->newUnitAbbreviation = '';
+        $this->newUnitDescription = '';
+    }
+
+    public function closeUnitModal(): void
+    {
+        $this->showUnitModal = false;
+        $this->resetErrorBag(['newUnitName', 'newUnitAbbreviation']);
+    }
+
+    public function saveUnit(): void
+    {
+        $this->validate([
+            'newUnitName' => 'required|string|max:50|unique:unit_of_measures,name',
+            'newUnitAbbreviation' => 'required|string|max:10|unique:unit_of_measures,abbreviation',
+        ], [
+            'newUnitName.required' => 'O nome da unidade é obrigatório.',
+            'newUnitName.unique' => 'Esta unidade já existe.',
+            'newUnitAbbreviation.required' => 'A sigla é obrigatória.',
+            'newUnitAbbreviation.unique' => 'Esta sigla já está em uso.',
+        ]);
+
+        $unit = UnitOfMeasure::create([
+            'name' => $this->newUnitName,
+            'abbreviation' => strtoupper($this->newUnitAbbreviation),
+            'description' => $this->newUnitDescription,
+            'is_active' => true,
+        ]);
+
+        $this->form->unit_of_measure = (string) $unit->id;
+        $this->showUnitModal = false;
+
+        session()->flash('success', 'Unidade de medida criada com sucesso!');
     }
 
     public function save(): mixed
@@ -159,6 +257,10 @@ class Form extends Component
         return [
             'name'              => $this->form->name,
             'ean'               => $this->form->ean ?: null,
+            'ncm'               => $this->form->ncm ? preg_replace('/\D/', '', $this->form->ncm) : null,
+            'cfop_saida'        => $this->form->cfop_saida ?: null,
+            'cfop_entrada'      => $this->form->cfop_entrada ?: null,
+            'grupo_tributario_id' => $this->form->grupo_tributario_id ?: null,
             'description'       => $this->form->description,
             'short_description' => $this->form->short_description,
             'brand'             => $this->form->brand,
@@ -189,10 +291,13 @@ class Form extends Component
         $title = $this->product ? 'Editar Produto' : 'Novo Produto';
 
         return view('livewire.cadastro.produtos.form', [
-            'isEditing'   => (bool) $this->product,
-            'suppliers'   => Supplier::orderBy('social_name')->get(),
-            'tipoProdutos' => TipoProduto::cases(),
-            'naturezas'   => NaturezaProduto::cases(),
+            'isEditing'        => (bool) $this->product,
+            'suppliers'        => Supplier::orderBy('social_name')->get(),
+            'categories'       => ProductCategory::where('is_active', true)->orderBy('name')->get(),
+            'units'            => UnitOfMeasure::where('is_active', true)->orderBy('name')->get(),
+            'gruposTributarios' => GrupoTributario::where('is_active', true)->orderBy('codigo')->get(['id','codigo','nome','ncm']),
+            'tipoProdutos'     => TipoProduto::cases(),
+            'naturezas'        => NaturezaProduto::cases(),
         ])->title($title);
     }
 }

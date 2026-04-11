@@ -9,6 +9,10 @@ use App\Livewire\Cadastro\Fornecedores\Form as SupplierForm;
 use App\Livewire\Cadastro\Fornecedores\Index as SupplierIndex;
 use App\Livewire\Cadastro\Produtos\Form as ProductForm;
 use App\Livewire\Cadastro\Produtos\Index as ProductIndex;
+use App\Livewire\Cadastro\CategoriaProduto\Form as ProductCategoryForm;
+use App\Livewire\Cadastro\CategoriaProduto\Index as ProductCategoryIndex;
+use App\Livewire\Cadastro\UnidadeMedida\Form as UnitOfMeasureForm;
+use App\Livewire\Cadastro\UnidadeMedida\Index as UnitOfMeasureIndex;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
@@ -63,6 +67,12 @@ Route::get('/roles/{role}/edit', RoleForm::class)->name('roles.edit');
 Route::get('/vehicles', VehicleIndex::class)->name('vehicles.index');
 Route::get('/vehicles/create', VehicleForm::class)->name('vehicles.create');
 Route::get('/vehicles/{vehicle}/edit', VehicleForm::class)->name('vehicles.edit');
+Route::get('/product-categories', ProductCategoryIndex::class)->name('product-categories.index');
+Route::get('/product-categories/create', ProductCategoryForm::class)->name('product-categories.create');
+Route::get('/product-categories/{category}/edit', ProductCategoryForm::class)->name('product-categories.edit');
+Route::get('/unit-of-measures', UnitOfMeasureIndex::class)->name('unit-of-measures.index');
+Route::get('/unit-of-measures/create', UnitOfMeasureForm::class)->name('unit-of-measures.create');
+Route::get('/unit-of-measures/{unit}/edit', UnitOfMeasureForm::class)->name('unit-of-measures.edit');
 
 
 /*

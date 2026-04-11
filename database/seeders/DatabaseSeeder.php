@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             RoleSeeder::class,
             EmployeeSeeder::class,
+            TipoOperacaoFiscalSeeder::class,
+            GrupoTributarioSeeder::class,
         ]);
     }
 }
