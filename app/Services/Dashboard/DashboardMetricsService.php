@@ -2,258 +2,408 @@
 
 namespace App\Services\Dashboard;
 
+use App\Enums\SalesOrderStatus;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardMetricsService
 {
+    /** Cache local de verificações de schema (evita N+1 em loops) */
+    private array $tableCache  = [];
+    private array $columnCache = [];
+
+    private function hasTable(string $table): bool
+    {
+        return $this->tableCache[$table] ??= Schema::hasTable($table);
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        $key = "{$table}.{$column}";
+        return $this->columnCache[$key] ??= Schema::hasColumn($table, $column);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  KPI GERAL
+    // ──────────────────────────────────────────────────────────────
+
     public function getOverviewKpis(): array
     {
-        $faturamento = $this->estimatedRevenue();
-
         return [
-            'faturamento' => $faturamento,
-            'produtos' => $this->safeCount('products'),
-            'pedidos' => $this->safeCount('requests'),
-            'despesas' => $this->getTotalExpenses(),
+            'faturamento' => $this->getMonthlyRevenue(now()),
+            'produtos'    => $this->countActiveProducts(),
+            'pedidos'     => $this->countMonthOrders(now()),
+            'despesas'    => $this->getTotalPendingExpenses(),
         ];
     }
 
+    // ──────────────────────────────────────────────────────────────
+    //  DADOS PARA GRAFICOS E TABELA (6 meses)
+    // ──────────────────────────────────────────────────────────────
+
     public function getKpiReportData(): array
     {
-        $now = now();
+        $now    = now();
         $months = collect(range(5, 0))
-            ->map(fn (int $offset) => $now->copy()->subMonths($offset));
+            ->map(fn(int $offset) => $now->copy()->subMonths($offset));
 
         $categorias = $months
-            ->map(fn (Carbon $month) => $month->translatedFormat('M/y'))
+            ->map(fn(Carbon $m) => $m->translatedFormat('M/y'))
             ->values()
             ->all();
 
         $faturamento = $months
-            ->map(fn (Carbon $month) => round($this->monthlyEstimatedRevenue($month), 2))
+            ->map(fn(Carbon $m) => round($this->getMonthlyRevenue($m), 2))
             ->values()
             ->all();
 
-        $distribuicaoData = $this->categoryDistribution();
+        $distribuicaoData = $this->getCategoryDistribution();
 
         $tableRows = $months
             ->values()
             ->map(function (Carbon $month, int $index) use ($faturamento) {
                 return [
                     'month_index' => $index,
-                    'mes' => $month->translatedFormat('M/y'),
+                    'mes'         => $month->translatedFormat('M/y'),
                     'faturamento' => $faturamento[$index],
-                    'pedidos' => $this->ordersForMonth($month),
+                    'pedidos'     => $this->countMonthOrders($month),
                 ];
             })
             ->all();
 
         return [
-            'faturamento' => $faturamento,
-            'categorias' => $categorias,
-            'distribuicao' => $distribuicaoData['series'],
+            'faturamento'         => $faturamento,
+            'categorias'          => $categorias,
+            'distribuicao'        => $distribuicaoData['series'],
             'distribuicao_labels' => $distribuicaoData['labels'],
-            'table_rows' => $tableRows,
+            'table_rows'          => $tableRows,
         ];
     }
 
-    /**
-     * Calcula faturamento estimado baseado no valor do estoque
-     */
-    private function estimatedRevenue(): float
+    // ──────────────────────────────────────────────────────────────
+    //  FATURAMENTO MENSAL
+    //  Prioridade: sales_orders → accounts_receivable → estoque
+    // ──────────────────────────────────────────────────────────────
+
+    private function getMonthlyRevenue(Carbon $month): float
     {
-        if (! Schema::hasTable('products')) {
-            return 0.0;
+        // 1. sales_orders: pedidos faturados/aprovados no mês
+        if ($this->hasTable('sales_orders')) {
+            $statuses = [
+                SalesOrderStatus::Approved->value,
+                SalesOrderStatus::EmSeparacao->value,
+                SalesOrderStatus::Invoiced->value,
+                SalesOrderStatus::Delivered->value,
+            ];
+
+            $revenue = DB::table('sales_orders')
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->whereIn('status', $statuses)
+                ->sum('total_amount');
+
+            if ($revenue > 0) {
+                return round((float) $revenue, 2);
+            }
         }
 
-        $value = (float) DB::table('products')
-            ->selectRaw('COALESCE(SUM(COALESCE(sale_price, 0) * COALESCE(stock, 0)), 0) as total')
-            ->value('total');
+        // 2. accounts_receivable: valores recebidos no mês
+        if ($this->hasTable('accounts_receivable') && $this->hasColumn('accounts_receivable', 'amount')) {
+            $dateCol = $this->hasColumn('accounts_receivable', 'received_at') ? 'received_at' : 'created_at';
 
-        return round($value, 2);
+            $received = DB::table('accounts_receivable')
+                ->whereYear($dateCol, $month->year)
+                ->whereMonth($dateCol, $month->month)
+                ->whereIn('status', ['received', 'partial'])
+                ->sum('amount');
+
+            if ($received > 0) {
+                return round((float) $received, 2);
+            }
+        }
+
+        // 3. Fallback: estimativa baseada em produtos criados no mês × estoque
+        if ($this->hasTable('products')) {
+            $val = DB::table('products')
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->whereNull('deleted_at')
+                ->selectRaw('COALESCE(SUM(COALESCE(sale_price,0) * GREATEST(COALESCE(stock,0),1)),0) as total')
+                ->value('total');
+
+            return round((float) $val, 2);
+        }
+
+        return 0.0;
     }
 
-    /**
-     * Calcula faturamento mensal estimado baseado em produtos criados no mês
-     */
-    private function monthlyEstimatedRevenue(Carbon $month): float
+    // ──────────────────────────────────────────────────────────────
+    //  CONTAGEM DE PRODUTOS ATIVOS
+    // ──────────────────────────────────────────────────────────────
+
+    private function countActiveProducts(): int
     {
-        if (! Schema::hasTable('products')) {
-            return 0.0;
+        if (! $this->hasTable('products')) {
+            return 0;
         }
 
-        // Tenta calcular com base em vendas/movimentações se existir
-        $movementRevenue = $this->calculateRevenueFromMovements($month);
-        if ($movementRevenue > 0) {
-            return $movementRevenue;
+        $query = DB::table('products')->whereNull('deleted_at');
+
+        if ($this->hasColumn('products', 'is_active')) {
+            $query->where('is_active', true);
         }
 
-        // Fallback: estima com base no valor dos produtos criados no mês
-        return (float) DB::table('products')
-            ->whereYear('created_at', $month->year)
-            ->whereMonth('created_at', $month->month)
-            ->selectRaw('COALESCE(SUM(COALESCE(sale_price, 0) * GREATEST(COALESCE(stock, 0), 1)), 0) as total')
-            ->value('total');
+        return (int) $query->count();
     }
 
-    /**
-     * Calcula receita baseada em movimentações de estoque (saídas)
-     */
-    private function calculateRevenueFromMovements(Carbon $month): float
+    // ──────────────────────────────────────────────────────────────
+    //  CONTAGEM DE PEDIDOS DO MÊS
+    //  Prioridade: sales_orders → requests
+    // ──────────────────────────────────────────────────────────────
+
+    private function countMonthOrders(Carbon $month): int
     {
-        if (! Schema::hasTable('stock_movements')) {
-            return 0.0;
+        if ($this->hasTable('sales_orders')) {
+            return (int) DB::table('sales_orders')
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
         }
 
-        // Soma o valor das saídas de estoque multiplicado pelo preço de venda
-        $revenue = DB::table('stock_movements')
-            ->join('products', 'stock_movements.product_id', '=', 'products.id')
-            ->whereYear('stock_movements.created_at', $month->year)
-            ->whereMonth('stock_movements.created_at', $month->month)
-            ->where('stock_movements.type', 'output')
-            ->selectRaw('COALESCE(SUM(stock_movements.quantity * COALESCE(products.sale_price, stock_movements.unit_cost, 0)), 0) as total')
-            ->value('total');
+        if ($this->hasTable('requests')) {
+            return (int) DB::table('requests')
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+        }
 
-        return round((float) $revenue, 2);
+        return 0;
     }
 
-    /**
-     * Calcula total de despesas
-     */
-    private function getTotalExpenses(): float
+    // ──────────────────────────────────────────────────────────────
+    //  TOTAL DE DESPESAS (contas a pagar pendentes/vencidas)
+    // ──────────────────────────────────────────────────────────────
+
+    private function getTotalPendingExpenses(): float
     {
         $total = 0.0;
 
-        // Despesas de contas a pagar
-        if (Schema::hasTable('accounts_payable')) {
-            $column = Schema::hasColumn('accounts_payable', 'amount') ? 'amount' : 'value';
-            $total += (float) DB::table('accounts_payable')->sum($column);
-        }
+        if ($this->hasTable('accounts_payable')) {
+            $amtCol = $this->hasColumn('accounts_payable', 'amount') ? 'amount' : 'value';
 
-        // Custos de produtos (compras/entradas)
-        if (Schema::hasTable('stock_movements')) {
-            $purchases = DB::table('stock_movements')
-                ->where('type', 'input')
-                ->whereNotNull('unit_cost')
-                ->selectRaw('COALESCE(SUM(quantity * unit_cost), 0) as total')
-                ->value('total');
-
-            $total += (float) $purchases;
+            if ($this->hasColumn('accounts_payable', 'status')) {
+                $total += (float) DB::table('accounts_payable')
+                    ->whereIn('status', ['pending', 'overdue'])
+                    ->sum($amtCol);
+            } else {
+                $total += (float) DB::table('accounts_payable')->sum($amtCol);
+            }
         }
 
         return round($total, 2);
     }
 
-    /**
-     * Distribuição por categoria de produtos
-     */
-    private function categoryDistribution(): array
+    // ──────────────────────────────────────────────────────────────
+    //  DISTRIBUIÇÃO POR CATEGORIA
+    //  Prioridade: product_categories JOIN → products.category
+    // ──────────────────────────────────────────────────────────────
+
+    private function getCategoryDistribution(): array
     {
-        if (! Schema::hasTable('products')) {
-            return [
-                'labels' => ['Sem dados'],
-                'series' => [0],
-            ];
+        if (! $this->hasTable('products')) {
+            return ['labels' => ['Sem dados'], 'series' => [0]];
         }
 
-        $rows = DB::table('products')
-            ->selectRaw("COALESCE(NULLIF(category, ''), 'Sem categoria') as category")
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('category')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
+        // Usa tabela de categorias se disponível
+        if ($this->hasTable('product_categories') && $this->hasColumn('products', 'product_category_id')) {
+            $rows = DB::table('products')
+                ->selectRaw("COALESCE(pc.name, products.category, 'Sem categoria') as category")
+                ->selectRaw('COUNT(*) as total')
+                ->leftJoin('product_categories as pc', 'products.product_category_id', '=', 'pc.id')
+                ->whereNull('products.deleted_at')
+                ->where('products.is_active', true)
+                ->groupByRaw("COALESCE(pc.name, products.category, 'Sem categoria')")
+                ->orderByDesc('total')
+                ->limit(6)
+                ->get();
+        } else {
+            $query = DB::table('products')->whereNull('deleted_at');
+
+            if ($this->hasColumn('products', 'is_active')) {
+                $query->where('is_active', true);
+            }
+
+            $rows = $query
+                ->selectRaw("COALESCE(NULLIF(category, ''), 'Sem categoria') as category")
+                ->selectRaw('COUNT(*) as total')
+                ->groupByRaw("COALESCE(NULLIF(category, ''), 'Sem categoria')")
+                ->orderByDesc('total')
+                ->limit(6)
+                ->get();
+        }
 
         if ($rows->isEmpty()) {
-            return [
-                'labels' => ['Sem produtos'],
-                'series' => [0],
-            ];
+            return ['labels' => ['Sem produtos'], 'series' => [0]];
         }
 
         return [
-            'labels' => $rows->pluck('category')->map(fn ($item) => ucfirst((string) $item))->all(),
-            'series' => $rows->pluck('total')->map(fn ($item) => (float) $item)->all(),
+            'labels' => $rows->pluck('category')->map(fn($v) => ucfirst((string) $v))->all(),
+            'series' => $rows->pluck('total')->map(fn($v) => (int) $v)->all(),
         ];
     }
 
-    /**
-     * Conta pedidos no mês
-     */
-    private function ordersForMonth(Carbon $targetMonth): int
+    // ──────────────────────────────────────────────────────────────
+    //  PEDIDOS RECENTES
+    //  Prioridade: sales_orders com cliente → vazio (sem mock)
+    // ──────────────────────────────────────────────────────────────
+
+    public function getRecentOrders(int $limit = 5): array
     {
-        if (! Schema::hasTable('requests')) {
-            return 0;
+        if (! $this->hasTable('sales_orders')) {
+            return [];
         }
 
-        return (int) DB::table('requests')
-            ->whereYear('created_at', $targetMonth->year)
-            ->whereMonth('created_at', $targetMonth->month)
-            ->count();
+        $statusMap = [
+            SalesOrderStatus::Draft->value        => 'Rascunho',
+            SalesOrderStatus::Aberto->value       => 'Aberto',
+            SalesOrderStatus::Approved->value     => 'Aprovado',
+            SalesOrderStatus::EmSeparacao->value  => 'Separação',
+            SalesOrderStatus::Invoiced->value     => 'Faturado',
+            SalesOrderStatus::Delivered->value    => 'Entregue',
+            SalesOrderStatus::Cancelled->value    => 'Cancelado',
+        ];
+
+        $query = DB::table('sales_orders as so')
+            ->select([
+                'so.id',
+                'so.order_number',
+                'so.total_amount',
+                'so.status',
+                'so.created_at',
+            ]);
+
+        if ($this->hasTable('clients') && $this->hasColumn('sales_orders', 'client_id')) {
+            $query->addSelect('c.name as client_name')
+                  ->leftJoin('clients as c', 'so.client_id', '=', 'c.id');
+        } else {
+            $query->selectRaw("'—' as client_name");
+        }
+
+        $orders = $query->orderByDesc('so.created_at')->limit($limit)->get();
+
+        return $orders->map(function ($row) use ($statusMap) {
+            return [
+                'id'      => $row->order_number ?? ('#' . str_pad($row->id, 4, '0', STR_PAD_LEFT)),
+                'cliente' => $row->client_name ?? '—',
+                'valor'   => (float) ($row->total_amount ?? 0),
+                'status'  => $statusMap[$row->status] ?? ucfirst((string) ($row->status ?? '')),
+            ];
+        })->toArray();
     }
 
-    /**
-     * Conta registros de forma segura
-     */
+    // ──────────────────────────────────────────────────────────────
+    //  MOVIMENTAÇÕES RECENTES
+    //  Prioridade: accounts_receivable + accounts_payable → stock_movements
+    // ──────────────────────────────────────────────────────────────
+
+    public function getRecentMovements(int $limit = 5): array
+    {
+        $movements = collect();
+
+        // Entradas: contas a receber pagas/parciais
+        if ($this->hasTable('accounts_receivable') && $this->hasColumn('accounts_receivable', 'amount')) {
+            $dateCol = $this->hasColumn('accounts_receivable', 'received_at') ? 'received_at' : 'updated_at';
+
+            $entradas = DB::table('accounts_receivable')
+                ->selectRaw("description_title as descricao, amount as valor, `{$dateCol}` as data, 'entrada' as tipo")
+                ->whereIn('status', ['received', 'partial'])
+                ->orderByDesc($dateCol)
+                ->limit($limit)
+                ->get();
+
+            $movements = $movements->merge($entradas);
+        }
+
+        // Saídas: contas a pagar pagas
+        if ($this->hasTable('accounts_payable') && $this->hasColumn('accounts_payable', 'amount')) {
+            $dateCol = $this->hasColumn('accounts_payable', 'payment_date') ? 'payment_date' : 'updated_at';
+
+            $saidas = DB::table('accounts_payable')
+                ->selectRaw("description_title as descricao, amount as valor, `{$dateCol}` as data, 'saida' as tipo")
+                ->where('status', 'paid')
+                ->orderByDesc($dateCol)
+                ->limit($limit)
+                ->get();
+
+            $movements = $movements->merge($saidas);
+        }
+
+        // Retorna dados financeiros se existirem
+        if ($movements->isNotEmpty()) {
+            return $movements
+                ->filter(fn($m) => ! empty($m->data))
+                ->sortByDesc('data')
+                ->take($limit)
+                ->map(function ($mov) {
+                    return [
+                        'descricao' => $mov->descricao ?? '—',
+                        'tipo'      => $mov->tipo,
+                        'valor'     => (float) ($mov->valor ?? 0),
+                        'data'      => Carbon::parse($mov->data)->diffForHumans(),
+                    ];
+                })
+                ->values()
+                ->toArray();
+        }
+
+        // Fallback: movimentações de estoque
+        if ($this->hasTable('stock_movements')) {
+            $query = DB::table('stock_movements as sm')
+                ->select([
+                    'sm.id',
+                    'sm.type',
+                    'sm.quantity',
+                    'sm.origin',
+                    'sm.unit_cost',
+                    'sm.created_at',
+                    'p.name as product_name',
+                    'p.sale_price',
+                ])
+                ->join('products as p', 'sm.product_id', '=', 'p.id');
+
+            if ($this->hasColumn('stock_movements', 'user_id') && $this->hasTable('users')) {
+                $query->leftJoin('users as u', 'sm.user_id', '=', 'u.id')
+                      ->addSelect('u.name as user_name');
+            }
+
+            $rows = $query->orderByDesc('sm.created_at')->limit($limit)->get();
+
+            return $rows->map(function ($mov) {
+                $valor = (float) $mov->quantity * ((float) ($mov->sale_price ?? $mov->unit_cost ?? 0));
+
+                return [
+                    'descricao' => ($mov->origin ?? 'Movimento') . ' - ' . ($mov->product_name ?? ''),
+                    'tipo'      => $mov->type === 'output' ? 'saida' : 'entrada',
+                    'valor'     => round($valor, 2),
+                    'data'      => Carbon::parse($mov->created_at)->diffForHumans(),
+                ];
+            })->toArray();
+        }
+
+        return [];
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  HELPERS
+    // ──────────────────────────────────────────────────────────────
+
     private function safeCount(string $table): int
     {
-        if (! Schema::hasTable($table)) {
+        if (! $this->hasTable($table)) {
             return 0;
         }
 
         return (int) DB::table($table)->count();
-    }
-
-    /**
-     * Soma coluna de forma segura
-     */
-    private function safeSum(string $table, string $column): float
-    {
-        if (! Schema::hasTable($table) || ! Schema::hasColumn($table, $column)) {
-            return 0.0;
-        }
-
-        return (float) DB::table($table)->sum($column);
-    }
-
-    /**
-     * Retorna movimentações recentes para o dashboard
-     */
-    public function getRecentMovements(int $limit = 5): array
-    {
-        if (! Schema::hasTable('stock_movements')) {
-            return [];
-        }
-
-        $movements = DB::table('stock_movements')
-            ->join('products', 'stock_movements.product_id', '=', 'products.id')
-            ->join('users', 'stock_movements.user_id', '=', 'users.id')
-            ->select([
-                'stock_movements.id',
-                'stock_movements.type',
-                'stock_movements.quantity',
-                'stock_movements.origin',
-                'stock_movements.created_at',
-                'products.name as product_name',
-                'products.sale_price',
-                'users.name as user_name',
-            ])
-            ->orderBy('stock_movements.created_at', 'desc')
-            ->limit($limit)
-            ->get();
-
-        return $movements->map(function ($mov) {
-            $valor = $mov->quantity * ($mov->sale_price ?? 0);
-            $tipo = $mov->type === 'output' ? 'saida' : 'entrada';
-
-            return [
-                'descricao' => "{$mov->origin} - {$mov->product_name}",
-                'tipo' => $tipo,
-                'valor' => $valor,
-                'data' => Carbon::parse($mov->created_at)->diffForHumans(),
-            ];
-        })->toArray();
     }
 }

@@ -19,6 +19,7 @@
         @foreach($kpis as $kpi)
             <x-dashboard.kpi-card
                 :title="$kpi['title']"
+                :subtitle="$kpi['subtitle'] ?? null"
                 :value="$kpi['value']"
                 :currency="$kpi['currency']"
                 :trend="$kpi['trend']"
@@ -57,10 +58,10 @@
         <div class="nx-card nx-activity-panel">
             <div class="nx-activity-panel-header">
                 <h3>Pedidos Recentes</h3>
-                <a href="#" class="nx-btn nx-btn-outline nx-btn-sm">Ver todos</a>
+                <a href="{{ route('vendas.pedidos') }}" class="nx-btn nx-btn-outline nx-btn-sm">Ver todos</a>
             </div>
             <div class="nx-activity-list">
-                @foreach($pedidosRecentes as $pedido)
+                @forelse($pedidosRecentes as $pedido)
                     <div class="nx-activity-item">
                         <div class="nx-activity-item-left">
                             <span class="nx-activity-item-id">{{ $pedido['id'] }}</span>
@@ -70,26 +71,31 @@
                             <span class="nx-activity-item-value">R$ {{ number_format((float) $pedido['valor'], 2, ',', '.') }}</span>
                             @php
                                 $badgeClass = match($pedido['status']) {
-                                    'Aprovado'  => 'nx-badge-success',
-                                    'Pendente'  => 'nx-badge-warning',
-                                    'Cancelado' => 'nx-badge-danger',
-                                    default     => 'nx-badge-neutral',
+                                    'Aprovado', 'Entregue', 'Faturado' => 'nx-badge-success',
+                                    'Aberto', 'Separação', 'Rascunho' => 'nx-badge-warning',
+                                    'Cancelado'                        => 'nx-badge-danger',
+                                    default                            => 'nx-badge-neutral',
                                 };
                             @endphp
                             <span class="nx-badge {{ $badgeClass }}">{{ $pedido['status'] }}</span>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="nx-activity-empty">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:#CBD5E1;margin-bottom:8px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        <span>Nenhum pedido registrado ainda.</span>
+                    </div>
+                @endforelse
             </div>
         </div>
 
         {{-- Movimentacoes --}}
         <div class="nx-card nx-activity-panel">
             <div class="nx-activity-panel-header">
-                <h3>Movimentacoes</h3>
+                <h3>Movimentações</h3>
             </div>
             <div class="nx-activity-list">
-                @foreach($movimentacoes as $mov)
+                @forelse($movimentacoes as $mov)
                     <div class="nx-activity-item">
                         <div class="nx-activity-item-left">
                             <span class="nx-activity-dot nx-dot-{{ $mov['tipo'] }}"></span>
@@ -104,7 +110,12 @@
                             </span>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="nx-activity-empty">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:#CBD5E1;margin-bottom:8px"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <span>Nenhuma movimentação financeira registrada ainda.</span>
+                    </div>
+                @endforelse
             </div>
         </div>
 

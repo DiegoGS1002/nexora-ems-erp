@@ -214,6 +214,28 @@ class KpiReport extends Component
         return $sign . number_format($percentChange, 1, ',', '.') . '%';
     }
 
+    /**
+     * Lê um valor da tabela de settings, com fallback para o padrão informado.
+     */
+    private function getSettingValue(string $key, mixed $default): mixed
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+                $val = \Illuminate\Support\Facades\DB::table('settings')
+                    ->where('key', $key)
+                    ->value('value');
+
+                if ($val !== null) {
+                    return is_numeric($default) ? (float) $val : $val;
+                }
+            }
+        } catch (\Throwable) {
+            // Silencia erros e retorna padrão
+        }
+
+        return $default;
+    }
+
     public function getFilteredTableRowsProperty(): array
     {
         $rows = collect($this->tableRows);

@@ -6,6 +6,7 @@ use App\Enums\PayrollStatus;
 use App\Models\Employees;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
+use App\Models\Setting;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -13,42 +14,42 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('Folha de Pagamento')]
-class FolhaPagamento extends Component
+#[Title('Holerite')]
+class Holerite extends Component
 {
     /* ─────────────────────────────────────
-      FILTERS
+      FILTROS
      ─────────────────────────────────────*/
     public string $referenceMonth = '';
+    public string $searchEmployee  = '';
+    public string $filterStatus    = '';
 
     /* ─────────────────────────────────────
-      MODAL STATE — HOLERITE
+      SELEÇÃO
      ─────────────────────────────────────*/
-    public bool    $showHolerite    = false;
-    public ?int    $holeriteId      = null;
-    public string  $itemDescription = '';
-    public string  $itemType        = 'earning';
-    public string  $itemAmount      = '';
-    public ?int    $editingItemId   = null;
-    public bool    $showItemForm    = false;
+    public ?int $selectedPayrollId = null;
 
     /* ─────────────────────────────────────
-      MODAL STATE — FECHAR FOLHA
+      MODAL — FECHAR FOLHA
      ─────────────────────────────────────*/
-    public bool  $showCloseModal = false;
-    public ?int  $closingId      = null;
+    public bool $showCloseModal = false;
+    public ?int $closingId      = null;
 
     /* ─────────────────────────────────────
-      MODAL STATE — MARCAR PAGO
+      MODAL — MARCAR PAGO
      ─────────────────────────────────────*/
     public bool   $showPaidModal = false;
     public ?int   $payingId      = null;
     public string $paymentDate   = '';
 
     /* ─────────────────────────────────────
-      MODAL STATE — GENERATE ALL
+      ITEM FORM (edição de verbas)
      ─────────────────────────────────────*/
-    public bool $showGenerateAllModal = false;
+    public bool    $showItemForm    = false;
+    public ?int    $editingItemId   = null;
+    public string  $itemDescription = '';
+    public string  $itemType        = 'earning';
+    public string  $itemAmount      = '';
 
     /* ─────────────────────────────────────
       BOOT
@@ -60,113 +61,91 @@ class FolhaPagamento extends Component
     }
 
     /* ─────────────────────────────────────
-      HELPERS — Reference date
+      COMPUTED — lista lateral de folhas
      ─────────────────────────────────────*/
-    private function refDate(): \Carbon\Carbon
+    #[Computed]
+    public function payrollList(): \Illuminate\Support\Collection
     {
-        return \Carbon\Carbon::createFromFormat('Y-m', $this->referenceMonth)->startOfMonth();
+        $date = $this->refDate();
+
+        $query = Payroll::with(['employee'])
+            ->whereYear('reference_month', $date->year)
+            ->whereMonth('reference_month', $date->month);
+
+        if ($this->filterStatus !== '') {
+            $query->where('status', $this->filterStatus);
+        }
+
+        $payrolls = $query->get();
+
+        if ($this->searchEmployee !== '') {
+            $term     = mb_strtolower($this->searchEmployee);
+            $payrolls = $payrolls->filter(function ($p) use ($term) {
+                return str_contains(mb_strtolower($p->employee?->name ?? ''), $term);
+            });
+        }
+
+        return $payrolls->sortBy(fn($p) => $p->employee?->name ?? '')->values();
     }
 
     /* ─────────────────────────────────────
-      COMPUTED — Current payroll for holerite modal
+      COMPUTED — holerite selecionado
      ─────────────────────────────────────*/
     #[Computed]
-    public function currentPayroll(): ?Payroll
+    public function selectedPayroll(): ?Payroll
     {
-        if (! $this->holeriteId) {
+        if (! $this->selectedPayrollId) {
             return null;
         }
 
-        return Payroll::with(['items', 'employee'])->find($this->holeriteId);
+        return Payroll::with(['items', 'employee'])->find($this->selectedPayrollId);
     }
 
     /* ─────────────────────────────────────
-      COMPUTED — Employees with payroll data for the month
-     ─────────────────────────────────────*/
-    #[Computed]
-    public function rows(): \Illuminate\Support\Collection
-    {
-        $date      = $this->refDate();
-        $employees = Employees::where('is_active', true)->orderBy('name')->get();
-
-        $payrolls = Payroll::with(['items'])
-            ->whereYear('reference_month', $date->year)
-            ->whereMonth('reference_month', $date->month)
-            ->get()
-            ->keyBy('employee_id');
-
-        return $employees->map(fn($emp) => [
-            'employee' => $emp,
-            'payroll'  => $payrolls->get($emp->id),
-        ]);
-    }
-
-    /* ─────────────────────────────────────
-      COMPUTED — KPIs
+      COMPUTED — KPIs do mês
      ─────────────────────────────────────*/
     #[Computed]
     public function kpis(): array
     {
-        $date = $this->refDate();
-
+        $date     = $this->refDate();
         $payrolls = Payroll::whereYear('reference_month', $date->year)
             ->whereMonth('reference_month', $date->month)
             ->get();
 
         return [
-            'total_earnings'   => $payrolls->sum('total_earnings'),
-            'total_deductions' => $payrolls->sum('total_deductions'),
-            'net_salary'       => $payrolls->sum('net_salary'),
+            'count_total'      => $payrolls->count(),
             'count_draft'      => $payrolls->where('status', PayrollStatus::Draft)->count(),
             'count_closed'     => $payrolls->where('status', PayrollStatus::Closed)->count(),
             'count_paid'       => $payrolls->where('status', PayrollStatus::Paid)->count(),
+            'total_net_salary' => $payrolls->sum('net_salary'),
         ];
     }
 
     /* ─────────────────────────────────────
-      GENERATE SINGLE — One employee
+      COMPUTED — dados da empresa (settings)
      ─────────────────────────────────────*/
-    public function generatePayroll(string $employeeId, \App\Services\PayrollService $service): void
+    #[Computed]
+    public function companyData(): array
     {
-        $payroll = $service->generateForEmployee($employeeId, $this->refDate());
-
-        unset($this->rows, $this->kpis);
-
-        $this->openHolerite($payroll->id);
+        return [
+            'name'   => Setting::get('company_name', 'Nexora ERP'),
+            'cnpj'   => Setting::get('company_cnpj', '00.000.000/0001-00'),
+            'address'=> Setting::get('company_address', ''),
+            'city'   => Setting::get('company_city', ''),
+            'state'  => Setting::get('company_state', ''),
+        ];
     }
 
     /* ─────────────────────────────────────
-      GENERATE ALL — All active employees
+      SELECIONAR HOLERITE
      ─────────────────────────────────────*/
-    public function generateAllPayrolls(\App\Services\PayrollService $service): void
+    public function selectPayroll(int $id): void
     {
-        $date  = $this->refDate();
-        $count = $service->generateForAllEmployees($date);
-
-        $this->showGenerateAllModal = false;
-        unset($this->rows, $this->kpis);
-
-        session()->flash('success', "Folha gerada para {$count} funcionário(s).");
-    }
-
-    /* ─────────────────────────────────────
-      HOLERITE MODAL
-     ─────────────────────────────────────*/
-    public function openHolerite(int $id): void
-    {
-        $this->holeriteId   = $id;
-        $this->showHolerite = true;
-        unset($this->currentPayroll);
-    }
-
-    public function closeHolerite(): void
-    {
-        $this->showHolerite  = false;
-        $this->holeriteId    = null;
-        $this->showItemForm  = false;
-        $this->editingItemId = null;
+        $this->selectedPayrollId = $id;
+        $this->showItemForm       = false;
+        $this->editingItemId      = null;
         $this->resetItemForm();
-        unset($this->currentPayroll);
+        unset($this->selectedPayroll);
     }
 
     /* ─────────────────────────────────────
@@ -203,7 +182,7 @@ class FolhaPagamento extends Component
         $amount = (float) str_replace(['.', ','], ['', '.'], $this->itemAmount);
 
         $service->saveItem(
-            $this->holeriteId,
+            $this->selectedPayrollId,
             $this->itemDescription,
             $this->itemType,
             $amount,
@@ -213,13 +192,13 @@ class FolhaPagamento extends Component
         $this->showItemForm  = false;
         $this->editingItemId = null;
         $this->resetItemForm();
-        unset($this->currentPayroll);
+        unset($this->selectedPayroll);
     }
 
     public function removeItem(int $itemId, \App\Services\PayrollService $service): void
     {
         $service->removeItem($itemId);
-        unset($this->currentPayroll);
+        unset($this->selectedPayroll);
     }
 
     private function resetItemForm(): void
@@ -231,7 +210,7 @@ class FolhaPagamento extends Component
     }
 
     /* ─────────────────────────────────────
-      CLOSE PAYROLL (draft → closed)
+      FECHAR FOLHA
      ─────────────────────────────────────*/
     public function openCloseModal(int $id): void
     {
@@ -248,11 +227,11 @@ class FolhaPagamento extends Component
 
         $this->showCloseModal = false;
         $this->closingId      = null;
-        unset($this->rows, $this->kpis);
+        unset($this->selectedPayroll, $this->payrollList, $this->kpis);
     }
 
     /* ─────────────────────────────────────
-      MARK AS PAID (closed → paid)
+      MARCAR COMO PAGO
      ─────────────────────────────────────*/
     public function openPaidModal(int $id): void
     {
@@ -279,25 +258,35 @@ class FolhaPagamento extends Component
 
         $this->showPaidModal = false;
         $this->payingId      = null;
-        unset($this->rows, $this->kpis);
+        unset($this->selectedPayroll, $this->payrollList, $this->kpis);
     }
 
     /* ─────────────────────────────────────
-      DELETE PAYROLL
-     ─────────────────────────────────────*/
-    public function deletePayroll(int $id, \App\Services\PayrollService $service): void
-    {
-        $service->deletePayroll($id);
-        session()->flash('success', 'Registro removido.');
-        unset($this->rows, $this->kpis);
-    }
-
-    /* ─────────────────────────────────────
-      RESET PAGINATION ON FILTER CHANGE
+      RESET DE FILTROS
      ─────────────────────────────────────*/
     public function updatingReferenceMonth(): void
     {
-        unset($this->rows, $this->kpis);
+        $this->selectedPayrollId = null;
+        $this->showItemForm       = false;
+        unset($this->payrollList, $this->kpis, $this->selectedPayroll);
+    }
+
+    public function updatingSearchEmployee(): void
+    {
+        unset($this->payrollList);
+    }
+
+    public function updatingFilterStatus(): void
+    {
+        unset($this->payrollList);
+    }
+
+    /* ─────────────────────────────────────
+      HELPER
+     ─────────────────────────────────────*/
+    private function refDate(): \Carbon\Carbon
+    {
+        return \Carbon\Carbon::createFromFormat('Y-m', $this->referenceMonth)->startOfMonth();
     }
 
     /* ─────────────────────────────────────
@@ -305,10 +294,11 @@ class FolhaPagamento extends Component
      ─────────────────────────────────────*/
     public function render(): View
     {
-        return view('livewire.rh.folha-pagamento.index', [
-            'rows'   => $this->rows,
-            'kpis'   => $this->kpis,
-            'statuses' => PayrollStatus::cases(),
+        return view('livewire.rh.holerite.index', [
+            'payrollList'     => $this->payrollList,
+            'selectedPayroll' => $this->selectedPayroll,
+            'kpis'            => $this->kpis,
+            'companyData'     => $this->companyData,
         ]);
     }
 }

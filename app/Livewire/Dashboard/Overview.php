@@ -59,6 +59,7 @@ class Overview extends Component
         $this->kpis = [
             [
                 'title'     => 'Faturamento',
+                'subtitle'  => 'mês atual',
                 'value'     => $kpisData['faturamento'],
                 'currency'  => true,
                 'iconBg'    => '#EFF6FF',
@@ -68,6 +69,7 @@ class Overview extends Component
             ],
             [
                 'title'     => 'Produtos',
+                'subtitle'  => 'ativos',
                 'value'     => $kpisData['produtos'],
                 'currency'  => false,
                 'iconBg'    => '#F5F3FF',
@@ -77,6 +79,7 @@ class Overview extends Component
             ],
             [
                 'title'     => 'Pedidos',
+                'subtitle'  => 'mês atual',
                 'value'     => $kpisData['pedidos'],
                 'currency'  => false,
                 'iconBg'    => '#FFFBEB',
@@ -85,7 +88,8 @@ class Overview extends Component
                 'trend'     => $pedidosTrend,
             ],
             [
-                'title'     => 'Despesas',
+                'title'     => 'A Pagar',
+                'subtitle'  => 'pendente',
                 'value'     => $kpisData['despesas'],
                 'currency'  => true,
                 'iconBg'    => '#FFF1F2',
@@ -100,8 +104,9 @@ class Overview extends Component
         $this->distribuicao = $reportData['distribuicao'];
         $this->distribuicaoLabels = $reportData['distribuicao_labels'];
 
-        // Carrega pedidos recentes e movimentações (mantém mockado por enquanto para estrutura)
-        $this->loadMockPedidosMovimentacoes();
+        // Carrega pedidos recentes e movimentações reais
+        $this->pedidosRecentes = $this->metricsService->getRecentOrders(5);
+        $this->movimentacoes   = $this->metricsService->getRecentMovements(5);
     }
 
     private function calculateTrend(array $values): ?string
@@ -123,28 +128,6 @@ class Overview extends Component
         return $sign . number_format($percentChange, 1, ',', '.') . '%';
     }
 
-    private function loadMockPedidosMovimentacoes(): void
-    {
-        $this->pedidosRecentes = [
-            ['id' => '#1042', 'cliente' => 'Tech Solutions Ltda',  'valor' => 4590.00, 'status' => 'Aprovado'],
-            ['id' => '#1041', 'cliente' => 'Comercial Norte SA',   'valor' => 1280.50, 'status' => 'Pendente'],
-            ['id' => '#1040', 'cliente' => 'Distribuidora Alfa',   'valor' => 7340.00, 'status' => 'Aprovado'],
-            ['id' => '#1039', 'cliente' => 'Industria Sul ME',     'valor' =>  920.00, 'status' => 'Cancelado'],
-            ['id' => '#1038', 'cliente' => 'Global Imports',       'valor' => 2150.00, 'status' => 'Aprovado'],
-        ];
-
-        // Carrega movimentações reais do banco de dados
-        $realMovements = $this->metricsService->getRecentMovements(5);
-
-        // Usa movimentações reais se disponíveis, senão usa mock
-        $this->movimentacoes = !empty($realMovements) ? $realMovements : [
-            ['descricao' => 'Pagamento recebido - Tech Solutions', 'tipo' => 'entrada', 'valor' => 4590.00, 'data' => 'Hoje, 14h32'],
-            ['descricao' => 'Compra de insumos - Fornecedor A',    'tipo' => 'saida',   'valor' => 1200.00, 'data' => 'Hoje, 11h15'],
-            ['descricao' => 'Pagamento recebido - Comercial Norte','tipo' => 'entrada', 'valor' => 1280.50, 'data' => 'Ontem, 16h45'],
-            ['descricao' => 'Despesa operacional - Logistica',     'tipo' => 'saida',   'valor' =>  450.00, 'data' => 'Ontem, 09h00'],
-            ['descricao' => 'Pagamento recebido - Global Imports', 'tipo' => 'entrada', 'valor' => 2150.00, 'data' => '01/04, 10h20'],
-        ];
-    }
 
     private function dispatchCharts(): void
     {

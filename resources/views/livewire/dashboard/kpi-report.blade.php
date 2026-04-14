@@ -19,6 +19,7 @@
         @foreach($kpis as $kpi)
             <x-dashboard.kpi-card
                 :title="$kpi['title']"
+                :subtitle="$kpi['subtitle'] ?? null"
                 :value="$kpi['value']"
                 :currency="$kpi['currency']"
                 :trend="$kpi['trend']"

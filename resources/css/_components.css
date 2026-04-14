@@ -1268,6 +1268,21 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nx-kpi-card-subtitle {
+    font-size: 10px;
+    font-weight: 500;
+    color: #94A3B8;
+    text-transform: none;
+    letter-spacing: 0;
+    background: #F1F5F9;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
 }
 
 .nx-kpi-card-value {
@@ -1462,6 +1477,18 @@
 .nx-activity-item-valor { font-size: 13px; font-weight: 700; }
 .nx-val-entrada { color: #10B981; }
 .nx-val-saida   { color: #EF4444; }
+
+.nx-activity-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    color: #94A3B8;
+    font-size: 13px;
+    text-align: center;
+    gap: 4px;
+}
 
 /* ══════════════════════════════════════════════
    DASHBOARD — DESEMPENHO / PROGRESS

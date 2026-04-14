@@ -10,7 +10,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 **Status:** desenvolvimento ativo.
 
-**Última atualização da documentação:** 2026-04-11 (README revisado).
+**Última atualização da documentação:** 2026-04-14 (README revisado).
 
 ## Índice Rápido
 
@@ -20,6 +20,18 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 - [Configurações do Sistema](#configurações-do-sistema-configuracoes)
 - [Middleware](#middleware)
 - [Detalhamento de Rotas](#detalhamento-de-rotas)
+- [Compras — Solicitações](#compras--solicitações-de-compra-comprassolicitacoes)
+- [Compras — Pedidos](#compras--pedidos-de-compra-compraspedidos)
+- [Compras — Cotações](#compras--cotações-de-compra-comprascotacoes)
+- [Fiscal — Notas Fiscais](#fiscal--notas-fiscais-fiscalnotas-fiscais)
+- [Fiscal — Tipos de Operação](#fiscal--tipos-de-operação-fiscaltipos-operacao)
+- [Fiscal — Grupos Tributários](#fiscal--grupos-tributários-fiscalgrupos-tributarios)
+- [Logística — Agendamento de Entregas](#logística--agendamento-de-entregas-logisticaagendamento-entregas)
+- [Vendas — Pedidos de Venda](#vendas--pedidos-de-venda-vendaspedidos)
+- [Vendas — Tabelas de Precificação](#vendas--tabelas-de-precificação-vendasprecificacao)
+- [RH — Batida de Ponto](#rh--batida-de-ponto-stitch_beat)
+- [RH — Holerite](#rh--holerite-holerite)
+- [Produção — Ordens de Produção](#produção--ordens-de-produção-production_orders)
 - [API REST](#api-rest-routesapiphp)
 - [Diretrizes de Desenvolvimento](#diretrizes-de-desenvolvimento)
 
@@ -45,17 +57,28 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Financeiro — Contas a Receber (`/accounts_receivable`) | ✅ Implementado (CRUD + baixa + reagendamento + KPIs) |
 | Financeiro — Fluxo de Caixa (`/cash_flow`) | ✅ Implementado (regime caixa/competência + gráfico diário) |
 | RH — Jornada / Ponto (`/working_day`) | ✅ Implementado (turnos + registros de ponto + KPIs) |
+| RH — Batida de Ponto (`/stitch_beat`) | ✅ Implementado (registro automático por ação sequencial + geolocalização) |
+| RH — Holerite (`/holerite`) | ✅ Implementado (visualização, edição de verbas, fechar, pagar) |
 | RH — Folha de Pagamento (`/payroll`) | ✅ Implementado (geração + holerite + fechamento + pagamento) |
 | Estoque — Movimentações | ✅ Implementado (componente Livewire, rota em breve) |
-| Produção (Ordens de Produção) | 🚧 Em desenvolvimento |
-| Vendas (Pedidos, CRM, Relatórios) | 🚧 Em desenvolvimento |
-| Compras (Solicitações, Pedidos, Cotações) | 🚧 Em desenvolvimento |
-| Fiscal (Entradas, Saídas) | 🚧 Em desenvolvimento |
-| Transporte / Logística | 🚧 Em desenvolvimento |
+| Produção — Ordens de Produção (`/production_orders`) | ✅ Implementado (CRUD Livewire + BOM + multi-produto + progresso) |
+| Vendas — Pedidos de Venda (`/vendas/pedidos`) | ✅ Implementado (CRUD Livewire + itens + parcelas + entrega + log) |
+| Vendas — Tabelas de Precificação (`/vendas/precificacao`) | ✅ Implementado (CRUD Livewire + calculadora markup) |
+| Compras — Solicitações de Compra (`/compras/solicitacoes`) | ✅ Implementado (CRUD + aprovação/rejeição + conversão para Pedido ou Cotação) |
+| Compras — Pedidos de Compra (`/compras/pedidos`) | ✅ Implementado (CRUD multi-abas + aprovação + frete/pagamento) |
+| Compras — Cotações de Compra (`/compras/cotacoes`) | ✅ Implementado (CRUD + respostas por fornecedor + conversão para Pedido) |
+| Fiscal — Notas Fiscais (`/fiscal/notas-fiscais`) | ✅ Implementado (CRUD NF-e + emissão + cancelamento) |
+| Fiscal — Tipos de Operação (`/fiscal/tipos-operacao`) | ✅ Implementado (CRUD Livewire) |
+| Fiscal — Grupos Tributários (`/fiscal/grupos-tributarios`) | ✅ Implementado (CRUD Livewire) |
+| Logística — Agendamento de Entregas (`/logistica/agendamento-entregas`) | ✅ Implementado (CRUD Livewire + janelas de tempo + reagendamento) |
 | Painel Administrativo Filament (`/admin`) | ✅ Ativo |
 
 ## Mudanças Recentes no README
 
+- **2026-04-14:** Documentação dos módulos implementados: Compras (Solicitações, Pedidos, Cotações), Fiscal (NF-e, Tipos de Operação, Grupos Tributários), Logística (Agendamento de Entregas), Vendas (Pedidos de Venda, Tabelas de Precificação), RH (Batida de Ponto, Holerite dedicado), Produção (Ordens de Produção).
+- **2026-04-14:** Atualização do middleware `MaintenanceERP` — remoção da nota desatualizada; whitelist agora inclui `compras.*` e `fiscal.*`.
+- **2026-04-14:** Novos serviços documentados: `SalesOrderService`, `PricingService`, `PontoService`.
+- **2026-04-14:** Novos enums documentados: `CanalVenda`, `CotacaoStatus`, `DeliveryPriority`, `DeliveryScheduleStatus`, `FiscalNoteStatus`, `IcmsModalidadeBC`, `IpiModalidade`, `OrigemPedido`, `ProductionOrderStatus`, `PurchaseOrderOrigin`, `PurchaseOrderStatus`, `RegimeTributario`, `SalesOrderStatus`, `SolicitacaoCompraPrioridade`, `SolicitacaoCompraStatus`, `StatusSeparacao`, `TipoFrete`, `TipoMovimentoFiscal`, `TipoOperacaoVenda`.
 - Correção da seção de API REST para incluir endpoints já implementados em `routes/api.php`.
 - Correção da whitelist documentada do middleware `MaintenanceERP` conforme `app/Http/Middleware/MaintenanceERP.php`.
 - Inclusão do heading da seção de Configurações do Sistema para melhorar navegação e âncoras.
@@ -103,16 +126,35 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 ```text
 app/
   Enums/                # Enums de domínio (Pascal case)
+    CanalVenda.php
     CategoriaVeiculo.php
     CombustivelVeiculo.php
+    CotacaoStatus.php
+    DeliveryPriority.php
+    DeliveryScheduleStatus.php
     EspecieVeiculo.php
+    FiscalNoteStatus.php
+    IcmsModalidadeBC.php
+    IpiModalidade.php
     NaturezaProduto.php
+    OrigemPedido.php
     PayableStatus.php         # Contas a Pagar: pending, paid, overdue, cancelled
     PayrollStatus.php         # Folha de Pagamento: draft, closed, paid
     PrioridadeTicketSuporte.php
+    ProductionOrderStatus.php
+    PurchaseOrderOrigin.php
+    PurchaseOrderStatus.php
     ReceivableStatus.php      # Contas a Receber: pending, received, overdue, partial, cancelled
+    RegimeTributario.php
+    SalesOrderStatus.php
+    SolicitacaoCompraPrioridade.php
+    SolicitacaoCompraStatus.php
+    StatusSeparacao.php
     StatusTicketSuporte.php
     TimeRecordStatus.php      # Ponto: active, break, absent, completed
+    TipoFrete.php
+    TipoMovimentoFiscal.php
+    TipoOperacaoVenda.php
     TipoPessoa.php
     TipoProduto.php
     TipoVeiculo.php
@@ -145,6 +187,10 @@ app/
       Produtos/         # Index + Form
       UnidadeMedida/    # Index + Form (Unidades de Medida)
       Veiculos/         # Index + Form
+    Compras/
+      SolicitacoesCompra.php  # Solicitações de Compra (CRUD + aprovação + conversão)
+      PedidosCompra.php       # Pedidos de Compra (CRUD multi-abas + aprovação + frete)
+      Cotacoes.php            # Cotações de Compra (CRUD + respostas por fornecedor)
     Dashboard/
       Overview.php      # Visão Geral do Dashboard
       KpiReport.php     # Indicadores KPI com drill-down
@@ -156,30 +202,86 @@ app/
       ContasPagar.php   # Contas a Pagar (CRUD + baixa + reagendamento + KPIs)
       ContasReceber.php # Contas a Receber (CRUD + baixa + reagendamento + KPIs)
       FluxoCaixa.php    # Fluxo de Caixa (regime caixa/competência + gráfico diário)
+    Fiscal/
+      NotaFiscal.php        # Notas Fiscais Eletrônicas (CRUD + emissão + cancelamento)
+      TipoOperacao/         # Index + Form (Tipos de Operação Fiscal)
+      GrupoTributario/      # Index + Form (Grupos Tributários)
     Forms/
       NovoTicketForm.php  # Livewire Form Object para criação de tickets
+    Logistica/
+      AgendamentoEntregas.php  # Agendamento de Entregas (CRUD + janelas de tempo + reagendamento)
+    Producao/
+      OrdemProducao.php   # Ordens de Produção (CRUD + BOM + multi-produto + progresso)
     Suporte/
       Chat.php          # Chat de suporte com tickets em tempo real
     Rh/
       JornadaTrabalho.php # Jornada/Ponto (turnos + registros de ponto + KPIs)
       FolhaPagamento.php  # Folha de Pagamento (geração + holerite + fechamento + pagamento)
+      Holerite.php        # Holerite dedicado (visualização + edição de verbas + impressão)
+      BatidaPonto.php     # Batida de Ponto (registro automático por ação sequencial + geolocalização)
+    Vendas/
+      PedidosVenda.php        # Pedidos de Venda (CRUD + itens + parcelas + entrega + log)
+      TabelasPrecificacao.php # Tabelas de Precificação (CRUD + calculadora markup)
     NotificationDropdown.php  # Dropdown de notificações no topbar
   Models/               # Modelos Eloquent
     AccountPayable.php    # Contas a Pagar (status, vencimento, recorrência, vínculo com Plano de Contas)
     AccountReceivable.php # Contas a Receber (status, parcelas, forma de pagamento, vínculo com Plano de Contas)
     BaccaratAccount.php   # Conta bancária (saldo, conciliação, vínculo com Plano de Contas)
+    Carrier.php           # Transportadora (nome, CNPJ, contato, is_active)
+    Cotacao.php           # Cotação de compra (título, status, prazo)
+    CotacaoItem.php       # Item de cotação (produto, descrição, quantidade)
+    CotacaoResposta.php   # Resposta de fornecedor a uma cotação (preço unitário, prazo de entrega)
+    DeliveryTimeWindow.php # Janela de tempo para entrega (horário início/fim, label)
+    DriverManagement.php  # Gestão de motoristas
+    EmployeeManagement.php # Histórico de gestão de funcionários
+    Employees.php         # Funcionários (dados pessoais, contrato, salário)
+    Entrance.php          # Entrada fiscal (NF-e de entrada)
+    ExitRecord.php        # Saída fiscal (NF-e de saída)
+    FinancialReport.php   # Relatório financeiro
+    FiscalNote.php        # Nota Fiscal Eletrônica (NF-e/NFC-e — chave, status, ambiente)
+    GrupoTributario.php   # Grupo tributário (ICMS, IPI, PIS/COFINS, CST)
     MensagemSuporte.php   # Mensagens de tickets de suporte
+    MonitoringOfDeliveries.php # Monitoramento de entregas em tempo real
     Payroll.php           # Folha de pagamento (salário base, proventos, descontos, líquido)
     PayrollItem.php       # Itens da folha (provento/desconto)
     PlanOfAccount.php     # Plano de contas hierárquico (parent-child)
+    PriceTable.php        # Tabela de preços (nome, vigência, is_default)
+    PriceTableItem.php    # Item de tabela de preços (produto, preço calculado, margem)
     ProductCategory.php   # Categorias de produto (UUID, slug, cor)
+    ProductionItem.php    # Insumo/BOM de uma ordem de produção
+    ProductionOrder.php   # Ordem de produção (status, lote, custo estimado)
+    ProductionOrderProduct.php # Produto(s) a produzir em uma OP (quantidade, produzido)
+    PurchaseOrder.php     # Pedido de compra (fornecedor, totais, frete, aprovação)
+    PurchaseOrderItem.php # Item de pedido de compra (quantidade, preço, desconto, total)
+    PurchaseRequisition.php # Solicitação de compra (título, status, aprovação, conversão)
+    PurchaseRequisitionItem.php # Item de solicitação (produto, quantidade, preço estimado)
+    RhReport.php          # Relatório de RH
+    Romaneio.php          # Romaneio de entrega (lista de volumes/pedidos)
+    RouteManagement.php   # Gestão de rotas de entrega
+    Routing.php           # Roteirização de entregas
+    SalesOrder.php        # Pedido de venda (cliente, status, canal, operação fiscal)
+    SalesOrderAddress.php # Endereço de entrega do pedido de venda
+    SalesOrderAttachment.php # Anexos do pedido de venda
+    SalesOrderInstallment.php # Parcelas do pedido de venda
+    SalesOrderItem.php    # Item do pedido de venda (produto, quantidade, preço, desconto)
+    SalesOrderLog.php     # Log de alterações do pedido de venda
+    SalesOrderPayment.php # Pagamento do pedido de venda
+    SalesReport.php       # Relatório de vendas
+    SchedulingOfDeliveries.php # Agendamento de entregas (data, veículo, janela, prioridade)
     Setting.php           # Configurações do sistema (key-value com cache)
+    Stock.php             # Estoque (saldo por produto/localização)
     StockMovement.php     # Movimentações de estoque (entrada, saída, ajuste, transferência)
     SystemLog.php         # Registros de auditoria do sistema
     TicketSuporte.php     # Tickets de suporte
     TimeRecord.php        # Registros de ponto (clock_in/out, pausa, horas trabalhadas)
+    TipoOperacaoFiscal.php # Tipo de operação fiscal (CFOP, natureza, fins tributários)
+    TransportReport.php   # Relatório de transporte
     UnitOfMeasure.php     # Unidades de medida (UUID, abreviação padronizada)
+    VehicleMaintenance.php # Manutenção de veículos (tipo, data, custo, status)
+    VehicleTracking.php   # Rastreamento de veículos (posição, velocidade, status)
+    Visit.php             # Visitas comerciais
     WorkShift.php         # Turnos de trabalho (horário início/fim, duração de pausa)
+    WorkingDay.php        # Jornada de trabalho (model auxiliar)
   Providers/
     Filament/           # AdminPanelProvider (Filament)
   Services/             # Service classes com lógica de negócio
@@ -191,7 +293,10 @@ app/
     JornadaService.php          # KPIs, grade de presença, timeline e gerenciamento de turnos (WorkShift)
     LogService.php              # Registro centralizado de logs de auditoria
     PayrollService.php          # Geração de folha, itens (proventos/descontos), fechamento e pagamento
+    PontoService.php            # Batida de ponto: registro sequencial de entrada/pausa/saída por funcionário
+    PricingService.php          # Cálculo de preço por markup divisor (custo + percentuais sobre venda)
     RoleService.php             # Lógica de negócio de funções/cargos
+    SalesOrderService.php       # CRUD de pedidos de venda, aprovação, cancelamento, estatísticas
     SuporteService.php          # Criação e gestão de tickets de suporte
 config/
 database/
@@ -950,7 +1055,422 @@ Implementado como componente Livewire (`App\Livewire\Estoque\Movimentacao`). A r
 
 ---
 
-## Cadastro — Categorias de Produto (`/product-categories`)
+## Compras — Solicitações de Compra (`/compras/solicitacoes`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Compras\SolicitacoesCompra`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal multi-abas (Geral + Itens)
+- **Busca de produtos** em tempo real (por nome, código ou EAN) + adição de itens manuais
+- **Fluxo de aprovação:** Rascunho → Aguardando Aprovação → Aprovada / Rejeitada
+- **Rejeição com motivo** obrigatório
+- **Conversão para Pedido de Compra** — gera `PurchaseOrder` com os itens da solicitação
+- **Conversão para Cotação** — gera `Cotacao` com os itens para consulta de fornecedores
+- **Cancelamento** individual
+- **Filtros:** busca (número/título/departamento/solicitante), por status, por prioridade
+- **KPIs:** total, aguardando aprovação, aprovadas, rejeitadas, convertidas, valor total estimado
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `PurchaseRequisition` | `purchase_requisitions` | Solicitação (número, título, status, prioridade, departamento, prazo) |
+| `PurchaseRequisitionItem` | `purchase_requisition_items` | Item (produto, descrição, unidade, quantidade, preço estimado) |
+
+### Enums
+
+| Enum | Valores |
+|---|---|
+| `SolicitacaoCompraStatus` | `rascunho`, `aguardando_aprovacao`, `aprovada`, `rejeitada`, `convertida`, `cancelada` |
+| `SolicitacaoCompraPrioridade` | `baixa`, `normal`, `alta`, `urgente` |
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/compras/solicitacoes` | `compras.solicitacoes` | `App\Livewire\Compras\SolicitacoesCompra` |
+
+---
+
+## Compras — Pedidos de Compra (`/compras/pedidos`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Compras\PedidosCompra`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal com 6 abas (Geral, Itens, Pagamento, Totais, Logística, Observações)
+- **Busca de produtos** em tempo real + adição de itens manuais
+- **Cálculo automático de totais** — subtotal, desconto, frete, outras despesas
+- **Fluxo de aprovação:** Rascunho → Aguardando Aprovação → Aprovado → Recebido
+- **Frete:** CIF, FOB, terceiros, próprio, sem frete; vínculo com `Carrier`
+- **Condição e forma de pagamento** configuráveis
+- **Cancelamento** individual
+- **Filtros:** busca (número/fornecedor) e por status
+- **KPIs:** total, valor total, rascunhos, aguardando, aprovados, recebidos
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `PurchaseOrder` | `purchase_orders` | Pedido (fornecedor, número, status, origem, totais, frete, aprovação) |
+| `PurchaseOrderItem` | `purchase_order_items` | Item (produto, quantidade, preço unitário, desconto, total) |
+| `Carrier` | `carriers` | Transportadora (nome, CNPJ, contato, is_active) |
+
+### Enums
+
+| Enum | Valores |
+|---|---|
+| `PurchaseOrderStatus` | `rascunho`, `aguardando_aprovacao`, `aprovado`, `recebido_parcial`, `recebido_total`, `cancelado` |
+| `PurchaseOrderOrigin` | `manual`, `solicitacao`, `cotacao` |
+| `TipoFrete` | `cif`, `fob`, `terceiros`, `proprio`, `sem_frete` |
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/compras/pedidos` | `compras.pedidos` | `App\Livewire\Compras\PedidosCompra` |
+
+---
+
+## Compras — Cotações de Compra (`/compras/cotacoes`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Compras\Cotacoes`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal multi-abas (Geral, Itens, Respostas)
+- **Itens de cotação** com busca de produto + adição manual
+- **Respostas por fornecedor** — cada fornecedor informa preço unitário e prazo de entrega
+- **Seleção do melhor preço** por item
+- **Conversão para Pedido de Compra** a partir da cotação fechada
+- **Filtros:** busca e por status
+- **KPIs:** total, abertas, em análise, finalizadas
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `Cotacao` | `cotacoes` | Cotação (título, status, prazo) |
+| `CotacaoItem` | `cotacao_items` | Item da cotação (produto, descrição, quantidade) |
+| `CotacaoResposta` | `cotacao_respostas` | Resposta do fornecedor (preço unitário, prazo de entrega) |
+
+### Enum
+
+| Enum | Valores |
+|---|---|
+| `CotacaoStatus` | `aberta`, `em_analise`, `finalizada`, `cancelada` |
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/compras/cotacoes` | `compras.cotacoes` | `App\Livewire\Compras\Cotacoes` |
+
+---
+
+## Fiscal — Notas Fiscais (`/fiscal/notas-fiscais`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Fiscal\NotaFiscal`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal (criar, visualizar, cancelar, excluir)
+- **Filtros:** busca, por status, por tipo (NF-e/NFC-e/…) e por ambiente (homologação/produção)
+- **Cancelamento** com motivo obrigatório
+- **KPIs:** total, emitidas, canceladas, rascunhos
+
+### Modelo `FiscalNote`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `chave_acesso` | string(44) (nullable) | Chave de acesso da NF-e |
+| `numero` | integer (nullable) | Número da NF-e |
+| `serie` | string (nullable) | Série |
+| `tipo` | string | `nfe`, `nfce`, `nfs` |
+| `ambiente` | string | `homologacao`, `producao` |
+| `status` | enum | Cast `FiscalNoteStatus` |
+| `client_id` | UUID (nullable) | FK para `clients` |
+| `total_value` | decimal:2 | Valor total |
+| `issue_date` | datetime (nullable) | Data de emissão |
+| `cancel_reason` | text (nullable) | Motivo do cancelamento |
+
+### Enum
+
+| Enum | Valores |
+|---|---|
+| `FiscalNoteStatus` | `rascunho`, `emitida`, `cancelada`, `denegada`, `inutilizada` |
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/fiscal/notas-fiscais` | `fiscal.nfe.index` | `App\Livewire\Fiscal\NotaFiscal` |
+
+---
+
+## Fiscal — Tipos de Operação (`/fiscal/tipos-operacao`)
+
+Implementado com componentes Livewire `App\Livewire\Fiscal\TipoOperacao\Index` e `Form`.
+
+### Funcionalidades
+
+- **CRUD completo** com Index paginado e Form dedicado
+- Vínculo com CFOP, natureza da operação, tipo de movimento (entrada/saída)
+
+### Modelo `TipoOperacaoFiscal`
+
+Armazena o tipo de operação fiscal (CFOP, natureza, fins tributários). Usado nos pedidos de venda e NF-e.
+
+### Rotas
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/fiscal/tipos-operacao` | `fiscal.tipo-operacao.index` | `App\Livewire\Fiscal\TipoOperacao\Index` |
+| `GET` | `/fiscal/tipos-operacao/create` | `fiscal.tipo-operacao.create` | `App\Livewire\Fiscal\TipoOperacao\Form` |
+| `GET` | `/fiscal/tipos-operacao/{operacao}/edit` | `fiscal.tipo-operacao.edit` | `App\Livewire\Fiscal\TipoOperacao\Form` |
+
+---
+
+## Fiscal — Grupos Tributários (`/fiscal/grupos-tributarios`)
+
+Implementado com componentes Livewire `App\Livewire\Fiscal\GrupoTributario\Index` e `Form`.
+
+### Funcionalidades
+
+- **CRUD completo** com Index paginado e Form dedicado
+- Configuração de ICMS (modalidade de BC, CST), IPI (modalidade, CST), PIS/COFINS (CST, alíquotas)
+- Vínculo com regime tributário
+
+### Modelo `GrupoTributario`
+
+Armazena as regras tributárias por grupo — ICMS, IPI, PIS, COFINS. Aplicado a produtos para cálculo automático dos impostos.
+
+### Enums
+
+| Enum | Descrição |
+|---|---|
+| `RegimeTributario` | `simples_nacional`, `lucro_presumido`, `lucro_real` |
+| `IcmsModalidadeBC` | Modalidade da base de cálculo do ICMS |
+| `IpiModalidade` | Modalidade de cálculo do IPI |
+| `TipoMovimentoFiscal` | `entrada`, `saida` |
+
+### Rotas
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/fiscal/grupos-tributarios` | `fiscal.grupo-tributario.index` | `App\Livewire\Fiscal\GrupoTributario\Index` |
+| `GET` | `/fiscal/grupos-tributarios/create` | `fiscal.grupo-tributario.create` | `App\Livewire\Fiscal\GrupoTributario\Form` |
+| `GET` | `/fiscal/grupos-tributarios/{grupo}/edit` | `fiscal.grupo-tributario.edit` | `App\Livewire\Fiscal\GrupoTributario\Form` |
+
+---
+
+## Logística — Agendamento de Entregas (`/logistica/agendamento-entregas`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Logistica\AgendamentoEntregas`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal
+- **Reagendamento** — altera data e janela de tempo sem recriar o registro
+- **Janelas de tempo** (`DeliveryTimeWindow`) — blocos de horário pré-cadastrados
+- **Vínculo com Pedido de Venda** e com **Veículo**
+- **Filtros:** busca, por status, por data e por prioridade
+- **KPIs:** agendados, em rota, entregues, cancelados
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `SchedulingOfDeliveries` | `scheduling_of_deliveries` | Agendamento (data, veículo, motorista, peso, volume, prioridade, status) |
+| `DeliveryTimeWindow` | `delivery_time_windows` | Janela de tempo (label, horário início/fim) |
+
+### Enums
+
+| Enum | Valores |
+|---|---|
+| `DeliveryScheduleStatus` | `agendado`, `em_rota`, `entregue`, `cancelado`, `reagendado` |
+| `DeliveryPriority` | `baixa`, `normal`, `alta`, `urgente` |
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/logistica/agendamento-entregas` | `scheduling_of_deliveries.index` | `App\Livewire\Logistica\AgendamentoEntregas` |
+
+---
+
+## Vendas — Pedidos de Venda (`/vendas/pedidos`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Vendas\PedidosVenda`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal multi-abas (Cabeçalho, Itens, Entrega/Endereço, Pagamento, Observações)
+- **Busca de produtos** em tempo real; cálculo automático de totais com desconto
+- **Tabela de preços** vinculável ao pedido
+- **Tipo de operação fiscal** (`TipoOperacaoFiscal`) por pedido
+- **Canal de venda** (balcão, televendas, e-commerce, representante)
+- **Fluxo de status:** novo → aprovado → em separação → enviado → entregue / cancelado
+- **Log de alterações** automático (`SalesOrderLog`)
+- **Anexos** (`SalesOrderAttachment`)
+- **Parcelas** (`SalesOrderInstallment`)
+- **Filtros:** busca e por status
+- **KPIs:** total de pedidos, valor total, aprovados, cancelados
+
+### Modelos principais
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `SalesOrder` | `sales_orders` | Pedido de venda (cliente, vendedor, status, canal, operação fiscal) |
+| `SalesOrderItem` | `sales_order_items` | Item do pedido (produto, quantidade, preço, desconto, total) |
+| `SalesOrderAddress` | `sales_order_addresses` | Endereço de entrega do pedido |
+| `SalesOrderPayment` | `sales_order_payments` | Pagamento do pedido |
+| `SalesOrderInstallment` | `sales_order_installments` | Parcelas do pedido |
+| `SalesOrderLog` | `sales_order_logs` | Log de alterações do pedido |
+| `SalesOrderAttachment` | `sales_order_attachments` | Anexos do pedido |
+
+### Enums
+
+| Enum | Descrição |
+|---|---|
+| `SalesOrderStatus` | Ciclo de vida do pedido (novo → aprovado → …) |
+| `TipoOperacaoVenda` | `venda`, `bonificacao`, `consignacao`, `devolucao` |
+| `CanalVenda` | `balcao`, `televendas`, `ecommerce`, `representante` |
+| `OrigemPedido` | Origem/canal de entrada do pedido |
+
+### Service
+
+`SalesOrderService` — `createOrder()`, `updateOrder()`, aprovação, cancelamento, estatísticas, cálculo de valores.
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/vendas/pedidos` | `vendas.pedidos` | `App\Livewire\Vendas\PedidosVenda` (via view) |
+
+---
+
+## Vendas — Tabelas de Precificação (`/vendas/precificacao`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Vendas\TabelasPrecificacao`).
+
+### Funcionalidades
+
+- **CRUD de tabelas** (nome, código, vigência, is_default, is_active)
+- **Itens por tabela** — preço calculado e margem por produto
+- **Calculadora de markup** — insere custo e percentuais (despesas, imposto, comissão, frete, prazo, VPC, assistência, inadimplência, lucro) e obtém preço final, markup divisor e margem de contribuição
+- **Filtro** por status ativo/inativo
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `PriceTable` | `price_tables` | Tabela de preços (nome, código, vigência, is_default) |
+| `PriceTableItem` | `price_table_items` | Preço por produto dentro da tabela |
+
+### Service
+
+`PricingService::calculateFinalPrice(array $params): array` — retorna preço final, markup divisor e margem de contribuição usando a fórmula de markup divisor.
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/vendas/precificacao` | `vendas.precificacao` | `App\Livewire\Vendas\TabelasPrecificacao` |
+
+---
+
+## RH — Batida de Ponto (`/stitch_beat`)
+
+Implementado como componente Livewire full-page (`App\Livewire\Rh\BatidaPonto`).
+
+### Funcionalidades
+
+- **Registro automático sequencial** — o sistema detecta o próximo passo: Registrar Entrada → Iniciar Pausa → Retornar de Pausa → Registrar Saída
+- **Geolocalização** — captura latitude/longitude via API do browser; exibe nome do local
+- **Horário previsto de saída** calculado a partir do turno do funcionário
+- **Indicador de jornada completa** ao registrar a saída
+- **Vinculação por e-mail** — o funcionário é identificado pelo e-mail do usuário logado
+- **Timeline do dia** — lista todos os registros do dia atual
+
+### Dependência
+
+Usa `PontoService`:
+
+| Método | Descrição |
+|---|---|
+| `getEmployeeByEmail(string $email)` | Retorna o funcionário ativo com o e-mail informado |
+| `getTodayRecord(string $employeeId)` | Retorna o `TimeRecord` do dia atual |
+| `getTodayRecords(string $employeeId)` | Retorna todos os registros do dia (collection) |
+| `registerClockAction(...)` | Registra a ação de ponto sequencial e retorna `['success', 'message', 'action']` |
+| `getNextAction(TimeRecord $record)` | Determina o próximo passo ("Registrar Entrada", "Iniciar Pausa", etc.) |
+| `calculateExpectedEndTime(TimeRecord $record)` | Calcula horário previsto de saída baseado no turno |
+
+### Rota
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/stitch_beat` | `stitch_beat.index` | `App\Livewire\Rh\BatidaPonto` |
+
+---
+
+## RH — Holerite (`/holerite`)
+
+Página dedicada ao holerite, implementada como componente Livewire full-page (`App\Livewire\Rh\Holerite`).
+
+> Diferente do modal de holerite dentro da **Folha de Pagamento**, esta página oferece uma interface mais completa com painel lateral de seleção.
+
+### Funcionalidades
+
+- **Painel lateral** com lista de folhas do mês filtráveis por status e nome do funcionário
+- **Visualização do holerite** — proventos, descontos, salário líquido, dados da empresa
+- **Edição de verbas** — adicionar/editar/remover proventos e descontos com recalculação automática
+- **Fechar folha** — Rascunho → Fechada (com confirmação)
+- **Marcar como pago** — Fechada → Paga (com data de pagamento)
+- **Impressão** via `HoleriteController@print` (`GET /holerite/{id}/imprimir`)
+- **KPIs do mês:** total de folhas, por status, total líquido
+- **Dados da empresa** lidos via `Setting::get()`
+
+### Rotas
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/holerite` | `holerite.index` | `App\Livewire\Rh\Holerite` |
+| `GET` | `/holerite/{id}/imprimir` | `holerite.print` | `HoleriteController@print` |
+
+---
+
+## Produção — Ordens de Produção (`/production_orders`)
+
+Implementado como componente Livewire (`App\Livewire\Producao\OrdemProducao`).
+
+### Funcionalidades
+
+- **CRUD completo** via modal
+- **Multi-produto** — uma OP pode produzir vários produtos com quantidades diferentes
+- **BOM (Bill of Materials / Insumos)** — lista de matérias-primas consumidas (`ProductionItem`)
+- **Modal de progresso** — lançar quantidades produzidas e pausar/retomar a OP
+- **Fluxo de status:** Pendente → Em Produção → Pausada → Concluída / Cancelada
+- **Custo estimado** e **número de lote** por OP
+- **Filtros:** busca (nome, produto, lote) e por status
+
+### Modelos
+
+| Modelo | Tabela | Descrição |
+|---|---|---|
+| `ProductionOrder` | `production_orders` | Ordem de produção (nome, status, datas, custo, lote) |
+| `ProductionOrderProduct` | `production_order_products` | Produto a produzir (quantidade planejada, quantidade produzida) |
+| `ProductionItem` | `production_items` | Insumo/BOM (produto, quantidade a consumir) |
+
+### Enum
+
+| Enum | Valores |
+|---|---|
+| `ProductionOrderStatus` | `pendente`, `em_producao`, `pausada`, `concluida`, `cancelada` |
+
+---
 
 ### Funcionalidades
 
@@ -1191,7 +1711,7 @@ Aplicado ao grupo de rotas autenticadas em `routes/web.php`. Rotas **liberadas**
 Todas as demais rotas retornam a view `system.desenvolvimento` ("Em Breve") até que o módulo esteja pronto.
 
 > **Atenção:** ao implementar uma nova rota que deve estar acessível, adicione o padrão `rotaNova.*` no bloco `if` do método `handle()` em `MaintenanceERP.php`.
-> No estado atual, rotas como `plans_of_accounts.*`, `contas_bancarias.*`, `accounts_payable.*`, `accounts_receivable.*`, `cash_flow.*`, `working_day.*` e `payroll.*` ainda não estão no whitelist e continuam exibindo "Em Breve" para usuários comuns.
+> As rotas dos módulos financeiro (`plans_of_accounts.*`, `contas_bancarias.*`, `accounts_payable.*`, `accounts_receivable.*`, `cash_flow.*`), RH (`working_day.*`, `payroll.*`, `holerite.*`, `stitch_beat.*`), dashboard (`dashboard.*`), produção (`production_orders.*`), vendas (`vendas.*`) e relatórios ainda não estão no whitelist — rotas ativas nesses módulos precisam ser adicionadas manualmente.
 
 ### `EnforceMidnightSession`
 
@@ -1238,6 +1758,25 @@ Todos os enums ficam em `app/Enums/` e são usados como cast nos modelos.
 | `ReceivableStatus` | `AccountReceivable` | `pending`, `received`, `overdue`, `partial`, `cancelled` |
 | `PayrollStatus` | `Payroll` | `draft`, `closed`, `paid` |
 | `TimeRecordStatus` | `TimeRecord` | `active`, `break`, `absent`, `completed` |
+| `SolicitacaoCompraStatus` | `PurchaseRequisition` | `rascunho`, `aguardando_aprovacao`, `aprovada`, `rejeitada`, `convertida`, `cancelada` |
+| `SolicitacaoCompraPrioridade` | `PurchaseRequisition` | `baixa`, `normal`, `alta`, `urgente` |
+| `PurchaseOrderStatus` | `PurchaseOrder` | `rascunho`, `aguardando_aprovacao`, `aprovado`, `recebido_parcial`, `recebido_total`, `cancelado` |
+| `PurchaseOrderOrigin` | `PurchaseOrder` | `manual`, `solicitacao`, `cotacao` |
+| `TipoFrete` | `PurchaseOrder`, `SalesOrder` | `cif`, `fob`, `terceiros`, `proprio`, `sem_frete` |
+| `CotacaoStatus` | `Cotacao` | `aberta`, `em_analise`, `finalizada`, `cancelada` |
+| `SalesOrderStatus` | `SalesOrder` | status do ciclo de vida do pedido de venda |
+| `TipoOperacaoVenda` | `SalesOrder` | `venda`, `bonificacao`, `consignacao`, `devolucao` |
+| `CanalVenda` | `SalesOrder` | `balcao`, `televendas`, `ecommerce`, `representante` |
+| `OrigemPedido` | `SalesOrder` | origem/canal de entrada do pedido |
+| `FiscalNoteStatus` | `FiscalNote` | `rascunho`, `emitida`, `cancelada`, `denegada`, `inutilizada` |
+| `TipoMovimentoFiscal` | `FiscalNote` | `entrada`, `saida` |
+| `RegimeTributario` | `GrupoTributario` | `simples_nacional`, `lucro_presumido`, `lucro_real` |
+| `IcmsModalidadeBC` | `GrupoTributario` | modalidade de base de cálculo do ICMS |
+| `IpiModalidade` | `GrupoTributario` | modalidade de cálculo do IPI |
+| `ProductionOrderStatus` | `ProductionOrder` | `pendente`, `em_producao`, `pausada`, `concluida`, `cancelada` |
+| `DeliveryScheduleStatus` | `SchedulingOfDeliveries` | `agendado`, `em_rota`, `entregue`, `cancelado`, `reagendado` |
+| `DeliveryPriority` | `SchedulingOfDeliveries` | `baixa`, `normal`, `alta`, `urgente` |
+| `StatusSeparacao` | (separação de pedidos) | `pendente`, `em_separacao`, `separado`, `cancelado` |
 
 ---
 
@@ -1569,7 +2108,10 @@ Ver documentação completa em [Cadastro — Unidades de Medida](#cadastro--unid
 | `JornadaService` | KPIs de presença, grade de presença (`getPresenceGrid`), timeline, save/delete de registros, turnos ativos |
 | `LogService` | Registro centralizado de logs: `::success()`, `::warning()`, `::error()` |
 | `PayrollService` | Geração por funcionário/lote, itens de folha (`saveItem`/`removeItem`), fechamento, pagamento, KPIs |
+| `PontoService` | Batida de ponto: `registerClockAction` (entrada→pausa→saída sequencial), `getTodayRecord`, `getNextAction`, `calculateExpectedEndTime` |
+| `PricingService` | Cálculo de preço por markup divisor (`calculateFinalPrice`) — custo + percentuais sobre venda |
 | `RoleService` | Lógica de negócio de funções/cargos |
+| `SalesOrderService` | CRUD de pedidos de venda (`createOrder`, `updateOrder`), aprovação, cancelamento, estatísticas |
 | `SuporteService` | Criação de tickets, envio de mensagens, atualização de status e marcação de leitura |
 | `DashboardMetricsService` | Métricas e dados agregados para o dashboard (usa `stock_movements`) |
 
@@ -1656,20 +2198,40 @@ Relacionamento produto × fornecedor:
 | `GET` | `/dashboard/kpi` | `dashboard.kpi` | `Livewire\Dashboard\KpiReport` |
 | `Route::resource` | `production_orders` | `production_orders.*` | `ProductionOrdersController` |
 
+> O componente Livewire `App\Livewire\Producao\OrdemProducao` é utilizado internamente (não mapeado diretamente via rota resource).
+
 #### Vendas (`routes/vendas.php`)
 
-- `GET /salesReports/print` → `salesReports.print`
-- `Route::resource` → `requests`, `visits`, `sales_report`
+| Método | URI | Nome | Componente / Controller |
+|---|---|---|---|
+| `GET` | `/vendas/pedidos` | `vendas.pedidos` | `Livewire\Vendas\PedidosVenda` (via view) |
+| `GET` | `/vendas/precificacao` | `vendas.precificacao` | `Livewire\Vendas\TabelasPrecificacao` |
+| `GET` | `/salesReports/print` | `salesReports.print` | `SalesReportController@print` |
+| `Route::resource` | `requests` | `requests.*` | `RequestsController` |
+| `Route::resource` | `visits` | `visits.*` | `VisitsController` |
+| `Route::resource` | `sales_report` | `sales_report.*` | `SalesReportController` |
 
 #### Compras (`routes/compras.php`)
 
-- `GET /compras/solicitacoes` → `compras.solicitacoes` *(Em Desenvolvimento)*
-- `GET /compras/pedidos` → `compras.pedidos` *(Em Desenvolvimento)*
-- `GET /compras/cotacoes` → `compras.cotacoes` *(Em Desenvolvimento)*
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/compras/solicitacoes` | `compras.solicitacoes` | `Livewire\Compras\SolicitacoesCompra` |
+| `GET` | `/compras/pedidos` | `compras.pedidos` | `Livewire\Compras\PedidosCompra` |
+| `GET` | `/compras/cotacoes` | `compras.cotacoes` | `Livewire\Compras\Cotacoes` |
 
 #### Fiscal (`routes/fiscal.php`)
 
-- `Route::resource` → `entrance`, `exit`
+| Método | URI | Nome | Componente / Controller |
+|---|---|---|---|
+| `GET` | `/fiscal/notas-fiscais` | `fiscal.nfe.index` | `Livewire\Fiscal\NotaFiscal` |
+| `GET` | `/fiscal/tipos-operacao` | `fiscal.tipo-operacao.index` | `Livewire\Fiscal\TipoOperacao\Index` |
+| `GET` | `/fiscal/tipos-operacao/create` | `fiscal.tipo-operacao.create` | `Livewire\Fiscal\TipoOperacao\Form` |
+| `GET` | `/fiscal/tipos-operacao/{operacao}/edit` | `fiscal.tipo-operacao.edit` | `Livewire\Fiscal\TipoOperacao\Form` |
+| `GET` | `/fiscal/grupos-tributarios` | `fiscal.grupo-tributario.index` | `Livewire\Fiscal\GrupoTributario\Index` |
+| `GET` | `/fiscal/grupos-tributarios/create` | `fiscal.grupo-tributario.create` | `Livewire\Fiscal\GrupoTributario\Form` |
+| `GET` | `/fiscal/grupos-tributarios/{grupo}/edit` | `fiscal.grupo-tributario.edit` | `Livewire\Fiscal\GrupoTributario\Form` |
+| `Route::resource` | `/fiscal/entrada` | `fiscal.entrance.*` | `EntranceController` |
+| `Route::resource` | `/fiscal/saida` | `fiscal.exit.*` | `ExitController` |
 
 #### Financeiro (`routes/financeiro.php`)
 
@@ -1690,16 +2252,28 @@ Relacionamento produto × fornecedor:
 |---|---|---|---|
 | `GET` | `/working_day` | `working_day.index` | `Livewire\Rh\JornadaTrabalho` |
 | `GET` | `/payroll` | `payroll.index` | `Livewire\Rh\FolhaPagamento` |
-| `GET` | `/rhReports/print` | `rhReports.print` | `RhReportsController` |
-| `Route::resource` | `stitch_beat` | `stitch_beat.*` | `StitchBeatController` |
+| `GET` | `/holerite` | `holerite.index` | `Livewire\Rh\Holerite` |
+| `GET` | `/holerite/{id}/imprimir` | `holerite.print` | `HoleriteController@print` |
+| `GET` | `/stitch_beat` | `stitch_beat.index` | `Livewire\Rh\BatidaPonto` |
+| `GET` | `/rhReports/print` | `rhReports.print` | `RhReportsController@print` |
 | `Route::resource` | `employee_management` | `employee_management.*` | `EmployeeManagementController` |
 | `Route::resource` | `rh_reports` | `rh_reports.*` | `RhReportsController` |
 
 #### Logística (`routes/logistica.php`)
 
-- `GET /transportReport/print` → `transportReport.print`
-- `GET /romaneio/print` → `romaneio.print`
-- `Route::resource` → `route_management`, `routing`, `scheduling_of_deliveries`, `monitoring_of_deliveries`, `driver_management`, `romaneio`, `vehicle_tracking`, `vehicle_maintenance`, `transport_report`
+| Método | URI | Nome | Componente / Controller |
+|---|---|---|---|
+| `GET` | `/logistica/agendamento-entregas` | `scheduling_of_deliveries.index` | `Livewire\Logistica\AgendamentoEntregas` |
+| `GET` | `/transportReport/print` | `transportReport.print` | `TransportReportController@print` |
+| `GET` | `/romaneio/print` | `romaneio.print` | `RomaneioController@print` |
+| `Route::resource` | `route_management` | `route_management.*` | `RouteManagementController` |
+| `Route::resource` | `routing` | `routing.*` | `RoutingController` |
+| `Route::resource` | `monitoring_of_deliveries` | `monitoring_of_deliveries.*` | `MonitoringOfDeliveriesController` |
+| `Route::resource` | `driver_management` | `driver_management.*` | `DriverManagementController` |
+| `Route::resource` | `romaneio` | `romaneio.*` | `RomaneioController` |
+| `Route::resource` | `vehicle_tracking` | `vehicle_tracking.*` | `VehicleTrackingController` |
+| `Route::resource` | `vehicle_maintenance` | `vehicle_maintenance.*` | `VehicleMaintenanceController` |
+| `Route::resource` | `transport_report` | `transport_report.*` | `TransportReportController` |
 
 #### Estoque (`routes/estoque.php`)
 
@@ -1892,6 +2466,17 @@ php artisan about
 - **Movimentações de Estoque**: ao criar/excluir um `StockMovement`, atualizar o campo `stock` do `Product` correspondente manualmente (não há observer automático ainda).
 - **Categorias de Produto**: usar `ProductCategory` com `product_category_id` na tabela `products`. Slug gerado automaticamente a partir do nome.
 - **Unidades de Medida**: usar `UnitOfMeasure` com `unit_of_measure_id` na tabela `products`. Abreviação sempre normalizada para maiúsculas.
+- **Compras — Solicitações**: usar `SolicitacaoCompraStatus` e `SolicitacaoCompraPrioridade` via cast no modelo. A conversão para Pedido ou Cotação é feita via transação DB no componente Livewire.
+- **Compras — Pedidos**: usar `PurchaseOrder::calculateTotals()` após inserir/alterar itens para recalcular `subtotal_amount`, `total_amount`, etc.
+- **Cotações**: após selecionar o melhor preço por item, usar a conversão para `PurchaseOrder` passando os preços da `CotacaoResposta` vencedora.
+- **Fiscal — NF-e**: usar `FiscalNote` com `FiscalNoteStatus`; ambiente `homologacao` por padrão (alterar em Configurações do Sistema → Regras Fiscais).
+- **Fiscal — Grupos Tributários**: vincular `GrupoTributario` ao produto; os campos de ICMS/IPI/PIS/COFINS são usados na geração da NF-e.
+- **Logística — Agendamento**: usar `SchedulingOfDeliveries` com `DeliveryTimeWindow`; reagendamento atualiza data/janela e muda status para `reagendado`.
+- **Vendas — Pedidos**: usar `SalesOrderService` para todas as operações de criação/atualização; o log é gravado automaticamente pelo service. Nunca manipular `SalesOrderLog` diretamente.
+- **Vendas — Precificação**: usar `PricingService::calculateFinalPrice()` para obter preço final. Vincular `PriceTable` ao pedido de venda via `price_table_id`.
+- **RH — Batida de Ponto**: usar `PontoService`; o componente `BatidaPonto` identifica o funcionário pelo e-mail do usuário logado. Registros são únicos por `employee_id + date`.
+- **RH — Holerite**: usar a rota `/holerite` para a página dedicada ou o modal dentro de `FolhaPagamento`. Impressão via `HoleriteController@print`.
+- **Produção — OP**: usar `ProductionOrder` com `ProductionOrderProduct` (multi-produto) e `ProductionItem` (BOM); o método de progresso atualiza `produced_quantity` em cada `ProductionOrderProduct`.
 
 ---
 

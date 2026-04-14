@@ -1,0 +1,982 @@
+/* ═══════════════════════════════════════════════════════════
+   HOLERITE — Página completa de visualização e impressão
+   ══════════════════════════════════════════════════════════ */
+
+/* ─── PAGE WRAPPER ─────────────────────────────────────────── */
+
+.nx-holerite-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ─── KPI STRIP ────────────────────────────────────────────── */
+
+.nx-holerite-kpis {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    flex-wrap: wrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.nx-holerite-kpi-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 120px;
+}
+
+.nx-holerite-kpi-sep {
+    width: 1px;
+    height: 36px;
+    background: rgba(148, 163, 184, 0.2);
+    flex-shrink: 0;
+}
+
+.nx-holerite-kpi-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94A3B8;
+}
+
+.nx-holerite-kpi-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1E293B;
+    font-family: 'Courier New', monospace;
+    line-height: 1.2;
+}
+
+/* ─── LAYOUT: SIDEBAR + CONTENT ────────────────────────────── */
+
+.nx-holerite-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+/* ─── SIDEBAR ───────────────────────────────────────────────── */
+
+.nx-holerite-sidebar {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 14px;
+    overflow: hidden;
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}
+
+.nx-holerite-sidebar-filters {
+    padding: 1rem 1rem 0.75rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.nx-holerite-sidebar-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(248, 250, 252, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 8px;
+    padding: 0 0.75rem;
+}
+
+.nx-holerite-filter-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    color: #334155;
+    padding: 0.5rem 0;
+    font-family: inherit;
+    min-width: 0;
+}
+
+.nx-holerite-filter-input::placeholder {
+    color: #94A3B8;
+}
+
+/* ─── LIST ──────────────────────────────────────────────────── */
+
+.nx-holerite-list {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+.nx-holerite-list-header {
+    padding: 0.625rem 1rem;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    background: rgba(248, 250, 252, 0.5);
+}
+
+.nx-holerite-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    transition: background 0.15s ease;
+    font-family: inherit;
+}
+
+.nx-holerite-list-item:last-child {
+    border-bottom: none;
+}
+
+.nx-holerite-list-item:hover {
+    background: rgba(248, 250, 252, 0.8);
+}
+
+.nx-holerite-list-item.is-active {
+    background: rgba(59, 130, 246, 0.07);
+    border-left: 3px solid #3B82F6;
+    padding-left: calc(1rem - 3px);
+}
+
+.nx-holerite-list-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.22);
+}
+
+.nx-holerite-list-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.nx-holerite-list-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1E293B;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nx-holerite-list-meta {
+    font-size: 11px;
+    color: #94A3B8;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nx-holerite-list-values {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.nx-holerite-list-net {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1D4ED8;
+    font-family: 'Courier New', monospace;
+}
+
+.nx-holerite-list-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+}
+
+.nx-holerite-list-empty p {
+    font-size: 12px;
+    color: #94A3B8;
+    line-height: 1.5;
+}
+
+/* ─── CONTENT AREA ──────────────────────────────────────────── */
+
+.nx-holerite-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ─── EMPTY STATE ───────────────────────────────────────────── */
+
+.nx-holerite-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 2rem;
+    background: #ffffff;
+    border: 1.5px dashed rgba(148, 163, 184, 0.35);
+    border-radius: 16px;
+    text-align: center;
+}
+
+.nx-holerite-empty-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(241, 245, 249, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #CBD5E1;
+    margin-bottom: 1.25rem;
+}
+
+.nx-holerite-empty-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.625rem;
+}
+
+.nx-holerite-empty-desc {
+    font-size: 13.5px;
+    color: #94A3B8;
+    max-width: 360px;
+    line-height: 1.6;
+}
+
+/* ─── ACTIONS BAR ───────────────────────────────────────────── */
+
+.nx-holerite-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1.25rem;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DOCUMENTO HOLERITE (printable area)
+   ══════════════════════════════════════════════════════════ */
+
+.nx-holerite-doc {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── DOC HEADER ────────────────────────────────────────────── */
+
+.nx-holerite-doc-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.75rem 2rem;
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #ffffff;
+}
+
+.nx-holerite-doc-company {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+}
+
+.nx-holerite-doc-company-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.nx-holerite-doc-company-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+}
+
+.nx-holerite-doc-company-cnpj {
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 2px;
+    font-weight: 500;
+}
+
+.nx-holerite-doc-company-address {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 2px;
+}
+
+.nx-holerite-doc-title-wrap {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.nx-holerite-doc-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nx-holerite-doc-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* ─── SECTION TITLE (inside doc) ────────────────────────────── */
+
+.nx-holerite-doc-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+    padding: 1rem 1.5rem 0.625rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    background: rgba(248, 250, 252, 0.6);
+}
+
+/* ─── EMPLOYEE DATA ─────────────────────────────────────────── */
+
+.nx-holerite-doc-employee {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-emp-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    padding: 0;
+}
+
+.nx-holerite-doc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0.875rem 1.25rem;
+    border-right: 1px solid rgba(226, 232, 240, 0.7);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-field:nth-child(4n) {
+    border-right: none;
+}
+
+.nx-holerite-doc-field-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94A3B8;
+}
+
+.nx-holerite-doc-field-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1E293B;
+    line-height: 1.3;
+}
+
+/* ─── EVENTS (proventos/descontos) ──────────────────────────── */
+
+.nx-holerite-doc-events {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-events-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+
+.nx-holerite-doc-events-col {
+    border-right: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-events-col:last-child {
+    border-right: none;
+}
+
+.nx-holerite-doc-events-col-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-events-col-header--earning {
+    background: rgba(16, 185, 129, 0.06);
+    color: #047857;
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.nx-holerite-doc-events-col-header--deduction {
+    background: rgba(239, 68, 68, 0.06);
+    color: #B91C1C;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.nx-holerite-doc-events-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+}
+
+.nx-holerite-doc-events-table thead tr {
+    background: rgba(248, 250, 252, 0.8);
+}
+
+.nx-holerite-doc-events-table th {
+    padding: 0.5rem 1.25rem;
+    text-align: left;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94A3B8;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-events-table td {
+    padding: 0.625rem 1.25rem;
+    color: #334155;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+}
+
+.nx-holerite-doc-events-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.nx-holerite-doc-events-table tbody tr:hover {
+    background: rgba(248, 250, 252, 0.6);
+}
+
+.nx-holerite-doc-events-table tfoot td {
+    padding: 0.625rem 1.25rem;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1E293B;
+    background: rgba(241, 245, 249, 0.8);
+    border-top: 1.5px solid rgba(148, 163, 184, 0.25);
+}
+
+.nx-holerite-th-right,
+.nx-holerite-td-right {
+    text-align: right !important;
+}
+
+.nx-holerite-td-empty {
+    text-align: center;
+    color: #94A3B8 !important;
+    font-style: italic;
+    font-size: 12px !important;
+    padding: 1.25rem !important;
+}
+
+.nx-holerite-tr-base td {
+    background: rgba(241, 245, 249, 0.5);
+    font-weight: 600 !important;
+}
+
+.nx-holerite-earning {
+    color: #15803D;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}
+
+.nx-holerite-deduction {
+    color: #B91C1C;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}
+
+/* ─── BASES DE CÁLCULO ──────────────────────────────────────── */
+
+.nx-holerite-doc-bases {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-bases-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+}
+
+.nx-holerite-doc-base-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0.875rem 1.25rem;
+    border-right: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-base-item:last-child {
+    border-right: none;
+}
+
+.nx-holerite-doc-base-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94A3B8;
+}
+
+.nx-holerite-doc-base-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #475569;
+    font-family: 'Courier New', monospace;
+}
+
+/* ─── TOTALS ────────────────────────────────────────────────── */
+
+.nx-holerite-doc-totals {
+    padding: 0;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-doc-total-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 2rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.nx-holerite-doc-total-row:last-child {
+    border-bottom: none;
+}
+
+.nx-holerite-doc-total-label {
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-size: 12px;
+}
+
+.nx-holerite-doc-total-value {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: #1E293B;
+}
+
+.nx-holerite-doc-total-earning {
+    color: #15803D;
+}
+
+.nx-holerite-doc-total-deduction {
+    color: #B91C1C;
+}
+
+.nx-holerite-doc-total-net-row {
+    background: linear-gradient(135deg, rgba(29, 78, 216, 0.06) 0%, rgba(59, 130, 246, 0.04) 100%);
+    border-top: 1.5px solid rgba(59, 130, 246, 0.2) !important;
+}
+
+.nx-holerite-doc-total-net-row .nx-holerite-doc-total-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1E40AF;
+    text-transform: uppercase;
+}
+
+.nx-holerite-doc-total-net {
+    font-size: 22px !important;
+    color: #1D4ED8 !important;
+}
+
+/* ─── ASSINATURA ────────────────────────────────────────────── */
+
+.nx-holerite-doc-signature {
+    display: flex;
+    gap: 3rem;
+    padding: 1.75rem 3rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    justify-content: center;
+}
+
+.nx-holerite-doc-sig-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 200px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.nx-holerite-doc-sig-line {
+    width: 100%;
+    height: 1px;
+    background: #CBD5E1;
+    margin-bottom: 4px;
+}
+
+/* ─── DOC FOOTER ────────────────────────────────────────────── */
+
+.nx-holerite-doc-footer {
+    padding: 1rem 2rem;
+    background: rgba(248, 250, 252, 0.6);
+}
+
+.nx-holerite-doc-footer p {
+    font-size: 10.5px;
+    color: #94A3B8;
+    line-height: 1.5;
+}
+
+/* ─── EDIT PANEL ────────────────────────────────────────────── */
+
+.nx-holerite-edit-panel {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.nx-holerite-edit-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    font-size: 13px;
+    font-weight: 700;
+    color: #1E293B;
+    background: rgba(248, 250, 252, 0.6);
+}
+
+.nx-holerite-edit-form {
+    padding: 1.25rem;
+    background: rgba(241, 245, 249, 0.5);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.nx-holerite-edit-items {
+    padding: 0;
+}
+
+.nx-holerite-edit-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    background: #ffffff;
+    transition: background 0.15s ease;
+}
+
+.nx-holerite-edit-item-row:last-child {
+    border-bottom: none;
+}
+
+.nx-holerite-edit-item-row:hover {
+    background: rgba(248, 250, 252, 0.8);
+}
+
+/* ─── PRINT BAR (inside document, hidden on print) ─────────── */
+
+.nx-holerite-print-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.125rem 2rem;
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    border-top: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+.nx-holerite-print-bar-info {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 400;
+    flex: 1;
+    min-width: 0;
+}
+
+.nx-holerite-print-bar-info svg {
+    color: rgba(255, 255, 255, 0.4);
+    flex-shrink: 0;
+}
+
+.nx-holerite-print-bar-info strong {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 700;
+}
+
+.nx-holerite-print-bar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.375rem;
+    background: #3B82F6;
+    color: #ffffff;
+    border: none;
+    border-radius: 9px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    letter-spacing: 0.1px;
+}
+
+.nx-holerite-print-bar-btn:hover {
+    background: #2563EB;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+}
+
+.nx-holerite-print-bar-btn:active {
+    transform: translateY(0);
+}
+
+/* ─── PRINT BUTTON (page header) ────────────────────────────── */
+
+.nx-holerite-print-btn {
+    gap: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PRINT MEDIA QUERY
+   ══════════════════════════════════════════════════════════ */
+
+@media print {
+    .nx-no-print {
+        display: none !important;
+    }
+
+    .nx-holerite-page {
+        padding: 0;
+        background: #ffffff;
+    }
+
+    .nx-holerite-layout {
+        display: block;
+    }
+
+    .nx-holerite-content {
+        width: 100%;
+    }
+
+    .nx-holerite-doc {
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .nx-holerite-doc-header {
+        background: #1E293B !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .nx-holerite-doc-company-name,
+    .nx-holerite-doc-company-cnpj,
+    .nx-holerite-doc-company-address,
+    .nx-holerite-doc-title,
+    .nx-holerite-doc-subtitle {
+        color: #ffffff !important;
+    }
+
+    body {
+        background: #ffffff !important;
+    }
+
+    .nx-holerite-doc-events-col-header--earning,
+    .nx-holerite-doc-events-col-header--deduction {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .nx-holerite-doc-total-net-row {
+        background: rgba(29, 78, 216, 0.06) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    @page {
+        size: A4;
+        margin: 12mm;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 1200px) {
+    .nx-holerite-layout {
+        grid-template-columns: 260px 1fr;
+    }
+}
+
+@media (max-width: 1024px) {
+    .nx-holerite-page {
+        padding: 1.25rem 1.5rem 2rem;
+    }
+
+    .nx-holerite-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .nx-holerite-sidebar {
+        position: static;
+        max-height: 340px;
+    }
+
+    .nx-holerite-doc-emp-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .nx-holerite-doc-events-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nx-holerite-doc-events-col {
+        border-right: none;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    }
+
+    .nx-holerite-doc-bases-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .nx-holerite-doc-base-item:last-child {
+        grid-column: span 2;
+        border-right: none;
+    }
+
+    .nx-holerite-kpis {
+        gap: 0.75rem;
+    }
+
+    .nx-holerite-kpi-sep {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .nx-holerite-page {
+        padding: 1rem 1rem 1.5rem;
+    }
+
+    .nx-holerite-doc-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nx-holerite-doc-title-wrap {
+        text-align: left;
+    }
+
+    .nx-holerite-doc-emp-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .nx-holerite-doc-bases-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nx-holerite-doc-base-item {
+        border-right: none;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    }
+
+    .nx-holerite-doc-signature {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        padding: 1.5rem;
+    }
+
+    .nx-holerite-print-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.875rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .nx-holerite-print-bar-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+
+

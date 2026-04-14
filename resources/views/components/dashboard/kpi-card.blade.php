@@ -6,6 +6,7 @@
     'iconColor' => '#3B82F6',
     'currency' => false,
     'trend' => null,
+    'subtitle' => null,
 ])
 
 @php
@@ -21,7 +22,12 @@
 <div class="nx-kpi-card">
     <div class="nx-kpi-card-inner">
         <div class="nx-kpi-card-left">
-            <p class="nx-kpi-card-title">{{ $title }}</p>
+            <p class="nx-kpi-card-title">
+                {{ $title }}
+                @if($subtitle)
+                    <span class="nx-kpi-card-subtitle">{{ $subtitle }}</span>
+                @endif
+            </p>
             <h2 class="nx-kpi-card-value">{{ $formattedValue }}</h2>
             <span class="nx-kpi-card-trend {{ $trendText ? $trendClass : '' }} {{ !$trendText ? 'nx-trend-empty' : '' }}">
                 @if($trendText)
