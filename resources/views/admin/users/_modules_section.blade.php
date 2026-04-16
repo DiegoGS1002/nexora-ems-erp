@@ -28,10 +28,10 @@
     ];
 
     // Filtra os módulos disponíveis com base nos módulos do usuário logado (usuário principal).
-    // Se o admin não tiver nenhum módulo definido, exibe todos (sem restrição).
+    // Se o admin, exibe todos (sem restrição).
     $_adminUser    = auth()->user();
     $_adminModules = $_adminUser->modules ?? [];
-    $allModules    = ($_adminUser->is_admin && empty($_adminModules))
+    $allModules    = $_adminUser->is_admin
         ? $_allModules
         : array_values(array_filter($_allModules, fn($m) => in_array($m['slug'], $_adminModules)));
 

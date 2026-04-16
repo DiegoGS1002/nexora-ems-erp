@@ -20,8 +20,8 @@
     @php
         $navUserModules = auth()->user()->modules ?? [];
         $navIsAdmin     = auth()->user()->is_admin;
-        // Admins sem módulos definidos vêem tudo; não-admins vêem só os contratados
-        $navShowAll = $navIsAdmin && empty($navUserModules);
+        // Admins têm acesso irrestrito a todos os módulos
+        $navShowAll = $navIsAdmin;
     @endphp
     <nav class="nx-sb-nav">
         <ul class="nx-sb-list">
