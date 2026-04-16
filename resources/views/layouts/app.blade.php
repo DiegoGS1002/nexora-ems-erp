@@ -51,6 +51,11 @@
 
     </div>{{-- /.nx-app-wrapper --}}
 
+    {{-- AI Assistant Chat Bubble --}}
+    @auth
+        <livewire:ai-chat-bubble :module="request()->segment(1) ?? 'suporte'" />
+    @endauth
+
     @livewireScripts
     @stack('scripts')
 

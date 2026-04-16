@@ -37,6 +37,8 @@ class MaintenanceERP
             $request->routeIs('suppliers.*') ||
             // administracao de usuarios (somente admin)
             $request->routeIs('users.*') ||
+            // empresas (multi-tenant)
+            $request->routeIs('companies.*') ||
             // configurações do sistema
             $request->routeIs('configuration.*') ||
             // perfil e permissões

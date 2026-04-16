@@ -10,8 +10,12 @@ use App\Models\ProductionOrderProduct;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
+#[Title('Ordens de Produção')]
 class OrdemProducao extends Component
 {
     /* ─── FILTROS ─────────────────────────────────── */

@@ -67,6 +67,7 @@ class Index extends Component
 
         $byType = $user->notifications()
             ->selectRaw('JSON_UNQUOTE(JSON_EXTRACT(data, "$.type")) as ntype, COUNT(*) as cnt')
+            ->reorder()        // remove o ORDER BY created_at padrão (incompatível com GROUP BY no MySQL only_full_group_by)
             ->groupBy('ntype')
             ->pluck('cnt', 'ntype')
             ->toArray();

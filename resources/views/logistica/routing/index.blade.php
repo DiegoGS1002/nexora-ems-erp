@@ -122,13 +122,25 @@
         {{-- Instruções passo a passo --}}
         <div id="directions-panel" class="routing-directions"></div>
 
-        {{-- Aviso sem chave --}}
+        {{-- Aviso de configuração --}}
         @if(empty($mapsApiKey))
         <div class="routing-no-key-notice">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <div>
-                <strong>Chave da API nao configurada.</strong><br>
-                Adicione <code>GOOGLE_MAPS_API_KEY=sua_chave</code> no arquivo <code>.env</code> e reinicie o servidor.
+                <strong>Chave da API não configurada.</strong><br>
+                Adicione <code>GOOGLE_MAPS_API_KEY=sua_chave</code> no arquivo <code>.env</code><br>
+                <small>Execute <code>php artisan maps:verify</code> para verificar a configuração</small>
+            </div>
+        </div>
+        @else
+        <div class="routing-no-key-notice" style="background:#FEF3C7;border-color:#F59E0B;color:#92400E;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+                <strong>Importante: Habilite as APIs no Google Cloud</strong><br>
+                <small>
+                    Acesse o <a href="https://console.cloud.google.com/apis/library" target="_blank" style="text-decoration:underline;font-weight:600;">Google Cloud Console</a> e habilite:
+                    <strong>Maps JavaScript API</strong>, <strong>Places API</strong> e <strong>Directions API</strong>
+                </small>
             </div>
         </div>
         @endif
@@ -175,39 +187,87 @@
     var map, directionsService, directionsRenderer;
     var waypointAutocompletes = [];
 
+    // Tratamento de erros globais do Google Maps
+    window.gm_authFailure = function() {
+        console.error('Google Maps API: Falha na autenticação');
+        showMapError(
+            'Erro de Autenticação',
+            'A chave da API está inválida ou as APIs necessárias não estão habilitadas.<br><br>' +
+            '<strong>Passos para resolver:</strong><br>' +
+            '1. Acesse o <a href="https://console.cloud.google.com/apis/library" target="_blank" style="color:#3B82F6;text-decoration:underline;">Google Cloud Console</a><br>' +
+            '2. Habilite: <strong>Maps JavaScript API</strong>, <strong>Places API</strong>, <strong>Directions API</strong><br>' +
+            '3. Verifique se o billing está configurado<br>' +
+            '4. Execute: <code style="background:#F1F5F9;padding:2px 6px;border-radius:4px;">php artisan maps:verify</code>'
+        );
+    };
+
+    function showMapError(title, message) {
+        var mapElement = document.getElementById('routing-map');
+        if (mapElement) {
+            mapElement.innerHTML =
+                '<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#FEF2F2;padding:40px;text-align:center;border-radius:0 0 12px 12px;">' +
+                    '<div style="max-width:500px;">' +
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="1.5" style="margin:0 auto 16px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' +
+                        '<h3 style="color:#991B1B;font-size:18px;font-weight:600;margin-bottom:12px;">' + title + '</h3>' +
+                        '<div style="color:#B91C1C;font-size:14px;line-height:1.6;">' + message + '</div>' +
+                    '</div>' +
+                '</div>';
+        }
+    }
+
     // Carrega o Google Maps de forma assíncrona
     function loadMaps() {
         var script = document.createElement('script');
         script.src = 'https://maps.googleapis.com/maps/api/js?key=' + mapsApiKey
-            + '&libraries=places,directions&loading=async&callback=initRoutingMap';
+            + '&libraries=places&callback=initRoutingMap';
         script.async = true;
         script.defer = true;
+        script.onerror = function() {
+            console.error('Erro ao carregar Google Maps API');
+            showMapError(
+                'Erro ao Carregar',
+                'Não foi possível carregar o Google Maps API.<br>' +
+                'Verifique sua conexão com a internet e tente novamente.'
+            );
+        };
         document.head.appendChild(script);
     }
 
     window.initRoutingMap = function () {
-        map = new google.maps.Map(document.getElementById('routing-map'), {
-            center: { lat: -14.2350, lng: -51.9253 },
-            zoom: 5,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: true,
-            zoomControl: true,
-            styles: [
-                { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
-            ]
-        });
+        try {
+            if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                throw new Error('Google Maps API não foi carregada corretamente');
+            }
 
-        directionsService  = new google.maps.DirectionsService();
-        directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
+            map = new google.maps.Map(document.getElementById('routing-map'), {
+                center: { lat: -14.2350, lng: -51.9253 },
+                zoom: 5,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true,
+                zoomControl: true,
+                styles: [
+                    { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+                ]
+            });
 
-        // Autocomplete para origem e destino
-        new google.maps.places.Autocomplete(document.getElementById('origin-input'),      { types: ['geocode'] });
-        new google.maps.places.Autocomplete(document.getElementById('destination-input'), { types: ['geocode'] });
+            directionsService  = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
 
-        document.getElementById('calc-route-btn').addEventListener('click', calcRoute);
-        document.getElementById('clear-route-btn').addEventListener('click', clearRoute);
-        document.getElementById('add-waypoint-btn').addEventListener('click', addWaypoint);
+            // Autocomplete para origem e destino
+            new google.maps.places.Autocomplete(document.getElementById('origin-input'),      { types: ['geocode'] });
+            new google.maps.places.Autocomplete(document.getElementById('destination-input'), { types: ['geocode'] });
+
+            document.getElementById('calc-route-btn').addEventListener('click', calcRoute);
+            document.getElementById('clear-route-btn').addEventListener('click', clearRoute);
+            document.getElementById('add-waypoint-btn').addEventListener('click', addWaypoint);
+        } catch (error) {
+            console.error('Erro ao inicializar o mapa:', error);
+            var mapElement = document.getElementById('routing-map');
+            if (mapElement) {
+                mapElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#FEF2F2;color:#991B1B;padding:20px;text-align:center;border-radius:0 0 12px 12px;"><div><strong>Erro ao carregar o mapa</strong><br><small>Verifique o console do navegador para mais detalhes</small></div></div>';
+            }
+        }
     };
 
     function addWaypoint() {

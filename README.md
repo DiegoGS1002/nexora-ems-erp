@@ -38,40 +38,40 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 ### Módulos
 
-| Módulo | Status |
-|---|---|
-| Cadastro (Clientes, Fornecedores, Produtos, Funcionários, Funções, Veículos) | ✅ Ativo |
-| Cadastro — Categorias de Produto (`/product-categories`) | ✅ Implementado (CRUD Livewire) |
-| Cadastro — Unidades de Medida (`/unit-of-measures`) | ✅ Implementado (CRUD Livewire) |
-| Dashboard — Visão Geral (`/dashboard`) | 🔶 Implementado (dados de exemplo) |
-| Dashboard — Indicadores KPI (`/dashboard/kpi`) | 🔶 Implementado (dados de exemplo) |
-| Controle de Usuários (`/users`) | ✅ Ativo (CRUD + status + licença + módulos) |
-| Configurações do Sistema (`/configuracoes`) | ✅ Ativo (9 seções) |
-| Suporte (`/suporte/chat`) | ✅ Ativo (tickets + chat em tempo real) |
-| Logs de Auditoria (`/logs`) | ✅ Ativo (somente admin) |
-| Notificações (`/notificacoes`) | ✅ Ativo (dropdown no topbar + central de notificações) |
-| Perfil do Usuário (`/perfil`) | ✅ Ativo (info, senha, avatar) |
-| Financeiro — Plano de Contas (`/plans_of_accounts`) | ✅ Implementado (tree view hierárquico) |
-| Financeiro — Contas Bancárias (`/contas-bancarias`) | ✅ Implementado (cards + transferência + conciliação) |
-| Financeiro — Contas a Pagar (`/accounts_payable`) | ✅ Implementado (CRUD + baixa + reagendamento + KPIs) |
-| Financeiro — Contas a Receber (`/accounts_receivable`) | ✅ Implementado (CRUD + baixa + reagendamento + KPIs) |
-| Financeiro — Fluxo de Caixa (`/cash_flow`) | ✅ Implementado (regime caixa/competência + gráfico diário) |
-| RH — Jornada / Ponto (`/working_day`) | ✅ Implementado (turnos + registros de ponto + KPIs) |
-| RH — Batida de Ponto (`/stitch_beat`) | ✅ Implementado (registro automático por ação sequencial + geolocalização) |
-| RH — Holerite (`/holerite`) | ✅ Implementado (visualização, edição de verbas, fechar, pagar) |
-| RH — Folha de Pagamento (`/payroll`) | ✅ Implementado (geração + holerite + fechamento + pagamento) |
-| Estoque — Movimentações | ✅ Implementado (componente Livewire, rota em breve) |
-| Produção — Ordens de Produção (`/production_orders`) | ✅ Implementado (CRUD Livewire + BOM + multi-produto + progresso) |
-| Vendas — Pedidos de Venda (`/vendas/pedidos`) | ✅ Implementado (CRUD Livewire + itens + parcelas + entrega + log) |
-| Vendas — Tabelas de Precificação (`/vendas/precificacao`) | ✅ Implementado (CRUD Livewire + calculadora markup) |
+| Módulo | Status                                                                        |
+|---|-------------------------------------------------------------------------------|
+| Cadastro (Clientes, Fornecedores, Produtos, Funcionários, Funções, Veículos) | ✅ Ativo                                                                       |
+| Cadastro — Categorias de Produto (`/product-categories`) | ✅ Implementado (CRUD Livewire)                                                |
+| Cadastro — Unidades de Medida (`/unit-of-measures`) | ✅ Implementado (CRUD Livewire)                                                |
+| Dashboard — Visão Geral (`/dashboard`) | ✅ Implementado (dados reais)                                                 |
+| Dashboard — Indicadores KPI (`/dashboard/kpi`) | ✅ Implementado (dados reais)                                                 |
+| Controle de Usuários (`/users`) | ✅ Ativo (CRUD + status + licença + módulos)                                   |
+| Configurações do Sistema (`/configuracoes`) | ✅ Ativo (9 seções)                                                            |
+| Suporte (`/suporte/chat`) | ✅ Ativo (tickets + chat em tempo real)                                        |
+| Logs de Auditoria (`/logs`) | ✅ Ativo (somente admin)                                                       |
+| Notificações (`/notificacoes`) | ✅ Ativo (dropdown no topbar + central de notificações)                        |
+| Perfil do Usuário (`/perfil`) | ✅ Ativo (info, senha, avatar)                                                 |
+| Financeiro — Plano de Contas (`/plans_of_accounts`) | ✅ Implementado (tree view hierárquico)                                        |
+| Financeiro — Contas Bancárias (`/contas-bancarias`) | ✅ Implementado (cards + transferência + conciliação)                          |
+| Financeiro — Contas a Pagar (`/accounts_payable`) | ✅ Implementado (CRUD + baixa + reagendamento + KPIs)                          |
+| Financeiro — Contas a Receber (`/accounts_receivable`) | ✅ Implementado (CRUD + baixa + reagendamento + KPIs)                          |
+| Financeiro — Fluxo de Caixa (`/cash_flow`) | ✅ Implementado (regime caixa/competência + gráfico diário)                    |
+| RH — Jornada / Ponto (`/working_day`) | ✅ Implementado (turnos + registros de ponto + KPIs)                           |
+| RH — Batida de Ponto (`/stitch_beat`) | ✅ Implementado (registro automático por ação sequencial + geolocalização)     |
+| RH — Holerite (`/holerite`) | ✅ Implementado (visualização, edição de verbas, fechar, pagar)                |
+| RH — Folha de Pagamento (`/payroll`) | ✅ Implementado (geração + holerite + fechamento + pagamento)                  |
+| Estoque — Movimentações | ✅ Implementado (componente Livewire, rota em breve)                           |
+| Produção — Ordens de Produção (`/production_orders`) | ✅ Implementado (CRUD Livewire + BOM + multi-produto + progresso)              |
+| Vendas — Pedidos de Venda (`/vendas/pedidos`) | ✅ Implementado (CRUD Livewire + itens + parcelas + entrega + log)             |
+| Vendas — Tabelas de Precificação (`/vendas/precificacao`) | ✅ Implementado (CRUD Livewire + calculadora markup)                           |
 | Compras — Solicitações de Compra (`/compras/solicitacoes`) | ✅ Implementado (CRUD + aprovação/rejeição + conversão para Pedido ou Cotação) |
-| Compras — Pedidos de Compra (`/compras/pedidos`) | ✅ Implementado (CRUD multi-abas + aprovação + frete/pagamento) |
-| Compras — Cotações de Compra (`/compras/cotacoes`) | ✅ Implementado (CRUD + respostas por fornecedor + conversão para Pedido) |
-| Fiscal — Notas Fiscais (`/fiscal/notas-fiscais`) | ✅ Implementado (CRUD NF-e + emissão + cancelamento) |
-| Fiscal — Tipos de Operação (`/fiscal/tipos-operacao`) | ✅ Implementado (CRUD Livewire) |
-| Fiscal — Grupos Tributários (`/fiscal/grupos-tributarios`) | ✅ Implementado (CRUD Livewire) |
-| Logística — Agendamento de Entregas (`/logistica/agendamento-entregas`) | ✅ Implementado (CRUD Livewire + janelas de tempo + reagendamento) |
-| Painel Administrativo Filament (`/admin`) | ✅ Ativo |
+| Compras — Pedidos de Compra (`/compras/pedidos`) | ✅ Implementado (CRUD multi-abas + aprovação + frete/pagamento)                |
+| Compras — Cotações de Compra (`/compras/cotacoes`) | ✅ Implementado (CRUD + respostas por fornecedor + conversão para Pedido)      |
+| Fiscal — Notas Fiscais (`/fiscal/notas-fiscais`) | ✅ Implementado (CRUD NF-e + emissão + cancelamento)                           |
+| Fiscal — Tipos de Operação (`/fiscal/tipos-operacao`) | ✅ Implementado (CRUD Livewire)                                                |
+| Fiscal — Grupos Tributários (`/fiscal/grupos-tributarios`) | ✅ Implementado (CRUD Livewire)                                                |
+| Logística — Agendamento de Entregas (`/logistica/agendamento-entregas`) | ✅ Implementado (CRUD Livewire + janelas de tempo + reagendamento)             |
+| Painel Administrativo Filament (`/admin`) | ✅ Ativo                                                                       |
 
 ## Mudanças Recentes no README
 

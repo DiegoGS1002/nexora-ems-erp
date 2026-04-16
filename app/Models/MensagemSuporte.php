@@ -19,11 +19,13 @@ class MensagemSuporte extends Model
         'user_id',
         'conteudo',
         'is_suporte',
+        'is_ia',
         'lida',
     ];
 
     protected $casts = [
         'is_suporte' => 'boolean',
+        'is_ia'      => 'boolean',
         'lida'       => 'boolean',
     ];
 

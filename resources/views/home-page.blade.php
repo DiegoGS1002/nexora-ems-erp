@@ -45,7 +45,7 @@
             <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
             <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
         </svg>
-        Todos os Módulos
+        Módulos Disponíveis
     </h2>
     <span class="hub-section-count">{{ count($modules) }} módulos disponíveis</span>
 </div>

@@ -18,7 +18,7 @@ class AdminUserSeeder extends Seeder
                 'is_admin' => true,
                 'is_active' => true,
                 'has_license' => true,
-                'modules' => [],
+                'modules' => ['administracao'],
                 'last_login_at' => null,
             ],
 

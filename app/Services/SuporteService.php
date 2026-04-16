@@ -2,13 +2,18 @@
 
 namespace App\Services;
 
+use App\Ai\AgenteService;
 use App\Enums\StatusTicketSuporte;
 use App\Livewire\Forms\NovoTicketForm;
 use App\Models\MensagemSuporte;
 use App\Models\TicketSuporte;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class SuporteService
 {
+    public function __construct(private AgenteService $agenteService) {}
+
     public function criarTicket(int $userId, NovoTicketForm $form): TicketSuporte
     {
         $ticket = TicketSuporte::create([
@@ -16,7 +21,7 @@ class SuporteService
             'assunto'    => $form->assunto,
             'prioridade' => $form->prioridade,
             'categoria'  => $form->categoria ?: null,
-            'status'     => StatusTicketSuporte::Aberto->value,
+            'status'     => StatusTicketSuporte::EmAndamento->value,
         ]);
 
         MensagemSuporte::create([
@@ -25,6 +30,8 @@ class SuporteService
             'conteudo'   => $form->mensagem,
             'is_suporte' => false,
         ]);
+
+        $this->responderComIA($ticket);
 
         return $ticket;
     }
@@ -38,8 +45,37 @@ class SuporteService
             'is_suporte' => $isAdmin,
         ]);
 
-        if ($isAdmin && $ticket->status === StatusTicketSuporte::Aberto) {
-            $ticket->update(['status' => StatusTicketSuporte::EmAndamento->value]);
+        if (! $isAdmin) {
+            $this->responderComIA($ticket);
+        }
+    }
+
+    private function responderComIA(TicketSuporte $ticket): void
+    {
+        $user = User::find($ticket->user_id);
+        if (! $user) {
+            Log::warning('SuporteService: user not found for ticket', ['ticket_id' => $ticket->id]);
+            return;
+        }
+
+        $mensagens = MensagemSuporte::where('ticket_id', $ticket->id)->oldest()->get();
+
+        $adminUser = User::where('is_admin', true)->first();
+        if (! $adminUser) {
+            Log::warning('SuporteService: no admin user found');
+            return;
+        }
+
+        $resposta = $this->agenteService->gerarResposta($user, $ticket, $mensagens);
+
+        if ($resposta) {
+            MensagemSuporte::create([
+                'ticket_id'  => $ticket->id,
+                'user_id'    => $adminUser->id,
+                'conteudo'   => $resposta,
+                'is_suporte' => true,
+                'is_ia'      => true,
+            ]);
         }
     }
 

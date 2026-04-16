@@ -27,6 +27,12 @@ class DatabaseSeeder extends Seeder
             EmployeeSeeder::class,
             TipoOperacaoFiscalSeeder::class,
             GrupoTributarioSeeder::class,
+            // ── Novos seeders ────────────────────────────────────────────────
+            CompanySeeder::class,
+            UserCompanySeeder::class,
+            VehicleSeeder::class,
+            SalesOrderSeeder::class,
+            ProductionOrderSeeder::class,
         ]);
     }
 }

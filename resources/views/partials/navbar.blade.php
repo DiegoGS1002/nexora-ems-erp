@@ -17,6 +17,12 @@
     </div>
     <div class="nx-sb-sep"></div>
     {{-- ── NAVEGAÇÃO ── --}}
+    @php
+        $navUserModules = auth()->user()->modules ?? [];
+        $navIsAdmin     = auth()->user()->is_admin;
+        // Admins sem módulos definidos vêem tudo; não-admins vêem só os contratados
+        $navShowAll = $navIsAdmin && empty($navUserModules);
+    @endphp
     <nav class="nx-sb-nav">
         <ul class="nx-sb-list">
             <li class="nx-sb-item">
@@ -25,66 +31,94 @@
                     <span class="nx-sb-label">Início</span>
                 </a>
             </li>
+            @if($navShowAll || in_array('dashboard', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'dashboard') }}" class="nx-sb-link {{ request()->is('modulo/dashboard') ? 'nx-sb-active' : '' }}" style="--sb-accent:#3B82F6">
                     <span class="nx-sb-icon" style="color:#3B82F6"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
                     <span class="nx-sb-label">Dashboard</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('cadastro', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'cadastro') }}" class="nx-sb-link {{ request()->is('modulo/cadastro') ? 'nx-sb-active' : '' }}" style="--sb-accent:#8B5CF6">
                     <span class="nx-sb-icon" style="color:#8B5CF6"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
                     <span class="nx-sb-label">Cadastro</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('producao', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'producao') }}" class="nx-sb-link {{ request()->is('modulo/producao') ? 'nx-sb-active' : '' }}" style="--sb-accent:#F59E0B">
                     <span class="nx-sb-icon" style="color:#F59E0B"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V8"/><path d="m20 12-8-4-8 4"/><path d="M20 17v-5"/><path d="M4 17v-5"/><path d="M20 22v-5"/><path d="M4 22v-5"/></svg></span>
                     <span class="nx-sb-label">Produção</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('estoque', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'estoque') }}" class="nx-sb-link {{ request()->is('modulo/estoque') ? 'nx-sb-active' : '' }}" style="--sb-accent:#10B981">
                     <span class="nx-sb-icon" style="color:#10B981"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span>
                     <span class="nx-sb-label">Estoque</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('vendas', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'vendas') }}" class="nx-sb-link {{ request()->is('modulo/vendas') ? 'nx-sb-active' : '' }}" style="--sb-accent:#06B6D4">
                     <span class="nx-sb-icon" style="color:#06B6D4"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
                     <span class="nx-sb-label">Vendas</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('compras', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'compras') }}" class="nx-sb-link {{ request()->is('modulo/compras') ? 'nx-sb-active' : '' }}" style="--sb-accent:#F97316">
                     <span class="nx-sb-icon" style="color:#F97316"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
                     <span class="nx-sb-label">Compras</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('fiscal', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'fiscal') }}" class="nx-sb-link {{ request()->is('modulo/fiscal') ? 'nx-sb-active' : '' }}" style="--sb-accent:#EC4899">
                     <span class="nx-sb-icon" style="color:#EC4899"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
                     <span class="nx-sb-label">Fiscal</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('financeiro', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'financeiro') }}" class="nx-sb-link {{ request()->is('modulo/financeiro') ? 'nx-sb-active' : '' }}" style="--sb-accent:#22C55E">
                     <span class="nx-sb-icon" style="color:#22C55E"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
                     <span class="nx-sb-label">Financeiro</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('rh', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'rh') }}" class="nx-sb-link {{ request()->is('modulo/rh') ? 'nx-sb-active' : '' }}" style="--sb-accent:#A78BFA">
                     <span class="nx-sb-icon" style="color:#A78BFA"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                     <span class="nx-sb-label">RH</span>
                 </a>
             </li>
+            @endif
+            @if($navShowAll || in_array('transporte', $navUserModules))
             <li class="nx-sb-item">
                 <a href="{{ route('module.show', 'transporte') }}" class="nx-sb-link {{ request()->is('modulo/transporte') ? 'nx-sb-active' : '' }}" style="--sb-accent:#0EA5E9">
                     <span class="nx-sb-icon" style="color:#0EA5E9"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
                     <span class="nx-sb-label">Transporte</span>
                 </a>
             </li>
+            @endif
+            @if(auth()->user()->is_admin)
+            <li class="nx-sb-item">
+                <a href="{{ route('module.show', 'administracao') }}" class="nx-sb-link {{ request()->is('modulo/administracao') || request()->is('empresas*') ? 'nx-sb-active' : '' }}" style="--sb-accent:#6366F1">
+                    <span class="nx-sb-icon" style="color:#6366F1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+                    <span class="nx-sb-label">Administração</span>
+                </a>
+            </li>
+            @endif
         </ul>
     </nav>
     {{-- ── ZONA DO USUÁRIO ── --}}
@@ -141,8 +175,8 @@
                 </a>
                 <div class="nx-dropdown-divider"></div>
                 <a href="{{ route('suporte.chat') }}" class="nx-dropdown-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    Suporte
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>
+                    Suporte IA
                 </a>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf

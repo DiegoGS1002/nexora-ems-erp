@@ -8,8 +8,12 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\WithPagination;
 
+#[Layout('layouts.app')]
+#[Title('Movimentação de Estoque')]
 class Movimentacao extends Component
 {
     use WithPagination;

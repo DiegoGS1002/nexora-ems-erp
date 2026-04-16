@@ -19,7 +19,7 @@ Route::middleware(['auth', 'midnight.session', MaintenanceERP::class])->group(fu
 
     Route::get('/', function () {
         return view('home-page', [
-            'modules' => ModulePageController::allModules(),
+            'modules' => ModulePageController::accessibleModules(auth()->user()),
         ]);
     })->name('home');
 

@@ -15,7 +15,7 @@ use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('Chat de Suporte')]
+#[Title('Suporte IA')]
 class Chat extends Component
 {
     public NovoTicketForm $novoTicket;
@@ -26,6 +26,7 @@ class Chat extends Component
     public string $filtroStatus = '';
 
     public bool $showNovoTicket = false;
+    public bool $iaRespondendo = false;
 
     #[Validate('required|min:2')]
     public string $novaMensagemTexto = '';
@@ -120,6 +121,7 @@ class Chat extends Component
     {
         $this->ticketSelecionadoId = $id;
         $this->novaMensagemTexto = '';
+        $this->iaRespondendo = false;
         $this->suporteService->marcarMensagensComoLidas($id, auth()->user()->is_admin);
         unset($this->mensagensAtivas, $this->ticketAtivo);
     }
@@ -138,9 +140,16 @@ class Chat extends Component
             return;
         }
 
-        $this->suporteService->enviarMensagem($ticket, auth()->id(), $this->novaMensagemTexto, auth()->user()->is_admin);
+        $isAdmin = auth()->user()->is_admin;
+
+        if (! $isAdmin) {
+            $this->iaRespondendo = true;
+        }
+
+        $this->suporteService->enviarMensagem($ticket, auth()->id(), $this->novaMensagemTexto, $isAdmin);
 
         $this->novaMensagemTexto = '';
+        $this->iaRespondendo = false;
         unset($this->mensagensAtivas, $this->tickets);
 
         $this->dispatch('mensagem-enviada');
@@ -162,14 +171,16 @@ class Chat extends Component
     {
         $this->novoTicket->validate();
 
+        $this->iaRespondendo = true;
         $ticket = $this->suporteService->criarTicket(auth()->id(), $this->novoTicket);
 
         $this->showNovoTicket = false;
         $this->ticketSelecionadoId = $ticket->id;
         $this->novoTicket->resetComPadrao();
+        $this->iaRespondendo = false;
         unset($this->tickets, $this->mensagensAtivas, $this->ticketAtivo);
 
-        session()->flash('success', 'Ticket de suporte criado com sucesso!');
+        session()->flash('success', 'Ticket criado! A IA já está analisando sua solicitação.');
     }
 
     public function atualizarStatus(string $status): void
@@ -201,7 +212,9 @@ class Chat extends Component
     public function render()
     {
         return view('livewire.suporte.chat')
-            ->title('Chat de Suporte');
+            ->title('Suporte IA — Nexora ERP');
     }
 }
+
+
 

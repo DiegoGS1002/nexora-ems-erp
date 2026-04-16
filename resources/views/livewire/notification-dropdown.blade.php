@@ -3,12 +3,42 @@
      Glassmorphism popover acionado pelo sino na navbar
      ═══════════════════════════════════════════════════════ --}}
 <div class="nx-notif-trigger-wrap"
-     x-data="{ open: @entangle('isOpen') }"
-     @click.outside="open = false; $wire.close()">
+     x-data="{
+         open: @entangle('isOpen'),
+         panelStyle: {},
+         updatePos() {
+             const btn  = this.$refs.triggerBtn;
+             const rect = btn.getBoundingClientRect();
+             const gap  = 8;
+             const pw   = Math.min(340, window.innerWidth - 16);
+             const left = Math.max(8, Math.min(rect.left, window.innerWidth - pw - 8));
+             if (rect.top > 420) {
+                 this.panelStyle = {
+                     position : 'fixed',
+                     bottom   : (window.innerHeight - rect.top + gap) + 'px',
+                     top      : 'auto',
+                     left     : left + 'px',
+                     width    : pw + 'px'
+                 };
+             } else {
+                 this.panelStyle = {
+                     position : 'fixed',
+                     top      : (rect.bottom + gap) + 'px',
+                     bottom   : 'auto',
+                     left     : left + 'px',
+                     width    : pw + 'px'
+                 };
+             }
+         }
+     }"
+     @click.outside="open = false; $wire.close()"
+     @resize.window.debounce.300ms="if(open) updatePos()">
 
     {{-- ── Botão Sino ── --}}
     <button
+        x-ref="triggerBtn"
         wire:click="toggle"
+        @click="updatePos()"
         class="nx-sb-icon-btn nx-notif-btn"
         title="Notificações"
         aria-label="Notificações"
@@ -33,6 +63,7 @@
     <div
         class="nx-notif-panel"
         x-show="open"
+        :style="panelStyle"
         x-transition:enter="nx-notif-panel-enter"
         x-transition:enter-start="nx-notif-panel-enter-start"
         x-transition:enter-end="nx-notif-panel-enter-end"

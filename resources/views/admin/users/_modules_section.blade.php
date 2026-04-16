@@ -4,7 +4,7 @@
         $selectedModules  → array de slugs já selecionados (pode ser [] para create)
 --}}
 @php
-    $allModules = [
+    $_allModules = [
         ['slug' => 'dashboard',   'name' => 'Dashboard',          'color' => '#3B82F6',
          'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'],
         ['slug' => 'cadastro',    'name' => 'Cadastro',           'color' => '#8B5CF6',
@@ -26,6 +26,14 @@
         ['slug' => 'transporte',  'name' => 'Transporte',         'color' => '#0EA5E9',
          'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>'],
     ];
+
+    // Filtra os módulos disponíveis com base nos módulos do usuário logado (usuário principal).
+    // Se o admin não tiver nenhum módulo definido, exibe todos (sem restrição).
+    $_adminUser    = auth()->user();
+    $_adminModules = $_adminUser->modules ?? [];
+    $allModules    = ($_adminUser->is_admin && empty($_adminModules))
+        ? $_allModules
+        : array_values(array_filter($_allModules, fn($m) => in_array($m['slug'], $_adminModules)));
 
     // Prioriza old() para reexibição após erro de validação
     $selected = old('modules', $selectedModules ?? []);
@@ -62,9 +70,10 @@
     <p style="font-size:12.5px; color:#64748B; margin-bottom:16px; line-height:1.5;">
         Selecione os módulos que este usuário tem acesso de acordo com o plano contratado.
         Administradores têm acesso irrestrito independente desta configuração.
+        Apenas os módulos disponíveis no seu plano são exibidos abaixo.
     </p>
 
-    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr)); gap:10px;" id="nx-modules-grid">
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:10px;" id="nx-modules-grid">
         @foreach($allModules as $mod)
             @php $isChecked = in_array($mod['slug'], (array) $selected); @endphp
             <label

@@ -262,7 +262,7 @@
 
     {{-- Botão de suporte fixo no canto inferior direito --}}
     <a
-        href="https://wa.me/553299999999?text=Olá,%20preciso%20de%20suporte%20no%20Nexora%20ERP"
+        href="https://wa.me/5532984502345?text=Olá,%20preciso%20de%20suporte%20no%20Nexora%20ERP"
         target="_blank"
         rel="noopener noreferrer"
         title="Falar com o Suporte"

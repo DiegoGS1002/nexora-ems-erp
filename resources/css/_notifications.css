@@ -35,29 +35,25 @@
 
 /* ══════════════════════════════════════════════
    PAINEL FLUTUANTE (Glassmorphism)
+   Posicionamento via position:fixed + Alpine.js
    ══════════════════════════════════════════════ */
 .nx-notif-panel {
-    position: absolute;
-    bottom: calc(100% + 6px);
-    left: 0;
-    width: 320px;
-    background: rgba(10, 17, 40, 0.96);
+    /* position e coordenadas são injetadas via :style pelo Alpine */
+    position: fixed;
+    width: 340px;
+    max-width: calc(100vw - 16px);
+    background: rgba(10, 17, 40, 0.97);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 16px;
     box-shadow:
-        0 24px 64px rgba(0, 0, 0, 0.55),
+        0 24px 64px rgba(0, 0, 0, 0.6),
         0 0 0 0.5px rgba(255, 255, 255, 0.04) inset;
-    z-index: 1200;
+    z-index: 9999;
     overflow: hidden;
 }
 
-/* Quando a sidebar está recolhida, painel aparece à direita */
-.nx-sidebar.collapsed .nx-notif-panel {
-    left: calc(var(--nx-sb-collapsed) + 12px);
-    bottom: 0;
-}
 
 /* Animações de entrada/saída */
 .nx-notif-panel-enter       { transition: opacity 0.2s ease, transform 0.2s ease; }
@@ -125,7 +121,7 @@
 
 /* ── Lista de itens ── */
 .nx-notif-list {
-    max-height: 360px;
+    max-height: min(360px, 55vh);
     overflow-y: auto;
     padding: 6px 0;
     scrollbar-width: thin;
@@ -483,17 +479,13 @@
 
 @media (max-width: 768px) {
     .nx-notif-kpis { grid-template-columns: 1fr; }
-    .nx-notif-panel { width: 300px; }
+    /* Painel: width é controlado pelo Alpine (min(340, vw-16)) */
     .nx-notif-row { padding: 12px 14px; gap: 10px; }
     .nx-notif-row-icon { width: 34px; height: 34px; }
     .nx-notif-row-actions { opacity: 1; }
 }
 
 @media (max-width: 480px) {
-    .nx-notif-panel {
-        width: calc(100vw - 32px);
-        left: 50%;
-        transform: translateX(-50%);
-    }
+    /* Painel ocupa quase toda a largura no mobile — tratado pelo Alpine */
 }
 

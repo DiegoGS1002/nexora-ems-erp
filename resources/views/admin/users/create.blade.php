@@ -146,6 +146,37 @@
                 @enderror
             </div>
 
+            {{-- ── SEÇÃO: EMPRESA VINCULADA ── --}}
+            <div class="nx-form-section">
+                <div class="nx-form-section-header">
+                    <div class="nx-form-section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        </svg>
+                    </div>
+                    <h3 class="nx-form-section-title">Empresa Vinculada</h3>
+                </div>
+
+                <div class="nx-field">
+                    <label for="company_id">Empresa</label>
+                    <select id="company_id" name="company_id">
+                        <option value="">— Sem empresa vinculada (acesso global) —</option>
+                        @foreach($companies as $company)
+                            <option value="{{ $company->id }}"
+                                {{ old('company_id') == $company->id ? 'selected' : '' }}>
+                                {{ $company->name }}{{ $company->cnpj ? ' — ' . $company->cnpj : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('company_id')
+                        <small style="color:#EF4444;">{{ $message }}</small>
+                    @enderror
+                    <small>Usuários sem empresa vinculada possuem acesso global ao sistema.</small>
+                </div>
+            </div>
+
             {{-- ── SEÇÃO: CREDENCIAIS ── --}}
             <div class="nx-form-section">
                 <div class="nx-form-section-header">

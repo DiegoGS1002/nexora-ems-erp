@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -41,7 +42,8 @@ class UsersController extends Controller
 
     public function create()
     {
-        return view('admin.users.create');
+        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        return view('admin.users.create', compact('companies'));
     }
 
     public function store(Request $request)
@@ -55,6 +57,7 @@ class UsersController extends Controller
             'has_license' => 'required|in:0,1',
             'modules'     => 'nullable|array',
             'modules.*'   => 'string',
+            'company_id'  => 'nullable|exists:companies,id',
         ]);
 
         User::create([
@@ -65,6 +68,7 @@ class UsersController extends Controller
             'is_active'   => (bool) $validated['is_active'],
             'has_license' => (bool) $validated['has_license'],
             'modules'     => $validated['modules'] ?? [],
+            'company_id'  => $validated['company_id'] ?? null,
         ]);
 
         return redirect()
@@ -74,7 +78,8 @@ class UsersController extends Controller
 
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        return view('admin.users.edit', compact('user', 'companies'));
     }
 
     public function update(Request $request, User $user)
@@ -88,6 +93,7 @@ class UsersController extends Controller
             'has_license' => 'required|in:0,1',
             'modules'     => 'nullable|array',
             'modules.*'   => 'string',
+            'company_id'  => 'nullable|exists:companies,id',
         ]);
 
         $user->name        = $validated['name'];
@@ -96,6 +102,7 @@ class UsersController extends Controller
         $user->is_active   = (bool) $validated['is_active'];
         $user->has_license = (bool) $validated['has_license'];
         $user->modules     = $validated['modules'] ?? [];
+        $user->company_id  = $validated['company_id'] ?? null;
 
         if (!empty($validated['password'])) {
             $user->password = $validated['password'];
