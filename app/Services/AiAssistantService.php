@@ -5,6 +5,7 @@ use Gemini\Data\Content;
 use Gemini\Enums\Role;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use OpenAI\Laravel\Facades\OpenAI;
 use Exception;
 class AiAssistantService
 {
@@ -158,29 +159,72 @@ class AiAssistantService
     public function getResponse(string $module, string $pageName, string $userMessage, array $history = []): string
     {
         try {
-            $systemInstruction = $this->buildSystemInstruction($module, $pageName);
-            $contents = [];
-            foreach (array_slice($history, -10) as $msg) {
-                if (empty($msg['content'])) continue;
-                $contents[] = Content::parse(
-                    text: $msg['content'],
-                    role: $msg['role'] === 'user' ? Role::USER : Role::MODEL
-                );
-            }
-            $contents[] = Content::parse(text: $userMessage, role: Role::USER);
-            $result = Gemini::generativeModel(model: 'models/gemini-2.0-flash-exp')
-                ->withSystemInstruction($systemInstruction)
-                ->generateContent($contents);
-            return $result->text();
+            return $this->getGeminiResponse($module, $pageName, $userMessage, $history);
         } catch (Exception $e) {
-            Log::error('AiAssistantService Error', [
-                'module'  => $module,
-                'page'    => $pageName,
-                'message' => $userMessage,
-                'error'   => $e->getMessage(),
-            ]);
+            $errorMsg = $e->getMessage();
+            $isQuotaOrModel = str_contains($errorMsg, 'quota') ||
+                              str_contains($errorMsg, 'RESOURCE_EXHAUSTED') ||
+                              str_contains($errorMsg, 'not found') ||
+                              str_contains($errorMsg, 'not supported');
+
+            if ($isQuotaOrModel) {
+                Log::warning('Gemini fallback to OpenAI', ['reason' => substr($errorMsg, 0, 200)]);
+                try {
+                    return $this->getOpenAiResponse($module, $pageName, $userMessage, $history);
+                } catch (Exception $e2) {
+                    Log::error('OpenAI fallback also failed', ['error' => $e2->getMessage()]);
+                }
+            } else {
+                Log::error('AiAssistantService Error', [
+                    'module'  => $module,
+                    'page'    => $pageName,
+                    'message' => $userMessage,
+                    'error'   => $errorMsg,
+                ]);
+            }
+
             return 'Desculpe, ocorreu um erro ao processar sua pergunta. Tente novamente.';
         }
+    }
+
+    protected function getGeminiResponse(string $module, string $pageName, string $userMessage, array $history = []): string
+    {
+        $systemInstruction = Content::parse(part: $this->buildSystemInstruction($module, $pageName), role: Role::USER);
+        $contents = [];
+        foreach (array_slice($history, -10) as $msg) {
+            if (empty($msg['content'])) continue;
+            $contents[] = Content::parse(
+                part: $msg['content'],
+                role: $msg['role'] === 'user' ? Role::USER : Role::MODEL
+            );
+        }
+        $contents[] = Content::parse(part: $userMessage, role: Role::USER);
+        $result = Gemini::generativeModel(model: config('gemini.model', 'gemini-2.0-flash'))
+            ->withSystemInstruction($systemInstruction)
+            ->generateContent(...$contents);
+        return $result->text();
+    }
+
+    protected function getOpenAiResponse(string $module, string $pageName, string $userMessage, array $history = []): string
+    {
+        $systemPrompt = $this->buildSystemInstruction($module, $pageName);
+        $messages = [['role' => 'system', 'content' => $systemPrompt]];
+
+        foreach (array_slice($history, -10) as $msg) {
+            if (empty($msg['content'])) continue;
+            $role = $msg['role'] === 'user' ? 'user' : 'assistant';
+            $messages[] = ['role' => $role, 'content' => $msg['content']];
+        }
+        $messages[] = ['role' => 'user', 'content' => $userMessage];
+
+        $response = OpenAI::chat()->create([
+            'model'       => 'gpt-4o-mini',
+            'messages'    => $messages,
+            'max_tokens'  => (int) config('gemini.max_tokens', 2048),
+            'temperature' => (float) config('gemini.temperature', 0.7),
+        ]);
+
+        return $response->choices[0]->message->content ?? 'Sem resposta.';
     }
     protected function buildSystemInstruction(string $module, string $pageName): string
     {

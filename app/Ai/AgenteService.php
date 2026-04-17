@@ -5,12 +5,13 @@ namespace App\Ai;
 use App\Models\TicketSuporte;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class AgenteService
 {
-    private const MAX_ITERATIONS = 3;
+    private const MAX_ITERATIONS = 5;
 
     public function __construct(
         private ToolRegistry $registry,
@@ -21,55 +22,58 @@ class AgenteService
     /**
      * Generate AI response with function calling support.
      * Architecture: User → IA → (decide) → Tool → Backend → Result → IA → Response
+     * Fallback chain: OpenAI → Gemini → FallbackResponder
      */
     public function gerarResposta(User $user, TicketSuporte $ticket, Collection $mensagens): ?string
     {
-        if (! config('openai.api_key')) {
-            Log::warning('AgenteService: OpenAI API key not configured');
-            return null;
-        }
+        $messages     = $this->contextBuilder->buildMessages($user, $ticket, $mensagens);
+        $tools        = $this->registry->definitions();
+        $ultimaMensagem = $mensagens->where('is_suporte', false)->where('is_ia', false)->last();
+        $textoUsuario   = $ultimaMensagem?->conteudo ?? '';
 
-        try {
-            $messages = $this->contextBuilder->buildMessages($user, $ticket, $mensagens);
-            $tools = $this->registry->definitions();
-
-            return $this->runConversationLoop($messages, $tools, $user->id);
-        } catch (\Throwable $e) {
-            $errorMsg = $e->getMessage();
-
-            // Special handling for rate limits - return useful fallback response
-            if (str_contains($errorMsg, 'rate limit')) {
-                Log::warning('AgenteService: OpenAI rate limit exceeded - using fallback', [
+        // 1. Try OpenAI
+        if (config('openai.api_key')) {
+            try {
+                $result = $this->runOpenAiLoop($messages, $tools, $user->id);
+                if ($result) {
+                    return $result;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('AgenteService: OpenAI failed, trying Gemini', [
                     'ticket_id' => $ticket->id,
-                    'user_id' => $user->id,
+                    'error'     => substr($e->getMessage(), 0, 300),
                 ]);
-
-                // Get last user message
-                $ultimaMensagem = $mensagens->where('is_suporte', false)
-                    ->where('is_ia', false)
-                    ->last();
-
-                return $this->fallback->gerarResposta(
-                    $ticket,
-                    $ultimaMensagem?->conteudo ?? ''
-                );
             }
-
-            Log::error('AgenteService: error generating response', [
-                'ticket_id' => $ticket->id,
-                'user_id' => $user->id,
-                'error' => $errorMsg,
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return null;
         }
+
+        // 2. Try Gemini
+        if (config('gemini.api_key')) {
+            try {
+                $result = $this->runGeminiRequest($messages, $textoUsuario);
+                if ($result) {
+                    return $result;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('AgenteService: Gemini failed, using static fallback', [
+                    'ticket_id' => $ticket->id,
+                    'error'     => substr($e->getMessage(), 0, 300),
+                ]);
+            }
+        }
+
+        // 3. Static fallback
+        Log::warning('AgenteService: all AI providers failed, using FallbackResponder', [
+            'ticket_id' => $ticket->id,
+            'user_id'   => $user->id,
+        ]);
+
+        return $this->fallback->gerarResposta($ticket, $textoUsuario);
     }
 
     /**
-     * Run conversation loop with function calling.
+     * Run OpenAI conversation loop with tool calling.
      */
-    private function runConversationLoop(array $messages, array $tools, int $userId): ?string
+    private function runOpenAiLoop(array $messages, array $tools, int $userId): ?string
     {
         $iteration = 0;
 
@@ -77,12 +81,12 @@ class AgenteService
             $iteration++;
 
             $response = OpenAI::chat()->create([
-                'model' => config('openai.model', 'gpt-4o-mini'),
-                'messages' => $messages,
-                'tools' => $tools,
+                'model'       => config('openai.model', 'gpt-4o-mini'),
+                'messages'    => $messages,
+                'tools'       => $tools,
                 'tool_choice' => 'auto',
-                'max_tokens' => 1500,
-                'temperature' => 0.7,
+                'max_tokens'  => 2000,
+                'temperature' => 0.4,
             ]);
 
             $choice = $response->choices[0] ?? null;
@@ -91,47 +95,88 @@ class AgenteService
             }
 
             $finishReason = $choice->finishReason ?? '';
-            $message = $choice->message;
+            $message      = $choice->message;
 
-            // Add assistant message to conversation
             $messages[] = [
-                'role' => 'assistant',
-                'content' => $message->content ?? null,
+                'role'       => 'assistant',
+                'content'    => $message->content ?? null,
                 'tool_calls' => $message->toolCalls ?? null,
             ];
 
-            // If AI wants to call tools
             if ($finishReason === 'tool_calls' && ! empty($message->toolCalls)) {
                 foreach ($message->toolCalls as $toolCall) {
                     $functionName = $toolCall->function->name;
-                    $arguments = json_decode($toolCall->function->arguments, true) ?? [];
+                    $arguments    = json_decode($toolCall->function->arguments, true) ?? [];
+                    $toolResult   = $this->registry->execute($functionName, $arguments, $userId);
 
-                    // Execute tool
-                    $toolResult = $this->registry->execute($functionName, $arguments, $userId);
-
-                    // Add tool result to messages
                     $messages[] = [
-                        'role' => 'tool',
+                        'role'         => 'tool',
                         'tool_call_id' => $toolCall->id,
-                        'content' => json_encode($toolResult, JSON_UNESCAPED_UNICODE),
+                        'content'      => json_encode($toolResult, JSON_UNESCAPED_UNICODE),
                     ];
                 }
-
-                // Continue loop to get final answer with tool results
                 continue;
             }
 
-            // Got final answer
             if ($finishReason === 'stop' && $message->content) {
                 return $message->content;
             }
 
-            // Safety: if we got here with unexpected finish reason, break
             break;
         }
 
         return null;
     }
+
+    /**
+     * Run Gemini request (without tool calling — context only).
+     */
+    private function runGeminiRequest(array $messages, string $userMessage): ?string
+    {
+        $apiKey = config('gemini.api_key');
+        $model  = config('gemini.model', 'gemini-2.0-flash');
+
+        // Build a single prompt from the conversation
+        $systemContent = '';
+        $contents      = [];
+
+        foreach ($messages as $msg) {
+            if ($msg['role'] === 'system') {
+                $systemContent = $msg['content'];
+                continue;
+            }
+            $role = $msg['role'] === 'user' ? 'user' : 'model';
+            if (! empty($msg['content'])) {
+                $contents[] = [
+                    'role'  => $role,
+                    'parts' => [['text' => $msg['content']]],
+                ];
+            }
+        }
+
+        $payload = [
+            'system_instruction' => [
+                'parts' => [['text' => $systemContent]],
+            ],
+            'contents'           => $contents,
+            'generationConfig'   => [
+                'temperature'     => 0.4,
+                'maxOutputTokens' => (int) config('gemini.max_tokens', 2048),
+            ],
+        ];
+
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+        $response = Http::timeout((int) config('gemini.request_timeout', 60))
+            ->post($url, $payload);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Gemini API error: ' . $response->status() . ' ' . $response->body());
+        }
+
+        $data = $response->json();
+        $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+        return $text ?: null;
+    }
 }
-
-

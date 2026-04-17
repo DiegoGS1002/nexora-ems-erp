@@ -264,22 +264,16 @@ class ModulePageController extends Controller
      */
     public static function accessibleModules(\App\Models\User $user): array
     {
-        $userModules = $user->modules ?? [];
-
-        // Admin sem nenhum módulo configurado: acesso irrestrito
-        if ($user->is_admin && empty($userModules)) {
+        // Administradores têm acesso irrestrito independente da configuração de módulos
+        if ($user->is_admin) {
             return self::$modules;
         }
 
+        $userModules = $user->modules ?? [];
+
         return array_filter(
             self::$modules,
-            function (array $module, string $slug) use ($userModules, $user) {
-                // Módulo de administração sempre visível para admins
-                if ($slug === 'administracao' && $user->is_admin) {
-                    return true;
-                }
-                return in_array($slug, $userModules);
-            },
+            fn (array $module, string $slug) => in_array($slug, $userModules),
             ARRAY_FILTER_USE_BOTH
         );
     }

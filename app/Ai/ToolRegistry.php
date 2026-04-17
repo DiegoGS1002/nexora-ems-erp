@@ -8,6 +8,7 @@ use App\Ai\Tools\ConsultarClienteTool;
 use App\Ai\Tools\ConsultarEstoqueTool;
 use App\Ai\Tools\ConsultarFinanceiroTool;
 use App\Ai\Tools\ConsultarTicketTool;
+use App\Ai\Tools\VerificarNfeTool;
 
 class ToolRegistry
 {
@@ -16,6 +17,7 @@ class ToolRegistry
 
     public function __construct()
     {
+        $this->register(new VerificarNfeTool());
         $this->register(new BuscarPedidoTool());
         $this->register(new ConsultarClienteTool());
         $this->register(new ConsultarEstoqueTool());

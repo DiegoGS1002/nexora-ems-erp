@@ -23,7 +23,7 @@ return [
     |
     */
 
-    'model' => env('GEMINI_MODEL', 'gemini-2.0-flash-exp'),
+    'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
 
     /*
     |--------------------------------------------------------------------------
