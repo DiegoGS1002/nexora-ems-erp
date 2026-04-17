@@ -22,7 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (config('app.env') !== 'local') {
+        // Force HTTPS only when explicitly enabled via FORCE_HTTPS=true in .env
+        // Do NOT rely on APP_ENV to decide this — always configure explicitly.
+        if (config('app.force_https', false)) {
             URL::forceScheme('https');
         }
 
