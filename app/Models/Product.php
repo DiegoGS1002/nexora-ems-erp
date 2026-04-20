@@ -27,6 +27,8 @@ class Product extends Model
         'cfop_saida',
         'cfop_entrada',
         'grupo_tributario_id',
+        'unit_of_measure_id',
+        'product_category_id',
         'description',
         'short_description',
         'brand',
@@ -88,6 +90,16 @@ class Product extends Model
     public function grupoTributario(): BelongsTo
     {
         return $this->belongsTo(GrupoTributario::class, 'grupo_tributario_id');
+    }
+
+    public function unitOfMeasure(): BelongsTo
+    {
+        return $this->belongsTo(UnitOfMeasure::class, 'unit_of_measure_id');
+    }
+
+    public function productCategory(): BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
 
     public function getImageUrlAttribute(): string

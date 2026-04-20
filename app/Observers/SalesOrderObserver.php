@@ -2,8 +2,14 @@
 
 namespace App\Observers;
 
+use App\Models\AccountReceivable;
+use App\Models\FiscalNote;
 use App\Models\SalesOrder;
+use App\Models\StockMovement;
 use App\Enums\SalesOrderStatus;
+use App\Enums\ReceivableStatus;
+use App\Enums\FiscalNoteStatus;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SalesOrderObserver
@@ -16,15 +22,15 @@ class SalesOrderObserver
         // Garante que os itens e produtos estejam carregados
         $salesOrder->load('items.product');
 
+        // Registrar log de auditoria
+        $salesOrder->logAction('created', 'Pedido criado');
+
         // Verifica se precisa de aprovação
         $this->checkIfNeedsApproval($salesOrder);
 
-        // Notificação (implementar conforme necessário)
-        // event(new SalesOrderCreated($salesOrder));
-
         Log::info("Pedido {$salesOrder->order_number} criado", [
-            'order_id' => $salesOrder->id,
-            'client_id' => $salesOrder->client_id,
+            'order_id'     => $salesOrder->id,
+            'client_id'    => $salesOrder->client_id,
             'total_amount' => $salesOrder->total_amount,
         ]);
     }
@@ -34,8 +40,14 @@ class SalesOrderObserver
      */
     public function updated(SalesOrder $salesOrder): void
     {
-        // Se mudou de status
+        // Se mudou de status — registrar log de auditoria + tratar negócio
         if ($salesOrder->wasChanged('status')) {
+            $salesOrder->logAction(
+                'status_changed',
+                'Status alterado de ' . $salesOrder->getOriginal('status') . ' para ' . $salesOrder->status->value,
+                $salesOrder->getOriginal('status'),
+                $salesOrder->status->value
+            );
             $this->handleStatusChange($salesOrder);
         }
 
@@ -173,11 +185,10 @@ class SalesOrderObserver
     }
 
     /**
-     * Quando pedido entra em separação
+     * Quando pedido entra em separação — debita estoque reservado
      */
     protected function onSeparation(SalesOrder $salesOrder): void
     {
-        // Atualiza data de separação se não foi definida
         if (!$salesOrder->separation_date) {
             $salesOrder->separation_date = now();
             $salesOrder->saveQuietly();
@@ -185,26 +196,84 @@ class SalesOrderObserver
 
         Log::info("Pedido {$salesOrder->order_number} entrou em separação");
 
-        // Notificar equipe de separação
-        // event(new SalesOrderReadyForSeparation($salesOrder));
+        // Estoque — saída (output) por item do pedido
+        DB::transaction(function () use ($salesOrder) {
+            $salesOrder->loadMissing('items.product');
+            foreach ($salesOrder->items as $item) {
+                if (!$item->product_id) continue;
+
+                StockMovement::create([
+                    'product_id'  => $item->product_id,
+                    'user_id'     => $salesOrder->created_by ?? auth()->id(),
+                    'quantity'    => $item->quantity,
+                    'type'        => 'output',
+                    'origin'      => 'sales_order',
+                    'unit_cost'   => $item->unit_price,
+                    'observation' => 'Separação do Pedido #' . $salesOrder->order_number,
+                ]);
+
+                // Decrementa o estoque do produto
+                if ($item->product && $item->product->stock >= $item->quantity) {
+                    $item->product->decrement('stock', $item->quantity);
+                }
+            }
+        });
     }
 
     /**
-     * Quando pedido é faturado
+     * Quando pedido é faturado — gera contas a receber e rascunho de NF-e
      */
     protected function onInvoiced(SalesOrder $salesOrder): void
     {
         Log::info("Pedido {$salesOrder->order_number} faturado");
 
-        // Aqui você pode:
-        // - Dar baixa no estoque (converter reserva em movimentação)
-        // - Gerar contas a receber
-        // - Enviar email para cliente com NF-e
+        DB::transaction(function () use ($salesOrder) {
+            $salesOrder->loadMissing('installments', 'client');
 
-        // Exemplo: criar contas a receber
-        // foreach ($salesOrder->installments as $installment) {
-        //     AccountReceivable::create([...]);
-        // }
+            // 1. Financeiro — criar contas a receber por parcela
+            $installments = $salesOrder->installments;
+            if ($installments->isNotEmpty()) {
+                foreach ($installments as $i => $installment) {
+                    AccountReceivable::create([
+                        'description_title'  => 'Pedido #' . $salesOrder->order_number . ' - Parcela ' . ($i + 1) . '/' . $installments->count(),
+                        'client_id'          => $salesOrder->client_id,
+                        'amount'             => $installment->amount,
+                        'received_amount'    => 0,
+                        'due_date_at'        => $installment->due_date,
+                        'installment_number' => $i + 1,
+                        'payment_method'     => $salesOrder->payment_method ?? null,
+                        'status'             => ReceivableStatus::Pending->value,
+                        'observation'        => 'Gerado automaticamente do Pedido de Venda #' . $salesOrder->order_number,
+                    ]);
+                }
+            } elseif ($salesOrder->total_amount > 0) {
+                // Sem parcelas definidas — uma única conta a receber
+                AccountReceivable::create([
+                    'description_title'  => 'Pedido #' . $salesOrder->order_number,
+                    'client_id'          => $salesOrder->client_id,
+                    'amount'             => $salesOrder->total_amount,
+                    'received_amount'    => 0,
+                    'due_date_at'        => now()->addDays(30),
+                    'installment_number' => 1,
+                    'status'             => ReceivableStatus::Pending->value,
+                    'observation'        => 'Gerado automaticamente do Pedido de Venda #' . $salesOrder->order_number,
+                ]);
+            }
+
+            // 2. Fiscal — criar rascunho de NF-e se pedido fiscal
+            if ($salesOrder->is_fiscal) {
+                FiscalNote::create([
+                    'client_id'      => $salesOrder->client_id,
+                    'sales_order_id' => $salesOrder->id,
+                    'type'           => 'nfe',
+                    'environment'    => config('settings.fiscal_ambiente', 'homologation'),
+                    'status'         => FiscalNoteStatus::Draft->value,
+                    'amount'         => $salesOrder->total_amount,
+                    'emitted_by'     => auth()->id(),
+                    'notes'          => 'Gerado automaticamente do Pedido #' . $salesOrder->order_number,
+                ]);
+            }
+        });
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\MensagemSuporte;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class TicketSuporte extends Model
@@ -52,9 +53,9 @@ class TicketSuporte extends Model
         return $this->hasMany(MensagemSuporte::class, 'ticket_id');
     }
 
-    public function ultimaMensagem(): HasMany
+    public function ultimaMensagem(): HasOne
     {
-        return $this->hasMany(MensagemSuporte::class, 'ticket_id')->latest()->limit(1);
+        return $this->hasOne(MensagemSuporte::class, 'ticket_id')->latestOfMany();
     }
 
     public function isAberto(): bool

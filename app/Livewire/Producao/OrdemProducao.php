@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductionItem;
 use App\Models\ProductionOrder;
 use App\Models\ProductionOrderProduct;
+use App\Models\StockMovement;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -346,6 +347,43 @@ class OrdemProducao extends Component
         if ($newStatus === ProductionOrderStatus::Completed) {
             $data['end_date'] = now();
             $order->orderProducts()->each(fn ($op) => $op->update(['produced_quantity' => $op->target_quantity]));
+
+            // ── Integração: Concluir OP → movimentações de estoque ──
+            DB::transaction(function () use ($order) {
+                $order->loadMissing(['items.component', 'orderProducts.product']);
+
+                // Saída de matérias-primas (BOM)
+                foreach ($order->items as $item) {
+                    if (!$item->component_id) continue;
+                    StockMovement::create([
+                        'product_id'  => $item->component_id,
+                        'user_id'     => auth()->id(),
+                        'quantity'    => $item->quantity,
+                        'type'        => 'output',
+                        'origin'      => 'production_order',
+                        'observation' => 'Consumo de insumo — OP #' . $order->id,
+                    ]);
+                    if ($item->component) {
+                        $item->component->decrement('stock', $item->quantity);
+                    }
+                }
+
+                // Entrada de produtos acabados
+                foreach ($order->orderProducts as $op) {
+                    if (!$op->product_id) continue;
+                    StockMovement::create([
+                        'product_id'  => $op->product_id,
+                        'user_id'     => auth()->id(),
+                        'quantity'    => $op->target_quantity,
+                        'type'        => 'input',
+                        'origin'      => 'production_order',
+                        'observation' => 'Produto acabado — OP #' . $order->id,
+                    ]);
+                    if ($op->product) {
+                        $op->product->increment('stock', $op->target_quantity);
+                    }
+                }
+            });
         }
 
         $order->update($data);

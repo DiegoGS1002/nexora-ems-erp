@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\PayrollStatus;
+use App\Enums\PayableStatus;
+use App\Models\AccountPayable;
 use App\Models\Employees;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
@@ -117,10 +119,21 @@ class PayrollService
      */
     public function markAsPaid(int $payrollId, Carbon $paymentDate): Payroll
     {
-        $payroll = Payroll::findOrFail($payrollId);
+        $payroll = Payroll::with('employee')->findOrFail($payrollId);
         $payroll->update([
-            'status' => PayrollStatus::Paid->value,
+            'status'       => PayrollStatus::Paid->value,
             'payment_date' => $paymentDate,
+        ]);
+
+        // Financeiro — registrar conta a pagar quitada (histórico de pagamento de folha)
+        AccountPayable::create([
+            'description_title' => 'Folha de Pagamento - ' . ($payroll->employee->name ?? 'Funcionário') . ' (' . $payroll->reference_month->format('m/Y') . ')',
+            'amount'            => $payroll->net_salary,
+            'paid_amount'       => $payroll->net_salary,
+            'due_date_at'       => $paymentDate,
+            'payment_date'      => $paymentDate,
+            'status'            => PayableStatus::Paid->value,
+            'observation'       => 'Pagamento de folha gerado automaticamente.',
         ]);
 
         return $payroll;

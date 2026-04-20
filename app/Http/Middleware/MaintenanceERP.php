@@ -59,7 +59,46 @@ class MaintenanceERP
             $request->routeIs('notifications.*') ||
             // unidades e categorias de produto
             $request->routeIs('unit-of-measures.*') ||
-            $request->routeIs('product-categories.*')
+            $request->routeIs('product-categories.*') ||
+            // financeiro — módulos Livewire e resources
+            $request->routeIs('plans_of_accounts.*') ||
+            $request->routeIs('contas_bancarias.*') ||
+            $request->routeIs('accounts_payable.*') ||
+            $request->routeIs('accounts_receivable.*') ||
+            $request->routeIs('cash_flow.*') ||
+            $request->routeIs('baccarat_accounts.*') ||
+            $request->routeIs('financial_reports.*') ||
+            $request->routeIs('financialReports.*') ||
+            // rh — módulos Livewire e resources
+            $request->routeIs('working_day.*') ||
+            $request->routeIs('payroll.*') ||
+            $request->routeIs('holerite.*') ||
+            $request->routeIs('stitch_beat.*') ||
+            $request->routeIs('employee_management.*') ||
+            $request->routeIs('rh_reports.*') ||
+            $request->routeIs('rhReports.*') ||
+            // dashboard
+            $request->routeIs('dashboard.*') ||
+            // produção
+            $request->routeIs('production_orders.*') ||
+            // vendas
+            $request->routeIs('vendas.*') ||
+            $request->routeIs('requests.*') ||
+            $request->routeIs('visits.*') ||
+            $request->routeIs('sales_report.*') ||
+            $request->routeIs('salesReports.*') ||
+            // estoque
+            $request->routeIs('stock.*') ||
+            // logística completa
+            $request->routeIs('monitoring_of_deliveries.*') ||
+            $request->routeIs('driver_management.*') ||
+            $request->routeIs('romaneio.*') ||
+            $request->routeIs('vehicle_tracking.*') ||
+            $request->routeIs('vehicle_maintenance.*') ||
+            $request->routeIs('transport_report.*') ||
+            $request->routeIs('transportReport.*') ||
+            // empresas
+            $request->routeIs('companies.*')
         ) {
             return $next($request);
         }

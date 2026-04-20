@@ -174,20 +174,6 @@ class SalesOrder extends Model
                 $order->updated_by = auth()->id();
             }
         });
-
-        static::created(function ($order) {
-            $order->logAction('created', 'Pedido criado');
-        });
-
-        static::updated(function ($order) {
-            if ($order->wasChanged('status')) {
-                $order->logAction('status_changed',
-                    'Status alterado de ' . $order->getOriginal('status') . ' para ' . $order->status->value,
-                    $order->getOriginal('status'),
-                    $order->status->value
-                );
-            }
-        });
     }
 
     // Relacionamentos

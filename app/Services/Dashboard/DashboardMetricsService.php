@@ -123,13 +123,13 @@ class DashboardMetricsService
             }
         }
 
-        // 3. Fallback: estimativa baseada em produtos criados no mês × estoque
+        // 3. Fallback: estimativa baseada em produtos criados no mês × preço de venda
         if ($this->hasTable('products')) {
             $val = DB::table('products')
                 ->whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->whereNull('deleted_at')
-                ->selectRaw('COALESCE(SUM(COALESCE(sale_price,0) * GREATEST(COALESCE(stock,0),1)),0) as total')
+                ->selectRaw('COALESCE(SUM(COALESCE(sale_price,0)),0) as total')
                 ->value('total');
 
             return round((float) $val, 2);

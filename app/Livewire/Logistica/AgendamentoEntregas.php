@@ -4,6 +4,7 @@ namespace App\Livewire\Logistica;
 
 use App\Enums\DeliveryPriority;
 use App\Enums\DeliveryScheduleStatus;
+use App\Enums\SalesOrderStatus;
 use App\Models\DeliveryTimeWindow;
 use App\Models\SchedulingOfDeliveries;
 use App\Models\SalesOrder;
@@ -294,10 +295,21 @@ class AgendamentoEntregas extends Component
 
     public function changeStatus(int $id, string $status): void
     {
-        SchedulingOfDeliveries::findOrFail($id)->update(['status' => $status]);
+        $schedule = SchedulingOfDeliveries::findOrFail($id);
+        $schedule->update(['status' => $status]);
 
         if ($status === DeliveryScheduleStatus::Entregue->value) {
-            SchedulingOfDeliveries::where('id', $id)->update(['delivered_at' => now()]);
+            $schedule->update(['delivered_at' => now()]);
+
+            // ── Integração: Entrega confirmada → atualiza SalesOrder para Delivered ──
+            if ($schedule->order_id) {
+                SalesOrder::where('id', $schedule->order_id)
+                    ->whereNotIn('status', [
+                        SalesOrderStatus::Cancelled->value,
+                        SalesOrderStatus::Delivered->value,
+                    ])
+                    ->update(['status' => SalesOrderStatus::Delivered->value]);
+            }
         }
 
         session()->flash('message', 'Status atualizado!');

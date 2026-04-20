@@ -29,9 +29,4 @@ Route::get('/stitch_beat', BatidaPonto::class)->name('stitch_beat.index');
 Route::resource('employee_management', EmployeeManagementController::class);
 Route::resource('rh_reports', RhReportsController::class);
 
-/* ─── Batida de Ponto (Livewire) ─── */
-Route::get('/stitch_beat', BatidaPonto::class)->name('stitch_beat.index');
-
-Route::resource('employee_management', EmployeeManagementController::class);
-Route::resource('rh_reports', RhReportsController::class);
 

@@ -3,6 +3,8 @@
 namespace App\Livewire\Compras;
 
 use App\Enums\CotacaoStatus;
+use App\Enums\PurchaseOrderOrigin;
+use App\Enums\PurchaseOrderStatus;
 use App\Models\Cotacao;
 use App\Models\CotacaoItem;
 use App\Models\CotacaoResposta;
@@ -425,6 +427,8 @@ class Cotacoes extends Component
         DB::transaction(function () use ($cotacao, $primarySupplierId) {
             $order = PurchaseOrder::create([
                 'supplier_id' => $primarySupplierId,
+                'buyer_id'    => auth()->id(),
+                'status'      => PurchaseOrderStatus::Rascunho->value,
                 'origin'      => PurchaseOrderOrigin::Cotacao->value,
                 'order_date'  => now(),
                 'notes'       => 'Gerado a partir da cotação ' . $cotacao->number,

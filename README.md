@@ -10,7 +10,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 **Status:** desenvolvimento ativo.
 
-**Última atualização da documentação:** 2026-04-14 (README revisado).
+**Última atualização da documentação:** 2026-04-20 (integrações inter-módulos implementadas).
 
 ## Índice Rápido
 
@@ -32,6 +32,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 - [RH — Batida de Ponto](#rh--batida-de-ponto-stitch_beat)
 - [RH — Holerite](#rh--holerite-holerite)
 - [Produção — Ordens de Produção](#produção--ordens-de-produção-production_orders)
+- [Assistente IA](#assistente-ia)
 - [API REST](#api-rest-routesapiphp)
 - [Diretrizes de Desenvolvimento](#diretrizes-de-desenvolvimento)
 
@@ -72,9 +73,15 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Fiscal — Grupos Tributários (`/fiscal/grupos-tributarios`) | ✅ Implementado (CRUD Livewire)                                                |
 | Logística — Agendamento de Entregas (`/logistica/agendamento-entregas`) | ✅ Implementado (CRUD Livewire + janelas de tempo + reagendamento)             |
 | Painel Administrativo Filament (`/admin`) | ✅ Ativo                                                                       |
+| Assistente IA (chat bubble global) | ✅ Implementado (OpenAI + Gemini + fallback inteligente, context-aware por módulo) |
 
 ## Mudanças Recentes no README
 
+- **2026-04-20:** Implementadas integrações inter-módulos: Compras→Estoque (StockMovement na recepção do pedido), Compras→Financeiro (AccountPayable ao receber), Vendas→Estoque (output na separação), Vendas→Financeiro (AccountReceivable no faturamento), Vendas→Fiscal (FiscalNote draft no faturamento), RH→Financeiro (AccountPayable ao pagar folha), Produção→Estoque (entrada/saída na conclusão da OP), Logística→Vendas (SalesOrder→Delivered na entrega confirmada).
+- **2026-04-20:** Corrigido `AccountReceivable` model (fillable/casts incompatíveis com a migration). Adicionado `sales_order_id` à tabela `fiscal_notes` (migration + FK + relationship). Corrigido `PurchaseOrderOrigin/Status` ausentes no `Cotacoes.php`. Removida coluna `stock` inexistente do DashboardMetricsService.
+- **2026-04-20:** Documentação do módulo **Assistente IA** (chat bubble global, `AiAssistantService`, `AgenteService`, `ToolRegistry`, tools de consulta, fallback chain OpenAI → Gemini → FallbackResponder).
+- **2026-04-20:** Adição das dependências `google-gemini-php/laravel` e `openai-php/laravel` à tabela de stack. Novos arquivos `config/gemini.php`, `config/openai.php` e `config/ai_contexts.php` documentados.
+- **2026-04-20:** Atualização da seção de Services (`AiAssistantService`) e Estrutura de Pastas (`app/Ai/`).
 - **2026-04-14:** Documentação dos módulos implementados: Compras (Solicitações, Pedidos, Cotações), Fiscal (NF-e, Tipos de Operação, Grupos Tributários), Logística (Agendamento de Entregas), Vendas (Pedidos de Venda, Tabelas de Precificação), RH (Batida de Ponto, Holerite dedicado), Produção (Ordens de Produção).
 - **2026-04-14:** Atualização do middleware `MaintenanceERP` — remoção da nota desatualizada; whitelist agora inclui `compras.*` e `fiscal.*`.
 - **2026-04-14:** Novos serviços documentados: `SalesOrderService`, `PricingService`, `PontoService`.
@@ -106,6 +113,8 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | CSS Framework | Tailwind CSS | ^4.0 |
 | CSS Componentes | Bootstrap | ^5.3 |
 | Gráficos | ApexCharts | CDN (latest) |
+| IA — Google Gemini | google-gemini-php/laravel | ^2.0 |
+| IA — OpenAI | openai-php/laravel | ^0.19.1 |
 | Testes | Pest + Plugin Laravel | ^3.8 / ^3.2 |
 | PHP (mínimo) | — | 8.2 |
 
@@ -125,6 +134,19 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 ```text
 app/
+  Ai/                   # Módulo de Inteligência Artificial
+    AgenteService.php           # Orquestra o loop de function calling (OpenAI → Gemini → Fallback)
+    ContextBuilder.php          # Monta o histórico de mensagens e contexto do ticket
+    FallbackResponder.php       # Resposta de fallback quando todos os provedores falham
+    ToolRegistry.php            # Registro e definições das ferramentas disponíveis ao agente
+    Tools/
+      BaseTool.php              # Classe base com utilitários comuns
+      BuscarPedidoTool.php      # Consulta pedidos de venda por número ou cliente
+      ConsultarClienteTool.php  # Busca informações de clientes
+      ConsultarEstoqueTool.php  # Verifica saldo em estoque por produto
+      ConsultarFinanceiroTool.php # Consulta contas a pagar/receber e fluxo de caixa
+      ConsultarTicketTool.php   # Acessa dados do ticket de suporte em andamento
+      VerificarNfeTool.php      # Verifica status de Notas Fiscais eletrônicas
   Enums/                # Enums de domínio (Pascal case)
     CanalVenda.php
     CategoriaVeiculo.php
@@ -223,6 +245,7 @@ app/
       PedidosVenda.php        # Pedidos de Venda (CRUD + itens + parcelas + entrega + log)
       TabelasPrecificacao.php # Tabelas de Precificação (CRUD + calculadora markup)
     NotificationDropdown.php  # Dropdown de notificações no topbar
+    AiChatBubble.php          # Balão de chat IA (context-aware, presente em todo o layout)
   Models/               # Modelos Eloquent
     AccountPayable.php    # Contas a Pagar (status, vencimento, recorrência, vínculo com Plano de Contas)
     AccountReceivable.php # Contas a Receber (status, parcelas, forma de pagamento, vínculo com Plano de Contas)
@@ -285,6 +308,7 @@ app/
   Providers/
     Filament/           # AdminPanelProvider (Filament)
   Services/             # Service classes com lógica de negócio
+    AiAssistantService.php      # Assistente IA contextual: mapa de módulos por rota, histórico em cache (Redis/array), fallback chain OpenAI → Gemini
     BrasilAPIService.php        # Integração com BrasilAPI (CNPJ e CEP)
     ContasPagarService.php      # CRUD, baixa, reagendamento, cancelamento e KPIs de contas a pagar
     ContasReceberService.php    # CRUD, baixa de recebimento, reagendamento, cancelamento e KPIs de contas a receber
@@ -299,6 +323,9 @@ app/
     SalesOrderService.php       # CRUD de pedidos de venda, aprovação, cancelamento, estatísticas
     SuporteService.php          # Criação e gestão de tickets de suporte
 config/
+  ai_contexts.php       # Contextos de sistema por módulo (textos de prompt para o assistente IA)
+  gemini.php            # Configuração do provedor Google Gemini (api_key, model)
+  openai.php            # Configuração do provedor OpenAI (api_key, model)
 database/
   migrations/           # Migrations em ordem cronológica
   seeders/
@@ -2102,6 +2129,7 @@ Ver documentação completa em [Cadastro — Unidades de Medida](#cadastro--unid
 
 | Service | Descrição |
 |---|---|
+| `AiAssistantService` | Assistente IA contextual: detecta módulo pela rota, mantém histórico em cache, fallback chain OpenAI → Gemini |
 | `BrasilAPIService` | Consulta CNPJ (`consultarCnpj`) e CEP (`consultarCep`) via BrasilAPI |
 | `ContasPagarService` | CRUD, baixa (`registerPayment`), reagendamento (`reschedule`), cancelamento, KPIs e sync de vencidos |
 | `ContasReceberService` | CRUD, baixa (`registerReceipt`), reagendamento (`reschedule`), cancelamento, KPIs e sync de vencidos |
@@ -2278,6 +2306,133 @@ Relacionamento produto × fornecedor:
 #### Estoque (`routes/estoque.php`)
 
 - `Route::resource` → `stock`
+
+---
+
+## Assistente IA
+
+O sistema conta com um assistente de IA integrado globalmente, acessível a partir de qualquer página via **balão de chat flutuante** no canto inferior direito.
+
+### Arquitetura
+
+```
+Usuário → AiChatBubble (Livewire) → AiAssistantService → [OpenAI | Gemini | FallbackResponder]
+                                        ↕
+                                  AgenteService (function calling)
+                                        ↕
+                                  ToolRegistry → Tools (consultas ao banco)
+```
+
+- **`AiAssistantService`** — serviço principal do chat bubble. Detecta o módulo ativo com base na rota atual (`routeModuleMap`), carrega o prompt de contexto de `config/ai_contexts.php`, mantém o histórico da conversa em cache e envia ao provedor de IA configurado (OpenAI com fallback para Gemini).
+- **`AgenteService`** — orquestrador do loop de *function calling* para o suporte com IA. Constrói as mensagens via `ContextBuilder`, registra as ferramentas disponíveis via `ToolRegistry` e itera até MAX_ITERATIONS = 5 chamadas de ferramenta.
+- **`ContextBuilder`** — monta o payload de mensagens incluindo histórico do ticket e contexto do usuário.
+- **`FallbackResponder`** — resposta padrão quando OpenAI e Gemini estão indisponíveis ou sem chave configurada.
+
+### Componente Livewire (`AiChatBubble`)
+
+| Propriedade | Descrição |
+|---|---|
+| `currentPath` | Caminho atual da URL — atualizado via evento `pathChanged` |
+| `module` | Módulo detectado automaticamente a partir da rota |
+| `pageName` | Nome legível da página atual |
+| `messages` | Histórico de mensagens (carregado do cache na montagem) |
+| `userInput` | Texto digitado pelo usuário |
+| `isLoading` | Indicador de carregamento durante chamada à IA |
+
+**Rate limiting:** por padrão, limitado a requisições por minuto por usuário via `RateLimiter`.
+
+### Ferramentas disponíveis (function calling)
+
+| Ferramenta | Classe | Descrição |
+|---|---|---|
+| `buscar_pedido` | `BuscarPedidoTool` | Consulta pedidos de venda por número ou cliente |
+| `consultar_cliente` | `ConsultarClienteTool` | Busca dados cadastrais de clientes |
+| `consultar_estoque` | `ConsultarEstoqueTool` | Verifica saldo em estoque por produto |
+| `consultar_financeiro` | `ConsultarFinanceiroTool` | Consulta contas a pagar/receber e fluxo de caixa |
+| `consultar_ticket` | `ConsultarTicketTool` | Acessa dados do ticket de suporte em andamento |
+| `verificar_nfe` | `VerificarNfeTool` | Verifica status de Notas Fiscais Eletrônicas |
+
+### Configuração
+
+Defina as chaves no `.env`:
+
+```dotenv
+# OpenAI (provedor primário)
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini   # opcional, default do config
+
+# Google Gemini (fallback)
+GEMINI_API_KEY=AI...
+GEMINI_MODEL=gemini-1.5-flash  # opcional
+```
+
+Os contextos por módulo ficam em `config/ai_contexts.php` — edite os textos de sistema para personalizar o comportamento do assistente em cada área do ERP.
+
+### Fallback Chain
+
+```
+1. OpenAI (api_key configurado) → usa function calling nativo
+2. Gemini (api_key configurado) → usa function calling via Google AI
+3. FallbackResponder → resposta genérica sem IA
+```
+
+---
+
+## Fluxo de Dados entre Módulos
+
+O diagrama abaixo descreve como os dados fluem automaticamente entre os módulos quando eventos de negócio ocorrem.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  CADASTRO  →  Base de dados compartilhada por todos os módulos          │
+│  (Clientes, Produtos, Fornecedores, Funcionários, Veículos)             │
+└─────────────────────────────────────────────────────────────────────────┘
+
+COMPRAS ──────────────────────────────────────────────────────────────────
+  Solicitação de Compra ──(conversão)──► Cotação ──(conversão)──► Pedido
+  Pedido [RecebidoTotal]
+      ├──► ESTOQUE: StockMovement(type=input) por item recebido
+      │             Product.stock incrementado
+      └──► FINANCEIRO: AccountPayable criada ao fornecedor
+
+VENDAS ───────────────────────────────────────────────────────────────────
+  Pedido de Venda [AprovadoTipoOperacao] ──► FISCAL: TipoOperacaoFiscal vinculada
+  Pedido de Venda [EmSeparacao]
+      └──► ESTOQUE: StockMovement(type=output) por item
+                    Product.stock decrementado
+  Pedido de Venda [Invoiced]
+      ├──► FINANCEIRO: AccountReceivable por parcela (ou único)
+      └──► FISCAL: FiscalNote(draft) gerada se is_fiscal=true
+  Pedido de Venda [Delivered]
+      └──► marcado por LOGÍSTICA ao confirmar entrega
+
+PRODUÇÃO ─────────────────────────────────────────────────────────────────
+  Ordem de Produção [Completed]
+      ├──► ESTOQUE: StockMovement(type=output) por matéria-prima (BOM)
+      │             Product.stock decrementado para cada insumo
+      └──► ESTOQUE: StockMovement(type=input) por produto acabado
+                    Product.stock incrementado
+
+RH ───────────────────────────────────────────────────────────────────────
+  Folha de Pagamento [Paid]
+      └──► FINANCEIRO: AccountPayable quitada (histórico de pagamento)
+
+LOGÍSTICA ────────────────────────────────────────────────────────────────
+  Agendamento de Entrega [Entregue]
+      └──► VENDAS: SalesOrder.status → Delivered
+```
+
+### Regras de integridade automática
+
+| Evento | Arquivo responsável | Ação gerada |
+|--------|---------------------|-------------|
+| Pedido Compra → `RecebidoTotal` | `Livewire\Compras\PedidosCompra::changeStatus()` | StockMovement(input) + AccountPayable |
+| Pedido Venda → `EmSeparacao` | `Observers\SalesOrderObserver::onSeparation()` | StockMovement(output) |
+| Pedido Venda → `Invoiced` | `Observers\SalesOrderObserver::onInvoiced()` | AccountReceivable + FiscalNote(draft) |
+| Pedido Venda → `Delivered` | `Livewire\Logistica\AgendamentoEntregas::changeStatus()` | SalesOrder.status atualizado |
+| OP → `Completed` | `Livewire\Producao\OrdemProducao::changeStatus()` | StockMovement(output insumos) + StockMovement(input acabados) |
+| Folha → `Paid` | `Services\PayrollService::markAsPaid()` | AccountPayable quitada |
+| Cotação → Pedido | `Livewire\Compras\Cotacoes::convertToPurchaseOrder()` | PurchaseOrder com buyer_id e status Rascunho |
 
 ---
 
@@ -2477,6 +2632,8 @@ php artisan about
 - **RH — Batida de Ponto**: usar `PontoService`; o componente `BatidaPonto` identifica o funcionário pelo e-mail do usuário logado. Registros são únicos por `employee_id + date`.
 - **RH — Holerite**: usar a rota `/holerite` para a página dedicada ou o modal dentro de `FolhaPagamento`. Impressão via `HoleriteController@print`.
 - **Produção — OP**: usar `ProductionOrder` com `ProductionOrderProduct` (multi-produto) e `ProductionItem` (BOM); o método de progresso atualiza `produced_quantity` em cada `ProductionOrderProduct`.
+- **Assistente IA**: usar `AiAssistantService` para o chat bubble global (injetado via DI). Para adicionar contexto a um novo módulo, incluir a chave correspondente em `config/ai_contexts.php`. Novas ferramentas de consulta devem estender `BaseTool` e ser registradas em `ToolRegistry`. Nunca expor dados sensíveis (senhas, tokens) nas respostas das tools.
+- **Configuração de IA**: as chaves `OPENAI_API_KEY` e `GEMINI_API_KEY` são opcionais — o sistema degrada graciosamente até o `FallbackResponder` se ambas estiverem ausentes.
 
 ---
 

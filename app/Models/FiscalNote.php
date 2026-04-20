@@ -11,6 +11,7 @@ class FiscalNote extends Model
     protected $fillable = [
         'client_id',
         'client_name',
+        'sales_order_id',
         'invoice_number',
         'series',
         'access_key',
@@ -42,6 +43,11 @@ class FiscalNote extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function salesOrder(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrder::class, 'sales_order_id');
     }
 
     public function emittedBy(): BelongsTo

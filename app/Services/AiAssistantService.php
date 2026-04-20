@@ -52,9 +52,10 @@ class AiAssistantService
         'production_orders'          => 'producao',
         'configuracoes'              => 'administracao',
         'empresas'                   => 'administracao',
+        'companies'                  => 'administracao',
         'notificacoes'               => 'administracao',
         'suporte'                    => 'suporte',
-        'perfil'                     => 'suporte',
+        'perfil'                     => 'administracao',
     ];
     protected array $pageNames = [
         'plans_of_accounts'              => 'Plano de Contas',
@@ -98,11 +99,8 @@ class AiAssistantService
         'transport_report'               => 'Relatorio de Transporte',
         'logistica/agendamento-entregas' => 'Agendamento de Entregas',
         'production_orders'              => 'Ordens de Producao',
-        'employee_management'            => 'Gestao de Funcionarios (RH)',
         'rh_reports'                     => 'Relatorios de RH',
-        'financial_reports'              => 'Relatorios Financeiros',
         'sales_report'                   => 'Relatorio de Vendas',
-        'requests'                       => 'Pedidos de Venda',
         'visits'                         => 'Visitas Comerciais',
         'baccarat_accounts'              => 'Conciliacao Bancaria',
         'dashboard'                      => 'Dashboard',
@@ -218,10 +216,10 @@ class AiAssistantService
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
         $response = OpenAI::chat()->create([
-            'model'       => 'gpt-4o-mini',
+            'model'       => config('openai.model', 'gpt-4o-mini'),
             'messages'    => $messages,
-            'max_tokens'  => (int) config('gemini.max_tokens', 2048),
-            'temperature' => (float) config('gemini.temperature', 0.7),
+            'max_tokens'  => (int) config('openai.max_tokens', 2048),
+            'temperature' => (float) config('openai.temperature', 0.7),
         ]);
 
         return $response->choices[0]->message->content ?? 'Sem resposta.';

@@ -5,10 +5,13 @@ namespace App\Livewire\Compras;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseOrderOrigin;
 use App\Enums\TipoFrete;
+use App\Enums\PayableStatus;
+use App\Models\AccountPayable;
 use App\Models\Carrier;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -377,7 +380,47 @@ class PedidosCompra extends Component
     ───────────────────────────────────────── */
     public function changeStatus(int $id, string $status): void
     {
-        PurchaseOrder::findOrFail($id)->update(['status' => $status]);
+        $order = PurchaseOrder::with('items.product')->findOrFail($id);
+        $order->update(['status' => $status]);
+
+        // ── Integração: Recebimento gera movimentação de estoque e conta a pagar ──
+        if ($status === PurchaseOrderStatus::RecebidoTotal->value) {
+            DB::transaction(function () use ($order) {
+                // 1. Estoque — entrada por item recebido
+                foreach ($order->items as $item) {
+                    if (!$item->product_id) continue;
+
+                    StockMovement::create([
+                        'product_id'  => $item->product_id,
+                        'user_id'     => auth()->id(),
+                        'quantity'    => $item->quantity,
+                        'type'        => 'input',
+                        'origin'      => 'purchase_order',
+                        'unit_cost'   => $item->unit_price,
+                        'observation' => 'Recebimento do Pedido #' . $order->order_number,
+                    ]);
+
+                    // Atualiza o estoque do produto
+                    if ($item->product) {
+                        $item->product->increment('stock', $item->quantity);
+                    }
+                }
+
+                // 2. Financeiro — conta a pagar ao fornecedor
+                if ($order->total_amount > 0) {
+                    AccountPayable::create([
+                        'description_title' => 'Pedido de Compra #' . $order->order_number,
+                        'supplier_id'       => $order->supplier_id,
+                        'amount'            => $order->total_amount,
+                        'paid_amount'       => 0,
+                        'due_date_at'       => $order->expected_delivery_date ?? now()->addDays(30),
+                        'status'            => PayableStatus::Pending->value,
+                        'observation'       => 'Gerado automaticamente ao receber o Pedido #' . $order->order_number,
+                    ]);
+                }
+            });
+        }
+
         session()->flash('message', 'Status atualizado!');
         unset($this->orders, $this->stats);
     }
