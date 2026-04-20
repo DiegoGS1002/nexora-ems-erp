@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TipoPessoa;
+use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,10 @@ use Illuminate\Support\Str;
 
 class Client extends Model
 {
-    use HasFactory;
+    use HasFactory, Loggable;
+
+    protected string $logModule = 'Cadastros';
+    protected string $logName   = 'Cliente';
 
     public $incrementing = false;
     protected $keyType = 'string';

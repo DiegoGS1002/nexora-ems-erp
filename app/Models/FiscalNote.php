@@ -3,11 +3,17 @@
 namespace App\Models;
 
 use App\Enums\FiscalNoteStatus;
+use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FiscalNote extends Model
 {
+    use Loggable;
+
+    protected string $logModule = 'Fiscal';
+    protected string $logName   = 'Nota Fiscal';
+
     protected $fillable = [
         'client_id',
         'client_name',
@@ -87,4 +93,3 @@ class FiscalNote extends Model
         return !empty($this->xml_path);
     }
 }
-

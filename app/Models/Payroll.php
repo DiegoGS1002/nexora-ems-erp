@@ -3,12 +3,17 @@
 namespace App\Models;
 
 use App\Enums\PayrollStatus;
+use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payroll extends Model
 {
+    use Loggable;
+
+    protected string $logModule = 'RH';
+    protected string $logName   = 'Folha de Pagamento';
     protected $fillable = [
         'employee_id',
         'reference_month',

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\SalesOrderStatus;
+use App\Services\LogService;
 use App\Enums\TipoOperacaoVenda;
 use App\Enums\CanalVenda;
 use App\Enums\OrigemPedido;
@@ -304,15 +305,34 @@ class SalesOrder extends Model
     public function logAction(string $action, string $description = null, $oldStatus = null, $newStatus = null): void
     {
         $this->logs()->create([
-            'user_id' => auth()->id(),
-            'action' => $action,
-            'old_status' => $oldStatus,
-            'new_status' => $newStatus,
+            'user_id'     => auth()->id(),
+            'action'      => $action,
+            'old_status'  => $oldStatus,
+            'new_status'  => $newStatus,
             'description' => $description,
-            'changes' => $this->getChanges(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
+            'changes'     => $this->getChanges(),
+            'ip_address'  => request()->ip(),
+            'user_agent'  => request()->userAgent(),
         ]);
+
+        // Espelha no log do sistema para visibilidade no módulo de Logs
+        try {
+            $level = match ($action) {
+                'cancelled' => 'warning',
+                'created'   => 'success',
+                default     => 'success',
+            };
+
+            LogService::log(
+                $level,
+                strtoupper($action) . '_PEDIDO_VENDA',
+                $description ?? "Pedido #{$this->order_number} — ação: {$action}.",
+                'Vendas',
+                ['order_number' => $this->order_number, 'old_status' => $oldStatus, 'new_status' => $newStatus]
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('SalesOrder logAction: falha ao escrever SystemLog — ' . $e->getMessage());
+        }
     }
 
     public function approve(User $user, string $reason = null): bool

@@ -3,12 +3,18 @@
 namespace App\Models;
 
 use App\Enums\PayableStatus;
+use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AccountPayable extends Model
 {
+    use Loggable;
+
+    protected string $logModule = 'Financeiro';
+    protected string $logName   = 'Conta a Pagar';
+
     protected $table = 'accounts_payable';
 
     protected $fillable = [

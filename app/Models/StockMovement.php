@@ -2,11 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StockMovement extends Model
 {
+    use Loggable;
+
+    protected string $logModule = 'Estoque';
+    protected string $logName   = 'Movimentação de Estoque';
+
     protected $fillable = [
         'product_id',
         'user_id',

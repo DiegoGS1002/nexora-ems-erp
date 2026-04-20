@@ -3,11 +3,17 @@
 namespace App\Models;
 
 use App\Enums\ReceivableStatus;
+use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AccountReceivable extends Model
 {
+    use Loggable;
+
+    protected string $logModule = 'Financeiro';
+    protected string $logName   = 'Conta a Receber';
+
     protected $table = 'accounts_receivable';
 
     protected $fillable = [

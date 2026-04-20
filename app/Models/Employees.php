@@ -10,8 +10,7 @@ class Employees extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $fillable = [
-        'name',
+    protected $fillable = ['name',
         'social_name',
         'identification_number',
         'rg',

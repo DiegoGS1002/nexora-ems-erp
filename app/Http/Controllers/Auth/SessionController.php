@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\LogService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -16,6 +17,13 @@ class SessionController extends Controller
         ]);
 
         if (! auth()->attempt($credentials, true)) {
+            LogService::warning(
+                'LOGIN_FALHOU',
+                "Tentativa de login com e-mail \"{$credentials['email']}\" falhou.",
+                'Segurança',
+                ['email' => $credentials['email'], 'ip' => $request->ip()]
+            );
+
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -36,11 +44,29 @@ class SessionController extends Controller
             'last_login_at' => now(),
         ]);
 
+        LogService::success(
+            'LOGIN',
+            'Usuário realizou login no sistema.',
+            'Segurança',
+            ['ip' => $request->ip()]
+        );
+
         return redirect()->intended(route('home'));
     }
 
     public function destroy(Request $request)
     {
+        $user = auth()->user();
+
+        if ($user) {
+            LogService::success(
+                'LOGOUT',
+                'Usuário realizou logout do sistema.',
+                'Segurança',
+                ['ip' => $request->ip()]
+            );
+        }
+
         auth()->guard('web')->logout();
 
         $request->session()->invalidate();
