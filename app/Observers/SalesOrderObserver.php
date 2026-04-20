@@ -277,21 +277,56 @@ class SalesOrderObserver
     }
 
     /**
-     * Quando pedido é cancelado
+     * Quando pedido é cancelado — reverte estoque, cancela contas a receber e NF-e rascunho
      */
     protected function onCancelled(SalesOrder $salesOrder): void
     {
-        Log::warning("Pedido {$salesOrder->order_number} cancelado");
+        Log::warning("Pedido {$salesOrder->order_number} cancelado — iniciando reversão");
 
-        // Aqui você pode:
-        // - Devolver estoque reservado
-        // - Cancelar contas a receber
-        // - Cancelar NF-e se já foi emitida
+        DB::transaction(function () use ($salesOrder) {
+            $salesOrder->loadMissing('items.product');
 
-        // Exemplo: devolver estoque
-        // foreach ($salesOrder->items as $item) {
-        //     StockReservation::where('sales_order_id', $salesOrder->id)->delete();
-        // }
+            // 1. Reverter movimentações de estoque (criar entrada de devolução)
+            foreach ($salesOrder->items as $item) {
+                if (!$item->product_id) continue;
+
+                // Verifica se já havia saída de estoque para este pedido
+                $hadOutput = StockMovement::where('origin', 'sales_order')
+                    ->where('observation', 'like', '%#' . $salesOrder->order_number . '%')
+                    ->where('type', 'output')
+                    ->where('product_id', $item->product_id)
+                    ->exists();
+
+                if ($hadOutput) {
+                    StockMovement::create([
+                        'product_id'  => $item->product_id,
+                        'user_id'     => auth()->id() ?? $salesOrder->created_by,
+                        'quantity'    => $item->quantity,
+                        'type'        => 'input',
+                        'origin'      => 'sales_order_cancel',
+                        'unit_cost'   => $item->unit_price,
+                        'observation' => 'Cancelamento do Pedido #' . $salesOrder->order_number,
+                    ]);
+
+                    // Incrementa estoque do produto
+                    if ($item->product) {
+                        $item->product->increment('stock', $item->quantity);
+                    }
+                }
+            }
+
+            // 2. Cancelar contas a receber pendentes geradas por este pedido
+            AccountReceivable::where('observation', 'like', '%Pedido de Venda #' . $salesOrder->order_number . '%')
+                ->whereIn('status', [ReceivableStatus::Pending->value, ReceivableStatus::Overdue->value])
+                ->update(['status' => ReceivableStatus::Cancelled->value]);
+
+            // 3. Cancelar NF-e rascunho associada (apenas rascunhos — autorizadas precisam cancelar na SEFAZ)
+            FiscalNote::where('sales_order_id', $salesOrder->id)
+                ->where('status', FiscalNoteStatus::Draft->value)
+                ->update(['status' => FiscalNoteStatus::Cancelled->value]);
+
+            Log::info("Pedido {$salesOrder->order_number} — reversão concluída");
+        });
     }
 
     /**

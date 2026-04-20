@@ -105,7 +105,7 @@ class MaintenanceERP
 
         /*
         |--------------------------------------------------------------------------
-        | TODO RESTO MOSTRA A TELA
+        | Rotas não reconhecidas — exibe tela "Em Desenvolvimento"
         |--------------------------------------------------------------------------
         */
 

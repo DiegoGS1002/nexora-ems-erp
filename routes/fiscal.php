@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EntranceController;
-use App\Http\Controllers\ExitController;
 use App\Livewire\Fiscal\NotaFiscal;
 use App\Livewire\Fiscal\TipoOperacao\Index as TipoOperacaoIndex;
 use App\Livewire\Fiscal\TipoOperacao\Form as TipoOperacaoForm;
@@ -11,6 +10,9 @@ use App\Livewire\Fiscal\GrupoTributario\Form as GrupoTributarioForm;
 
 /* ─── Notas Fiscais Eletrônicas (Livewire) ─── */
 Route::get('/fiscal/notas-fiscais', NotaFiscal::class)->name('fiscal.nfe.index');
+
+/* ─── Notas Fiscais de Saída — aponta para o mesmo componente de NF-e ─── */
+Route::get('/fiscal/saida', NotaFiscal::class)->name('fiscal.exit.index');
 
 /* ─── Tipos de Operação Fiscal (Livewire) ─── */
 Route::get('/fiscal/tipos-operacao', TipoOperacaoIndex::class)->name('fiscal.tipo-operacao.index');
@@ -23,4 +25,3 @@ Route::get('/fiscal/grupos-tributarios/create', GrupoTributarioForm::class)->nam
 Route::get('/fiscal/grupos-tributarios/{grupo}/edit', GrupoTributarioForm::class)->name('fiscal.grupo-tributario.edit');
 
 Route::resource('/fiscal/entrada', EntranceController::class)->names('fiscal.entrance');
-Route::resource('/fiscal/saida', ExitController::class)->names('fiscal.exit');
