@@ -1,9 +1,7 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
 return new class extends Migration
 {
     /**
@@ -12,17 +10,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('mensagens_suporte', function (Blueprint $table) {
-            //
+            $table->boolean('is_ia')->default(false)->after('is_suporte');
         });
     }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
         Schema::table('mensagens_suporte', function (Blueprint $table) {
-            //
+            $table->dropColumn('is_ia');
         });
     }
 };
