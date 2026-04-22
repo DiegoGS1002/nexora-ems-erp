@@ -28,7 +28,6 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // Registrar observers
         SalesOrder::observe(SalesOrderObserver::class);
     }
 }
