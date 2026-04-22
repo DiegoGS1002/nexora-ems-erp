@@ -20,7 +20,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeignIdFor(\App\Models\Company::class);
+            $table->dropForeign(['company_id']);
+        });
+
+        Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('company_id');
         });
     }
