@@ -78,7 +78,7 @@ Route::middleware('api')->group(function () {
         Route::post('/calculate', [SalesOrderController::class, 'calculate'])->name('api.sales-orders.calculate');
         Route::get('/{order}', [SalesOrderController::class, 'show'])->name('api.sales-orders.show');
         Route::put('/{order}', [SalesOrderController::class, 'update'])->name('api.sales-orders.update');
-        Route::patch('/{order}', [SalesOrderController::class, 'update'])->name('api.sales-orders.update');
+        Route::patch('/{order}', [SalesOrderController::class, 'update'])->name('api.sales-orders.patch');
         Route::delete('/{order}', [SalesOrderController::class, 'destroy'])->name('api.sales-orders.destroy');
 
         // Ações específicas
