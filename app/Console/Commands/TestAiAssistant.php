@@ -32,7 +32,7 @@ class TestAiAssistant extends Command
         $this->info("🤖 Testando Assistente IA — módulo: {$module}");
 
         if (!config('gemini.api_key')) {
-            $this->error('GEMINI_API_KEY não configurada no .env');
+            $this->error('GEMINI_API_KEY não configurada no .env.bak');
             return self::FAILURE;
         }
 

@@ -23,7 +23,7 @@ class VerifyGoogleMapsKey extends Command
         if (empty($apiKey)) {
             $this->error('❌ ERRO: Chave da API não configurada!');
             $this->newLine();
-            $this->warn('Adicione a chave no arquivo .env:');
+            $this->warn('Adicione a chave no arquivo .env.bak:');
             $this->line('   GOOGLE_MAPS_API_KEY=sua_chave_aqui');
             $this->newLine();
             $this->info('Para obter uma chave, acesse:');
@@ -32,7 +32,7 @@ class VerifyGoogleMapsKey extends Command
             return 1;
         }
 
-        $this->info('✓ Chave encontrada no .env');
+        $this->info('✓ Chave encontrada no .env.bak');
 
         // 2. Verificar formato da chave
         if (!str_starts_with($apiKey, 'AIzaSy')) {

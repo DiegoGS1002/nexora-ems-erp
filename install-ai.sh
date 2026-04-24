@@ -69,15 +69,15 @@ echo "📦 Instalando pacote Google Gemini PHP..."
 composer require google-gemini-php/laravel --quiet
 print_success "Pacote instalado"
 
-# 2. Verificar se .env existe
+# 2. Verificar se .env.bak existe
 if [ ! -f ".env" ]; then
     print_warning ".env não encontrado, copiando de .env.example..."
-    cp .env.example .env
+    cp .env.bakk.example .env.bakk
     print_success ".env criado"
 fi
 
 # 3. Verificar se GEMINI_API_KEY está configurada
-if ! grep -q "GEMINI_API_KEY=" .env; then
+if ! grep -q "GEMINI_API_KEY=" .env.bakk; then
     echo ""
     print_warning "GEMINI_API_KEY não encontrada no .env"
     echo ""
@@ -89,22 +89,22 @@ if ! grep -q "GEMINI_API_KEY=" .env; then
     read -p "Cole sua API Key aqui (ou pressione Enter para configurar depois): " api_key
 
     if [ ! -z "$api_key" ]; then
-        echo "" >> .env
-        echo "# Google Gemini API - Agentes de IA por Módulo" >> .env
-        echo "GEMINI_API_KEY=$api_key" >> .env
-        echo "GEMINI_MODEL=gemini-2.0-flash-exp" >> .env
-        echo "GEMINI_TEMPERATURE=0.7" >> .env
-        echo "GEMINI_MAX_TOKENS=2048" >> .env
-        echo "GEMINI_REQUEST_TIMEOUT=60" >> .env
+        echo "" >> .env.bakk
+        echo "# Google Gemini API - Agentes de IA por Módulo" >> .env.bakk
+        echo "GEMINI_API_KEY=$api_key" >> .env.bakk
+        echo "GEMINI_MODEL=gemini-2.0-flash-exp" >> .env.bakk
+        echo "GEMINI_TEMPERATURE=0.7" >> .env.bakk
+        echo "GEMINI_MAX_TOKENS=2048" >> .env.bakk
+        echo "GEMINI_REQUEST_TIMEOUT=60" >> .env.bakk
         print_success "API Key configurada no .env"
     else
-        echo "" >> .env
-        echo "# Google Gemini API - Agentes de IA por Módulo" >> .env
-        echo "GEMINI_API_KEY=" >> .env
-        echo "GEMINI_MODEL=gemini-2.0-flash-exp" >> .env
-        echo "GEMINI_TEMPERATURE=0.7" >> .env
-        echo "GEMINI_MAX_TOKENS=2048" >> .env
-        echo "GEMINI_REQUEST_TIMEOUT=60" >> .env
+        echo "" >> .env.bakk
+        echo "# Google Gemini API - Agentes de IA por Módulo" >> .env.bakk
+        echo "GEMINI_API_KEY=" >> .env.bakk
+        echo "GEMINI_MODEL=gemini-2.0-flash-exp" >> .env.bakk
+        echo "GEMINI_TEMPERATURE=0.7" >> .env.bakk
+        echo "GEMINI_MAX_TOKENS=2048" >> .env.bakk
+        echo "GEMINI_REQUEST_TIMEOUT=60" >> .env.bakk
         print_warning "Lembre-se de configurar GEMINI_API_KEY no .env antes de usar"
     fi
 else
@@ -156,7 +156,7 @@ fi
 
 # 7. Testar conexão com API (se configurada)
 echo ""
-if grep -q "GEMINI_API_KEY=.\+" .env; then
+if grep -q "GEMINI_API_KEY=.\+" .env.bakk; then
     print_info "Testando conexão com Gemini API..."
     echo ""
 

@@ -10,7 +10,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 **Status:** desenvolvimento ativo.
 
-**Última atualização da documentação:** 2026-04-20 (integrações inter-módulos implementadas).
+**Última atualização da documentação:** 2026-04-24 (módulo Empresas, middleware `DetectAiModule`, modelos `FiscalInvoiceIn`/`FiscalInvoiceItemIn`, `Company`, `SalesOrderObserver`, lista completa de controllers).
 
 ## Índice Rápido
 
@@ -19,6 +19,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 - [Configuração de Banco de Dados](#configuração-de-banco-de-dados)
 - [Configurações do Sistema](#configurações-do-sistema-configuracoes)
 - [Middleware](#middleware)
+- [Middleware — DetectAiModule](#detectaimodule)
 - [Detalhamento de Rotas](#detalhamento-de-rotas)
 - [Compras — Solicitações](#compras--solicitações-de-compra-comprassolicitacoes)
 - [Compras — Pedidos](#compras--pedidos-de-compra-compraspedidos)
@@ -26,6 +27,8 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 - [Fiscal — Notas Fiscais](#fiscal--notas-fiscais-fiscalnotas-fiscais)
 - [Fiscal — Tipos de Operação](#fiscal--tipos-de-operação-fiscaltipos-operacao)
 - [Fiscal — Grupos Tributários](#fiscal--grupos-tributários-fiscalgrupos-tributarios)
+- [Fiscal — NF-e de Entrada](#fiscal--nf-e-de-entrada-fiscalnf-entrada)
+- [Administração — Empresas](#administração--empresas-empresas)
 - [Logística — Agendamento de Entregas](#logística--agendamento-de-entregas-logisticaagendamento-entregas)
 - [Vendas — Pedidos de Venda](#vendas--pedidos-de-venda-vendaspedidos)
 - [Vendas — Tabelas de Precificação](#vendas--tabelas-de-precificação-vendasprecificacao)
@@ -72,11 +75,18 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Fiscal — Tipos de Operação (`/fiscal/tipos-operacao`) | ✅ Implementado (CRUD Livewire)                                                |
 | Fiscal — Grupos Tributários (`/fiscal/grupos-tributarios`) | ✅ Implementado (CRUD Livewire)                                                |
 | Logística — Agendamento de Entregas (`/logistica/agendamento-entregas`) | ✅ Implementado (CRUD Livewire + janelas de tempo + reagendamento)             |
+| Empresas (`/empresas`) | ✅ Implementado (CRUD Livewire, somente admin) |
+| Fiscal — NF-e Entrada (`/fiscal/nf-entrada`) | 🚧 Em breve (modelos e migration criados) |
 | Painel Administrativo Filament (`/admin`) | ✅ Ativo                                                                       |
 | Assistente IA (chat bubble global) | ✅ Implementado (OpenAI + Gemini + fallback inteligente, context-aware por módulo) |
 
 ## Mudanças Recentes no README
 
+- **2026-04-24:** Documentado módulo **Empresas** (`/empresas`) — Livewire CRUD (`EmpresasIndex` + `EmpresasForm`), modelo `Company`, rotas admin-only em `administracao.php`.
+- **2026-04-24:** Adicionado middleware `DetectAiModule` — mapeia segmento de URL para contexto de módulo IA e compartilha `$aiModule` com views.
+- **2026-04-24:** Documentados modelos `FiscalInvoiceIn` e `FiscalInvoiceItemIn` (NF-e de entrada — migration `2026_04_20_200001`, status 🚧 Em breve).
+- **2026-04-24:** Documentado `SalesOrderObserver` em `app/Observers/`.
+- **2026-04-24:** Lista de controllers atualizada com todos os ~40 arquivos reais de `app/Http/Controllers/`.
 - **2026-04-20:** Implementadas integrações inter-módulos: Compras→Estoque (StockMovement na recepção do pedido), Compras→Financeiro (AccountPayable ao receber), Vendas→Estoque (output na separação), Vendas→Financeiro (AccountReceivable no faturamento), Vendas→Fiscal (FiscalNote draft no faturamento), RH→Financeiro (AccountPayable ao pagar folha), Produção→Estoque (entrada/saída na conclusão da OP), Logística→Vendas (SalesOrder→Delivered na entrega confirmada).
 - **2026-04-20:** Corrigido `AccountReceivable` model (fillable/casts incompatíveis com a migration). Adicionado `sales_order_id` à tabela `fiscal_notes` (migration + FK + relationship). Corrigido `PurchaseOrderOrigin/Status` ausentes no `Cotacoes.php`. Removida coluna `stock` inexistente do DashboardMetricsService.
 - **2026-04-20:** Documentação do módulo **Assistente IA** (chat bubble global, `AiAssistantService`, `AgenteService`, `ToolRegistry`, tools de consulta, fallback chain OpenAI → Gemini → FallbackResponder).
@@ -181,23 +191,65 @@ app/
     TipoProduto.php
     TipoVeiculo.php
   Http/
-    Controllers/        # Slim controllers por domínio
+    Controllers/        # Controllers por domínio
       Api/              # Controllers da API REST
         ClientApiController.php
         ProductApiController.php
         ProductSupplierApiController.php
         SupplierApiController.php
       Auth/
-        SessionController.php     # Login / logout
-      ConfigurationController.php   # Configurações do sistema (GET/POST /configuracoes)
-      ExternalApiProxyController.php # Proxy autenticado para BrasilAPI (CNPJ/CEP)
-      UsersController.php           # Controle de usuários com status, licença e módulos
+        SessionController.php               # Login / logout
+      AccountsPayableController.php         # Contas a Pagar
+      AccountsReceivableController.php      # Contas a Receber
+      BaccaratAccountsController.php        # Contas Bancárias
+      CashFlowController.php                # Fluxo de Caixa
+      ClientController.php                  # Clientes
+      CompaniesController.php               # Empresas (CRUD admin)
+      ConfigurationController.php           # Configurações do sistema
+      DashboardController.php               # Dashboard
+      DriverManagementController.php        # Gestão de motoristas
+      EmployeeController.php                # Funcionários
+      EmployeeManagementController.php      # Histórico de gestão de funcionários
+      EntranceController.php                # Entradas fiscais
+      ExitController.php                    # Saídas fiscais
+      ExternalApiProxyController.php        # Proxy autenticado para BrasilAPI
+      FinancialReportsController.php        # Relatórios financeiros
+      HoleriteController.php                # Holerite
+      LogsController.php                    # Logs de auditoria
+      ModulePageController.php              # Páginas de módulo (whitelist MaintenanceERP)
+      MonitoringOfDeliveriesController.php  # Monitoramento de entregas
+      PermissionsController.php             # Gerenciamento de permissões
+      PlansOfAccountsController.php         # Plano de Contas
+      ProductController.php                 # Produtos
+      ProductSupplierController.php         # Relação Produto-Fornecedor
+      ProductionOrdersController.php        # Ordens de Produção
+      ProfileController.php                 # Perfil do usuário
+      RequestsController.php                # Solicitações de compra
+      RhReportsController.php               # Relatórios de RH
+      RoleController.php                    # Funções/Cargos
+      RomaneioController.php                # Romaneio de entrega
+      RouteManagementController.php         # Gestão de rotas
+      RoutingController.php                 # Roteirização
+      SalesReportController.php             # Relatório de vendas
+      SchedulingOfDeliveriesController.php  # Agendamento de entregas
+      StitchBeatController.php              # Batida de Ponto
+      StockController.php                   # Estoque
+      SupplierController.php                # Fornecedores
+      TransportReportController.php         # Relatório de transporte
+      UsersController.php                   # Controle de usuários
+      VehicleController.php                 # Veículos
+      VehicleMaintenanceController.php      # Manutenção de veículos
+      VehicleTrackingController.php         # Rastreamento de veículos
+      VisitsController.php                  # Visitas comerciais
+      WorkingDayController.php              # Jornada de Trabalho
     Middleware/
+      DetectAiModule.php            # Detecta módulo IA pelo segmento de URL e injeta $aiModule nas views
       EnforceMidnightSession.php    # Encerra sessão se a data de login for anterior ao dia atual
       EnsureUserIsAdmin.php         # Bloqueia acesso de não-administradores
       MaintenanceERP.php            # Whitelist de rotas liberadas
   Livewire/             # Componentes Livewire
     Administracao/
+      Empresas/         # Index + Form (CRUD de empresas — somente admin)
       Logs/             # Index — listagem de logs de auditoria (somente admin)
       Notifications/    # Index — central de notificações (paginada, com filtros)
     Cadastro/
@@ -251,6 +303,7 @@ app/
     AccountReceivable.php # Contas a Receber (status, parcelas, forma de pagamento, vínculo com Plano de Contas)
     BaccaratAccount.php   # Conta bancária (saldo, conciliação, vínculo com Plano de Contas)
     Carrier.php           # Transportadora (nome, CNPJ, contato, is_active)
+    Company.php           # Empresa (razão social, CNPJ, endereço, regime tributário, is_active)
     Cotacao.php           # Cotação de compra (título, status, prazo)
     CotacaoItem.php       # Item de cotação (produto, descrição, quantidade)
     CotacaoResposta.php   # Resposta de fornecedor a uma cotação (preço unitário, prazo de entrega)
@@ -258,8 +311,10 @@ app/
     DriverManagement.php  # Gestão de motoristas
     EmployeeManagement.php # Histórico de gestão de funcionários
     Employees.php         # Funcionários (dados pessoais, contrato, salário)
-    Entrance.php          # Entrada fiscal (NF-e de entrada)
-    ExitRecord.php        # Saída fiscal (NF-e de saída)
+    Entrance.php          # Entrada fiscal (NF-e de entrada — legacy)
+    ExitRecord.php        # Saída fiscal (NF-e de saída — legacy)
+    FiscalInvoiceIn.php   # Nota Fiscal de Entrada importada (chave, fornecedor, totais, status)
+    FiscalInvoiceItemIn.php # Item de NF-e de Entrada (produto, quantidade, preços, tributos)
     FinancialReport.php   # Relatório financeiro
     FiscalNote.php        # Nota Fiscal Eletrônica (NF-e/NFC-e — chave, status, ambiente)
     GrupoTributario.php   # Grupo tributário (ICMS, IPI, PIS/COFINS, CST)
@@ -322,6 +377,8 @@ app/
     RoleService.php             # Lógica de negócio de funções/cargos
     SalesOrderService.php       # CRUD de pedidos de venda, aprovação, cancelamento, estatísticas
     SuporteService.php          # Criação e gestão de tickets de suporte
+  Observers/            # Observers Eloquent (registrados via atributo #[ObservedBy])
+    SalesOrderObserver.php      # Observa eventos do SalesOrder (created/updated/deleted)
 config/
   ai_contexts.php       # Contextos de sistema por módulo (textos de prompt para o assistente IA)
   gemini.php            # Configuração do provedor Google Gemini (api_key, model)
@@ -450,7 +507,7 @@ Sobe em paralelo (via `concurrently`):
 
 ```bash
 composer install
-cp .env.example .env
+cp .env.bak.example .env.bak
 php artisan key:generate
 php artisan migrate
 npm install
@@ -1293,6 +1350,43 @@ Armazena as regras tributárias por grupo — ICMS, IPI, PIS, COFINS. Aplicado a
 
 ---
 
+## Fiscal — NF-e de Entrada (`/fiscal/nf-entrada`)
+
+> 🚧 **Em breve** — modelos e migration criados (`2026_04_20_200001`). Interface Livewire ainda não implementada.
+
+### Modelos
+
+#### `FiscalInvoiceIn`
+
+Representa uma Nota Fiscal de Entrada importada via XML ou digitada manualmente.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `chave_acesso` | string(44) (nullable) | Chave de acesso da NF-e |
+| `numero` | integer (nullable) | Número da NF-e |
+| `serie` | string (nullable) | Série |
+| `supplier_id` | FK (nullable) | Fornecedor emitente |
+| `issue_date` | datetime (nullable) | Data de emissão |
+| `total_value` | decimal:2 | Valor total da nota |
+| `status` | string | Status de processamento |
+
+#### `FiscalInvoiceItemIn`
+
+Itens da NF-e de entrada.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `fiscal_invoice_in_id` | FK | Nota de entrada pai |
+| `product_id` | FK (nullable) | Produto vinculado |
+| `descricao` | string | Descrição do item |
+| `quantidade` | decimal | Quantidade |
+| `valor_unitario` | decimal:4 | Valor unitário |
+| `valor_total` | decimal:2 | Valor total do item |
+
+---
+
 ## Logística — Agendamento de Entregas (`/logistica/agendamento-entregas`)
 
 Implementado como componente Livewire full-page (`App\Livewire\Logistica\AgendamentoEntregas`).
@@ -1370,6 +1464,10 @@ Implementado como componente Livewire full-page (`App\Livewire\Vendas\PedidosVen
 ### Service
 
 `SalesOrderService` — `createOrder()`, `updateOrder()`, aprovação, cancelamento, estatísticas, cálculo de valores.
+
+### Observer
+
+`SalesOrderObserver` (`app/Observers/SalesOrderObserver.php`) — registrado via atributo `#[ObservedBy(SalesOrderObserver::class)]` no model `SalesOrder`. Reage a eventos Eloquent (`created`, `updated`, `deleted`) para acionar side effects (log automático, notificações, integrações inter-módulos).
 
 ### Rota
 
@@ -1559,6 +1657,47 @@ Implementado como componente Livewire (`App\Livewire\Producao\OrdemProducao`).
 
 ---
 
+## Administração — Empresas (`/empresas`)
+
+Gerenciamento de empresas do sistema, acessível **somente por administradores** (`middleware: admin`). Implementado como componentes Livewire full-page.
+
+### Funcionalidades
+
+- **Listagem** com busca, filtro por status (ativa/inativa) e paginação
+- **CRUD completo:** criar, editar e excluir empresas
+- **Campos:** razão social, nome fantasia, CNPJ, endereço (CEP/UF/cidade/bairro/logradouro), telefone, e-mail, regime tributário, logotipo, status ativo/inativo
+
+### Modelo `Company`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `razao_social` | string | Razão social |
+| `nome_fantasia` | string (nullable) | Nome fantasia |
+| `cnpj` | string (nullable) | CNPJ |
+| `email` | string (nullable) | E-mail |
+| `telefone` | string (nullable) | Telefone |
+| `cep` | string (nullable) | CEP |
+| `logradouro` | string (nullable) | Logradouro |
+| `bairro` | string (nullable) | Bairro |
+| `cidade` | string (nullable) | Cidade |
+| `uf` | string(2) (nullable) | UF |
+| `regime_tributario` | string (nullable) | Regime tributário |
+| `logo` | string (nullable) | Caminho do logotipo |
+| `is_active` | boolean | Empresa ativa (default: true) |
+
+### Rotas
+
+| Método | URI | Nome | Componente |
+|---|---|---|---|
+| `GET` | `/empresas` | `companies.index` | `App\Livewire\Administracao\Empresas\Index` |
+| `GET` | `/empresas/create` | `companies.create` | `App\Livewire\Administracao\Empresas\Form` |
+| `GET` | `/empresas/{company}/edit` | `companies.edit` | `App\Livewire\Administracao\Empresas\Form` |
+
+> Todas as rotas exigem middleware `admin` (somente administradores).
+
+---
+
 ## Configurações do Sistema (`/configuracoes`)
 
 Acessível em `/configuracoes` (link no dropdown do usuário na sidebar). Restrito a administradores via middleware.
@@ -1712,6 +1851,30 @@ O CSS é gerido por arquivos parciais importados em `resources/css/app.css`:
 ---
 
 ## Middleware
+
+### `DetectAiModule`
+
+Aplicado globalmente ao grupo de rotas autenticadas. Detecta o módulo de contexto para o Assistente IA com base no **primeiro segmento da URL** e:
+
+1. Compartilha a variável `$aiModule` com todas as views via `view()->share()`.
+2. Injeta `ai_module` no objeto `Request` para uso em controllers/services.
+
+**Mapa de módulos (segmento → contexto):**
+
+| Segmento(s) de URL | Módulo IA |
+|---|---|
+| `financeiro`, `contas-pagar`, `contas-receber`, `plano-contas` | `financeiro` |
+| `rh`, `funcionarios`, `folha`, `ponto`, `jornada`, `holerite` | `rh` |
+| `producao`, `ordem-producao`, `op` | `producao` |
+| `estoque`, `movimentacao` | `estoque` |
+| `compras`, `pedido-compra`, `cotacao` | `compras` |
+| `vendas`, `pedidos` | `vendas` |
+| `logistica`, `rotas`, `veiculos`, `agendamento` | `logistica` |
+| `fiscal`, `nfe`, `nf-entrada`, `nf-saida` | `fiscal` |
+| `administracao`, `usuarios`, `roles`, `empresas` | `administracao` |
+| `cadastro`, `produtos`, `clientes`, `fornecedores` | `cadastro` |
+| `suporte` | `suporte` |
+| _(qualquer outro)_ | `suporte` (fallback) |
 
 ### `MaintenanceERP`
 
@@ -2123,6 +2286,31 @@ Ver documentação completa em [Cadastro — Categorias de Produto](#cadastro--c
 
 Ver documentação completa em [Cadastro — Unidades de Medida](#cadastro--unidades-de-medida-unit-of-measures).
 
+### `Company`
+
+Ver documentação completa em [Administração — Empresas](#administração--empresas-empresas).
+
+| Campo | Tipo | Observações |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `razao_social` | string | Obrigatório |
+| `nome_fantasia` | string (nullable) | |
+| `cnpj` | string (nullable) | |
+| `email` | string (nullable) | |
+| `telefone` | string (nullable) | |
+| `cep` / `logradouro` / `bairro` / `cidade` / `uf` | string (nullable) | Endereço completo |
+| `regime_tributario` | string (nullable) | |
+| `logo` | string (nullable) | Caminho do arquivo |
+| `is_active` | boolean | Default `true` |
+
+### `FiscalInvoiceIn`
+
+Ver documentação completa em [Fiscal — NF-e de Entrada](#fiscal--nf-e-de-entrada-fiscalnf-entrada).
+
+### `FiscalInvoiceItemIn`
+
+Ver documentação completa em [Fiscal — NF-e de Entrada](#fiscal--nf-e-de-entrada-fiscalnf-entrada).
+
 ---
 
 ## Services
@@ -2174,10 +2362,13 @@ Todas as rotas web estão sob o middleware `auth`, `midnight.session` e `Mainten
 
 #### Administração (`routes/administracao.php`)
 
-| Método | URI | Nome | Descrição |
-|---|---|---|---|
-| `GET` | `/configuracoes` | `configuration.index` | Página de configurações (9 seções) |
-| `POST` | `/configuracoes` | `configuration.store` | Salvar configurações |
+| Método | URI | Nome | Middleware | Descrição |
+|---|---|---|---|---|
+| `GET` | `/configuracoes` | `configuration.index` | `auth` | Página de configurações (9 seções) |
+| `POST` | `/configuracoes` | `configuration.store` | `auth` | Salvar configurações |
+| `GET` | `/empresas` | `companies.index` | `admin` | Listagem de empresas (Livewire) |
+| `GET` | `/empresas/create` | `companies.create` | `admin` | Formulário de nova empresa (Livewire) |
+| `GET` | `/empresas/{company}/edit` | `companies.edit` | `admin` | Editar empresa (Livewire) |
 
 #### Perfil / Segurança (`routes/perfil.php`)
 
@@ -2637,6 +2828,18 @@ php artisan about
 
 ---
 
-## Licença
+## 🤝 Contribuição
 
-MIT
+Projeto interno **Nexora**
+
+---
+
+## 📜 Licença
+
+Propriedade da **Nexora**. Todos os direitos reservados © 2026.
+
+---
+
+<div align="center">
+<sub>Desenvolvido com ❤️ pela equipe Nexora</sub>
+</div>
