@@ -1,0 +1,139 @@
+/* ──────────────────────────────────────────────────────────
+   Nexora EMS ERP — PWA Styles
+   Banner de instalação, barra offline, animações
+   ────────────────────────────────────────────────────────── */
+
+/* ── Banner de Instalação / Atualização ────────────── */
+.nx-pwa-install-banner {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background: #1E293B;
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    padding: 0.875rem 1.25rem;
+    width: calc(100% - 2rem);
+    max-width: 480px;
+    animation: nx-slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nx-pwa-update-banner-style {
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+@keyframes nx-slide-up {
+    from { opacity: 0; transform: translateX(-50%) translateY(24px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
+}
+
+.nx-pwa-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.nx-pwa-banner-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.nx-pwa-update-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.nx-pwa-banner-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.nx-pwa-banner-text strong {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #F1F5F9;
+}
+
+.nx-pwa-banner-text span {
+    font-size: 0.78rem;
+    color: #94A3B8;
+}
+
+.nx-pwa-banner-install {
+    padding: 0.45rem 1rem;
+    background: #2563EB;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.nx-pwa-banner-install:hover { background: #1D4ED8; }
+
+.nx-pwa-banner-dismiss {
+    background: transparent;
+    border: none;
+    color: #64748B;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.25rem;
+    flex-shrink: 0;
+    transition: color 0.2s;
+}
+
+.nx-pwa-banner-dismiss:hover { color: #CBD5E1; }
+
+/* ── Barra Offline ─────────────────────────────────── */
+.nx-offline-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    background: #7F1D1D;
+    color: #FEE2E2;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    animation: nx-slide-down 0.3s ease;
+}
+
+.nx-offline-bar--online {
+    background: #064E3B;
+    color: #A7F3D0;
+}
+
+@keyframes nx-slide-down {
+    from { opacity: 0; transform: translateY(-100%); }
+    to   { opacity: 1; transform: translateY(0);     }
+}
+
+/* ── Responsividade Mobile ─────────────────────────── */
+@media (max-width: 640px) {
+    .nx-pwa-install-banner {
+        border-radius: 12px 12px 0 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    @keyframes nx-slide-up {
+        from { opacity: 0; transform: translateY(100%); }
+        to   { opacity: 1; transform: translateY(0);    }
+    }
+}
+

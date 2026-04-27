@@ -1,4 +1,5 @@
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import './pwa.js';
 
 /* ══════════════════════════════════════════════
    NEXORA ERP — Sidebar Interactions

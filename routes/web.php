@@ -6,6 +6,9 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\ModulePageController;
 use App\Livewire\Suporte\Chat as ChatSuporte;
 
+// PWA — Página offline (sem autenticação)
+Route::get('/offline', fn () => view('offline'))->name('pwa.offline');
+
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('login');
     Route::post('/login', [SessionController::class, 'store'])->name('login.store');
