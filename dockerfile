@@ -8,8 +8,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.
 # Habilitar mod_rewrite do Apache (essencial para Laravel)
 RUN a2enmod rewrite
 
-# Instalar dependências do sistema
+# Instalar Node.js 20 + dependências do sistema
 RUN apt-get update && apt-get install -y \
+    curl gnupg \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -17,6 +18,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql mbstring exif pcntl bcmath
 
@@ -24,11 +27,14 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /var/www/html
 COPY . .
 
-# Ajustar permissões para o Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Instalar dependências PHP
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress 2>/dev/null || true
+
+# Build frontend assets
+RUN npm ci --silent && npm run build --silent
 
 # Ajustar permissões
 RUN chown -R www-data:www-data /var/www/html \
