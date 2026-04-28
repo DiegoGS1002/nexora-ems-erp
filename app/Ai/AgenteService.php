@@ -4,6 +4,7 @@ namespace App\Ai;
 
 use App\Models\TicketSuporte;
 use App\Models\User;
+use App\Ai\RagService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -11,12 +12,14 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 class AgenteService
 {
-    private const MAX_ITERATIONS = 5;
+    /** Iterações do loop de tool calling — aumentado para suportar pipelines multi-tool */
+    private const MAX_ITERATIONS = 8;
 
     public function __construct(
         private ToolRegistry $registry,
         private ContextBuilder $contextBuilder,
-        private FallbackResponder $fallback
+        private FallbackResponder $fallback,
+        private RagService $rag
     ) {}
 
     /**
@@ -26,16 +29,26 @@ class AgenteService
      */
     public function gerarResposta(User $user, TicketSuporte $ticket, Collection $mensagens): ?string
     {
-        $messages     = $this->contextBuilder->buildMessages($user, $ticket, $mensagens);
-        $tools        = $this->registry->definitions();
         $ultimaMensagem = $mensagens->where('is_suporte', false)->where('is_ia', false)->last();
         $textoUsuario   = $ultimaMensagem?->conteudo ?? '';
+
+        // Recupera contexto RAG relevante para a mensagem do usuário
+        $ragContext = $textoUsuario ? $this->rag->buildContext($textoUsuario) : '';
+
+        $messages     = $this->contextBuilder->buildMessages($user, $ticket, $mensagens, $ragContext ?: null);
+        $tools        = $this->registry->definitions();
 
         // 1. Try OpenAI
         if (config('openai.api_key')) {
             try {
                 $result = $this->runOpenAiLoop($messages, $tools, $user->id);
                 if ($result) {
+                    Log::info('AgenteService: response generated via OpenAI', [
+                        'ticket_id' => $ticket->id,
+                        'user_id'   => $user->id,
+                        'provider'  => 'openai',
+                    ]);
+
                     return $result;
                 }
             } catch (\Throwable $e) {
@@ -51,6 +64,12 @@ class AgenteService
             try {
                 $result = $this->runGeminiRequest($messages, $textoUsuario);
                 if ($result) {
+                    Log::info('AgenteService: response generated via Gemini', [
+                        'ticket_id' => $ticket->id,
+                        'user_id'   => $user->id,
+                        'provider'  => 'gemini',
+                    ]);
+
                     return $result;
                 }
             } catch (\Throwable $e) {
@@ -65,6 +84,7 @@ class AgenteService
         Log::warning('AgenteService: all AI providers failed, using FallbackResponder', [
             'ticket_id' => $ticket->id,
             'user_id'   => $user->id,
+            'provider'  => 'fallback',
         ]);
 
         return $this->fallback->gerarResposta($ticket, $textoUsuario);

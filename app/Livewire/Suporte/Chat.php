@@ -209,12 +209,34 @@ class Chat extends Component
         }
     }
 
+    public function excluirTicket(string $id): void
+    {
+        $ticket = TicketSuporte::find($id);
+        if (! $ticket) {
+            return;
+        }
+
+        // Apenas o dono do ticket pode excluir (admin não aparece com botão)
+        if ($ticket->user_id !== auth()->id() || auth()->user()->is_admin) {
+            return;
+        }
+
+        MensagemSuporte::where('ticket_id', $ticket->id)->delete();
+        $ticket->delete();
+
+        if ($this->ticketSelecionadoId === $id) {
+            $this->ticketSelecionadoId = null;
+        }
+
+        unset($this->tickets, $this->mensagensAtivas, $this->ticketAtivo);
+
+        session()->flash('success', 'Chat excluido com sucesso.');
+    }
+
     public function render()
     {
         return view('livewire.suporte.chat')
             ->title('Suporte IA — Nexora ERP');
     }
 }
-
-
 

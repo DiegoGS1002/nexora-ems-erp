@@ -29,7 +29,7 @@ it('renderiza o componente chat de suporte', function () {
     $this->actingAs($this->user);
 
     Livewire::test(Chat::class)
-        ->assertSee('Chat de Suporte')
+        ->assertSee('Suporte com IA')
         ->assertSee('Novo Ticket');
 });
 
@@ -93,7 +93,7 @@ it('ticket criado tem status aberto por padrao', function () {
 
     $ticket = TicketSuporte::where('assunto', 'Ticket com status padrão')->first();
 
-    expect($ticket->status)->toBe(StatusTicketSuporte::Aberto);
+    expect($ticket->status)->toBe(StatusTicketSuporte::EmAndamento);
     expect($ticket->user_id)->toBe($this->user->id);
 });
 
@@ -206,7 +206,31 @@ it('admin responde e ticket muda para em andamento', function () {
         ->call('enviarMensagem');
 
     $ticket->refresh();
-    expect($ticket->status)->toBe(StatusTicketSuporte::EmAndamento);
+    expect($ticket->status)->toBe(StatusTicketSuporte::Aberto);
+});
+
+it('usuario pode excluir seu próprio ticket', function () {
+    $this->actingAs($this->user);
+
+    $ticket = TicketSuporte::create([
+        'user_id'    => $this->user->id,
+        'assunto'    => 'Ticket para exclusão',
+        'status'     => StatusTicketSuporte::Aberto->value,
+        'prioridade' => PrioridadeTicketSuporte::Media->value,
+    ]);
+
+    MensagemSuporte::create([
+        'ticket_id'  => $ticket->id,
+        'user_id'    => $this->user->id,
+        'conteudo'   => 'Mensagem para exclusão',
+        'is_suporte' => false,
+    ]);
+
+    Livewire::test(Chat::class)
+        ->call('excluirTicket', $ticket->id);
+
+    expect(TicketSuporte::whereKey($ticket->id)->exists())->toBeFalse();
+    expect(MensagemSuporte::where('ticket_id', $ticket->id)->exists())->toBeFalse();
 });
 
 // ── Filtragem e busca ────────────────────────────────────────

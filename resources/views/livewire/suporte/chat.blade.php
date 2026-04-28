@@ -78,32 +78,49 @@
             <div class="nx-chat-ticket-list">
                 @forelse($this->tickets as $ticket)
                     @php $ativo = $ticketSelecionadoId === $ticket->id; $ultima = $ticket->mensagens->first(); @endphp
-                    <button type="button" wire:key="ticket-{{ $ticket->id }}" wire:click="selecionarTicket('{{ $ticket->id }}')"
-                        class="nx-chat-ticket-item {{ $ativo ? 'nx-chat-ticket-item--active' : '' }}">
-                        <div class="nx-chat-ticket-avatar">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
-                        </div>
-                        <div class="nx-chat-ticket-info">
-                            <div class="nx-chat-ticket-top">
-                                <span class="nx-chat-ticket-assunto">{{ $ticket->assunto }}</span>
-                                <span class="nx-chat-badge {{ $ticket->status->cssClass() }}">{{ $ticket->status->label() }}</span>
+                    <div class="nx-chat-ticket-item-wrap">
+                        <button type="button" wire:key="ticket-{{ $ticket->id }}" wire:click="selecionarTicket('{{ $ticket->id }}')"
+                            class="nx-chat-ticket-item {{ $ativo ? 'nx-chat-ticket-item--active' : '' }}">
+                            <div class="nx-chat-ticket-avatar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
                             </div>
-                            <div class="nx-chat-ticket-meta">
-                                <span class="nx-chat-prio {{ $ticket->prioridade->cssClass() }}">{{ $ticket->prioridade->label() }}</span>
-                                @if($ultima)
-                                    <span class="nx-chat-ticket-preview">{{ str($ultima->conteudo)->limit(45) }}</span>
-                                @endif
+                            <div class="nx-chat-ticket-info">
+                                <div class="nx-chat-ticket-top">
+                                    <span class="nx-chat-ticket-assunto">{{ $ticket->assunto }}</span>
+                                    <span class="nx-chat-badge {{ $ticket->status->cssClass() }}">{{ $ticket->status->label() }}</span>
+                                </div>
+                                <div class="nx-chat-ticket-meta">
+                                    <span class="nx-chat-prio {{ $ticket->prioridade->cssClass() }}">{{ $ticket->prioridade->label() }}</span>
+                                    @if($ultima)
+                                        <span class="nx-chat-ticket-preview">{{ str($ultima->conteudo)->limit(45) }}</span>
+                                    @endif
+                                </div>
+                                <div class="nx-chat-ticket-date">
+                                    {{ $ticket->created_at->diffForHumans() }}
+                                    @if(auth()->user()->is_admin)
+                                        &middot; {{ $ticket->user->name }}
+                                    @endif
+                                </div>
                             </div>
-                            <div class="nx-chat-ticket-date">
-                                {{ $ticket->created_at->diffForHumans() }}
-                                @if(auth()->user()->is_admin)
-                                    &middot; {{ $ticket->user->name }}
-                                @endif
-                            </div>
-                        </div>
-                    </button>
+                        </button>
+
+                        @unless(auth()->user()->is_admin)
+                            <button type="button"
+                                class="nx-chat-ticket-delete"
+                                wire:click="excluirTicket('{{ $ticket->id }}')"
+                                onclick="if(!confirm('Excluir este chat? Isso remove todo o histórico.')) { event.stopImmediatePropagation(); return false; }"
+                                title="Excluir chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                            </button>
+                        @endunless
+                    </div>
                 @empty
                     <div class="nx-chat-empty-list">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="color:#CBD5E1;">
@@ -418,5 +435,9 @@
     .nx-ia-typing-dots span:nth-child(2) { animation-delay:.2s; }
     .nx-ia-typing-dots span:nth-child(3) { animation-delay:.4s; }
     @keyframes nx-bounce { 0%,80%,100% { transform:scale(0.7);opacity:.5; } 40% { transform:scale(1);opacity:1; } }
+    .nx-chat-ticket-item-wrap { position: relative; display: flex; align-items: stretch; }
+    .nx-chat-ticket-item-wrap .nx-chat-ticket-item { flex: 1; }
+    .nx-chat-ticket-delete { position: absolute; right: 10px; top: 12px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; border: 1px solid rgba(226,232,240,0.9); background: #fff; color: #ef4444; cursor: pointer; }
+    .nx-chat-ticket-delete:hover { background: #fee2e2; border-color: #fecaca; }
 </style>
 @endpush

@@ -7,6 +7,26 @@ use App\Models\TicketSuporte;
 class FallbackResponder
 {
     /**
+     * Frases vagas/comuns quando o usuário ainda não conseguiu descrever o problema.
+     */
+    private const INTENCOES_ABERTURA = [
+        'pode me ajudar',
+        'preciso de ajuda',
+        'me ajuda',
+        'olá',
+        'oi',
+        'bom dia',
+        'boa tarde',
+        'boa noite',
+        'tudo bem',
+        'não sei explicar',
+        'nao sei explicar',
+        'não sei o que aconteceu',
+        'deu erro',
+        'não funciona',
+    ];
+
+    /**
      * Mapeamento de rejeições SEFAZ → resposta acionável.
      * Fonte: Manual de Orientação do Contribuinte (MOC) - SEFAZ
      */
@@ -38,7 +58,17 @@ class FallbackResponder
      */
     public function gerarResposta(TicketSuporte $ticket, string $mensagem): string
     {
-        $textoCompleto = $ticket->assunto . ' ' . $mensagem;
+        $mensagem = trim($mensagem);
+        $assunto  = trim((string) $ticket->assunto);
+
+        // Evita viés do assunto: prioriza a mensagem atual do usuário.
+        // Só usa assunto como contexto se a mensagem for muito curta.
+        $textoCompleto = $this->buildTextoContexto($assunto, $mensagem);
+
+        // 0. Intenção aberta/saudação: acolhimento + triagem humana
+        if ($this->isMensagemAberta($mensagem)) {
+            return $this->respostaAcolhimentoInteligente($assunto);
+        }
 
         // 1. Verifica rejeições SEFAZ pelo código (ex: "Rejeição 778", "Rejeição: 702", "rej 539")
         $respostaSefaz = $this->detectarRejeicaoSefaz($textoCompleto);
@@ -66,7 +96,132 @@ class FallbackResponder
             }
         }
 
+        // 3. Triagem multi-módulo para respostas menos robóticas
+        $modulos = $this->detectarModulosProvaveis($textoCompleto);
+        if (count($modulos) > 1) {
+            return $this->formatarResposta($this->respostaDesambiguacaoModulos($modulos));
+        }
+
+        if (count($modulos) === 1) {
+            return $this->formatarResposta($this->respostaGuiaPorModulo($modulos[0]));
+        }
+
         return $this->respostaGenerica();
+    }
+
+    private function buildTextoContexto(string $assunto, string $mensagem): string
+    {
+        if (mb_strlen($mensagem) >= 18) {
+            return $mensagem;
+        }
+
+        return trim($mensagem . ' ' . $assunto);
+    }
+
+    private function isMensagemAberta(string $mensagem): bool
+    {
+        $texto = mb_strtolower(trim($mensagem));
+
+        if ($texto === '') {
+            return true;
+        }
+
+        foreach (self::INTENCOES_ABERTURA as $frase) {
+            if (str_contains($texto, $frase)) {
+                return true;
+            }
+        }
+
+        return mb_strlen($texto) <= 16;
+    }
+
+    /**
+     * Detecta módulos prováveis a partir de palavras-chave.
+     *
+     * @return string[]
+     */
+    private function detectarModulosProvaveis(string $texto): array
+    {
+        $texto = mb_strtolower($texto);
+
+        $mapa = [
+            'Fiscal' => ['nf-e', 'nfe', 'nota fiscal', 'sefaz', 'cfop', 'ncm', 'danfe', 'xml', 'certificado'],
+            'Financeiro' => ['contas a pagar', 'contas a receber', 'financeiro', 'boleto', 'pagamento', 'vencido', 'fluxo de caixa'],
+            'Vendas' => ['pedido', 'venda', 'orçamento', 'cotação', 'cliente não fecha pedido'],
+            'Estoque' => ['estoque', 'saldo', 'inventário', 'entrada', 'saída', 'movimentação', 'produto sem saldo'],
+            'Compras' => ['compra', 'fornecedor', 'pedido de compra', 'requisição'],
+            'RH' => ['holerite', 'folha', 'ponto', 'jornada', 'funcionário', 'inss', 'irrf', 'fgts'],
+            'Transporte' => ['rota', 'entrega', 'motorista', 'veículo', 'romaneio', 'roteirização'],
+            'Administração' => ['usuário', 'perfil', 'permissão', 'administração', 'empresa', 'login', 'senha', 'acesso'],
+        ];
+
+        $scores = [];
+        foreach ($mapa as $modulo => $keywords) {
+            $scores[$modulo] = 0;
+            foreach ($keywords as $kw) {
+                if (str_contains($texto, $kw)) {
+                    $scores[$modulo]++;
+                }
+            }
+        }
+
+        arsort($scores);
+        $top = array_filter($scores, fn ($score) => $score > 0);
+
+        return array_slice(array_keys($top), 0, 3);
+    }
+
+    private function respostaAcolhimentoInteligente(string $assunto): string
+    {
+        $comAssunto = trim($assunto) !== '' ? "Vi que seu ticket está como **\"{$assunto}\"**, mas podemos ajustar isso juntos se não for esse tema.\n\n" : '';
+
+        return "Oi! Claro, eu te ajudo sim. Vamos resolver isso juntos.\n\n"
+            . $comAssunto
+            . "Pra eu te orientar de forma certeira (sem chute), me diz rapidinho qual cenário parece mais com o seu:\n\n"
+            . "1. **Fiscal** (NF-e, SEFAZ, rejeição, XML, certificado)\n"
+            . "2. **Financeiro** (contas, boletos, pagamentos, vencimentos)\n"
+            . "3. **Vendas/Compras** (pedido, cotação, fornecedor, cliente)\n"
+            . "4. **Estoque** (saldo, entrada/saída, inventário)\n"
+            . "5. **RH** (folha, ponto, holerite, funcionário)\n"
+            . "6. **Acesso/Administração** (login, senha, permissão, usuário)\n"
+            . "7. **Transporte** (rotas, entregas, veículos, motoristas)\n\n"
+            . "Se preferir, pode escrever do seu jeito mesmo (ex.: *\"deu erro ao salvar pedido\"*). "
+            . "Eu faço a triagem por você.";
+    }
+
+    private function respostaDesambiguacaoModulos(array $modulos): string
+    {
+        $lista = implode(', ', $modulos);
+
+        return "Entendi. Pelo que você descreveu, pode estar relacionado a mais de um módulo: **{$lista}**.\n\n"
+            . "Para eu te dar um passo a passo certeiro, me responde só uma coisa:\n"
+            . "- Em qual tela/menu isso aconteceu? (ex.: **Financeiro > Contas a Pagar**)\n\n"
+            . "Se tiver mensagem de erro, pode colar aqui exatamente como apareceu.";
+    }
+
+    private function respostaGuiaPorModulo(string $modulo): string
+    {
+        return match ($modulo) {
+            'Fiscal' => "Perfeito, vamos por Fiscal.\n\n"
+                . "Me manda 1 destes dados para eu fechar o diagnóstico:\n"
+                . "- número da NF-e\n- código da rejeição (ex.: 702)\n- ou a mensagem completa da SEFAZ\n\n"
+                . "Com isso eu te passo a correção exata no menu certo.",
+            'Financeiro' => "Entendi, parece ser no Financeiro.\n\n"
+                . "Me diga se é **conta a pagar**, **conta a receber** ou **boleto/pagamento** e qual mensagem apareceu.\n"
+                . "Se preferir, me informe o número do título/lançamento.",
+            'Estoque' => "Certo, vamos resolver no Estoque.\n\n"
+                . "Me fala qual produto e o que aconteceu: **saldo errado**, **não movimenta** ou **erro ao lançar entrada/saída**.",
+            'Vendas' => "Beleza, vamos olhar Vendas.\n\n"
+                . "Me envie o número do pedido (se tiver) e o ponto onde travou: criação, aprovação, faturamento ou expedição.",
+            'Compras' => "Perfeito, vamos por Compras.\n\n"
+                . "Me diga se é problema na requisição, cotação, pedido de compra ou vínculo com fornecedor.",
+            'RH' => "Entendi, parece ser RH.\n\n"
+                . "Me fala se o problema é folha, ponto, holerite ou cadastro do funcionário, e em qual competência (mês/ano).",
+            'Transporte' => "Certo, vamos no módulo de Transporte.\n\n"
+                . "Me diga se o problema é rota, romaneio, entrega, motorista ou veículo, e onde o fluxo travou.",
+            default => "Entendi. Vamos resolver juntos.\n\n"
+                . "Me conta em qual menu isso aconteceu e a mensagem exata que apareceu na tela.",
+        };
     }
 
     /**
@@ -247,9 +402,18 @@ RESPOSTA;
     private function respostaGenerica(): string
     {
         return <<<RESPOSTA
-**Como posso ajudar?**
+**Vamos resolver isso juntos 👍**
 
-No momento estou operando sem acesso à IA online, mas posso orientar sobre:
+Mesmo em modo offline, eu consigo te orientar bem se você me der um contexto rápido.
+
+Pode me responder em 1 linha neste formato?
+
+**Onde aconteceu > o que você tentou > mensagem de erro (se houver)**
+
+Exemplo:
+`Vendas > Pedidos > cliquei em faturar > apareceu "CFOP inválido"`
+
+Também posso te ajudar em qualquer módulo:
 
 📋 **Vendas**: Pedidos, orçamentos, precificação
 📦 **Estoque**: Movimentações, saldos
@@ -258,7 +422,7 @@ No momento estou operando sem acesso à IA online, mas posso orientar sobre:
 👥 **Cadastros**: Clientes, produtos, fornecedores
 ⚙️ **Configurações**: Certificado digital, parâmetros do sistema
 
-**Para rejeições SEFAZ**: Informe o **código da rejeição** (ex: "Rejeição 702") na sua mensagem para receber orientação específica.
+Se for **Fiscal/SEFAZ**, me manda o código da rejeição (ex.: `702`, `778`, `938`) que eu te passo o caminho exato de correção.
 
 Ou entre em contato: **WhatsApp (32) 98450-2345**
 RESPOSTA;
@@ -268,10 +432,10 @@ RESPOSTA;
     {
         if ($isSefaz) {
             $header = "⚠️ *Modo Offline* — Respondendo com base no Manual SEFAZ (MOC) sem consulta ao banco de dados em tempo real.\n\n";
-            $footer = "\n\n---\n🤖 Para diagnóstico com dados reais da sua nota, entre em contato via WhatsApp: **(32) 98450-2345**";
+            $footer = "\n\n---\nSe quiser, eu continuo com você aqui e te guio passo a passo até corrigir.";
         } else {
             $header = "⚠️ *Modo Offline* — Respondendo sem acesso à IA online no momento.\n\n";
-            $footer = "\n\n---\n🤖 Para respostas com consulta aos seus dados reais, entre em contato via WhatsApp: **(32) 98450-2345**";
+            $footer = "\n\n---\nSe quiser, me passe mais contexto que eu te ajudo a fechar o diagnóstico por aqui.";
         }
 
         return $header . trim($resposta) . $footer;
