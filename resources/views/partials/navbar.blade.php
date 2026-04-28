@@ -5,7 +5,7 @@
     {{-- ── LOGO ── --}}
     <div class="nx-sb-brand">
         <a href="{{ url('/') }}" class="nx-sb-brand-link">
-            <img src="{{ app()->environment() === 'production' ? secure_asset('images/logo.png') : asset('images/logo.png') }}"
+            <img src="{{ asset('images/logo.png') }}"
                  alt="Nexora ERP" class="nx-sb-logo">
             <span class="nx-sb-brand-text">
                 Nexora <span class="nx-sb-brand-hl">ERP</span>
@@ -197,7 +197,7 @@
         <span></span><span></span><span></span>
     </button>
     <a href="{{ url('/') }}" class="nx-topbar-brand">
-        <img src="{{ app()->environment() === 'production' ? secure_asset('images/logo.png') : asset('images/logo.png') }}"
+        <img src="{{ asset('images/logo.png') }}"
              alt="Nexora" class="nx-topbar-logo">
         <span>Nexora <strong>ERP</strong></span>
     </a>
