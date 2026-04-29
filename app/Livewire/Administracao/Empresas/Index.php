@@ -3,6 +3,7 @@
 namespace App\Livewire\Administracao\Empresas;
 
 use App\Models\Company;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -22,6 +23,10 @@ class Index extends Component
         if ($company->users()->count() > 0) {
             session()->flash('error', 'Não é possível excluir uma empresa com usuários vinculados.');
             return;
+        }
+
+        if ($company->logo) {
+            Storage::disk('public')->delete($company->logo);
         }
 
         $company->delete();

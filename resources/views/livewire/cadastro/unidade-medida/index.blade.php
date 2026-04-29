@@ -10,7 +10,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                 Produtos
             </a>
-            <a href="{{ route('units-of-measure.create') }}" class="nx-btn nx-btn-primary" wire:navigate>
+            <a href="{{ route('unit-of-measures.create') }}" class="nx-btn nx-btn-primary" wire:navigate>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Nova Unidade
             </a>
@@ -43,7 +43,7 @@
                 'title'       => 'Nenhuma unidade cadastrada',
                 'description' => 'Adicione unidades de medida para utilizar no cadastro de produtos.',
                 'actionLabel' => 'Nova Unidade',
-                'actionRoute' => route('units-of-measure.create'),
+                'actionRoute' => route('unit-of-measures.create'),
             ])
         @else
         <div class="nx-table-wrap">
@@ -85,7 +85,7 @@
                             @endif
                         </td>
                         <td class="nx-td-actions">
-                            <a href="{{ route('units-of-measure.edit', $unit) }}" class="nx-action-btn nx-action-edit" title="Editar" wire:navigate>
+                            <a href="{{ route('unit-of-measures.edit', $unit) }}" class="nx-action-btn nx-action-edit" title="Editar" wire:navigate>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </a>
                             <button

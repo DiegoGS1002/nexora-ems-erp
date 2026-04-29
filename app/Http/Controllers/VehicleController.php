@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvePdfLogo;
 use App\Models\Vehicle;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class VehicleController extends Controller
 {
+    use ResolvePdfLogo;
+
     public function index()
     {
         $vehicles = Vehicle::all(); // ou paginate(10)
@@ -92,11 +96,33 @@ class VehicleController extends Controller
     }
 
     /**
-     * Show printable list of vehicles
+     * Exporta a listagem de veiculos em PDF.
      */
-    public function print()
+    public function print(Request $request)
     {
-        $vehicles = Vehicle::all();
-        return view('cadastro.veiculos.print', compact('vehicles'));
+        $vehicles = Vehicle::query()
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = (string) $request->string('search');
+
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('plate', 'like', "%{$search}%")
+                        ->orWhere('brand', 'like', "%{$search}%")
+                        ->orWhere('model', 'like', "%{$search}%")
+                        ->orWhere('renavam', 'like', "%{$search}%")
+                        ->orWhere('chassis', 'like', "%{$search}%")
+                        ->orWhere('responsible_driver', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('brand')
+            ->orderBy('model')
+            ->get();
+
+        $pdf = Pdf::loadView('cadastro.veiculos.print', array_merge([
+            'vehicles'   => $vehicles,
+            'printedAt'  => now(),
+            'search'     => $request->string('search')->toString(),
+        ], $this->resolvePdfLogo()))->setPaper('a4', 'landscape');
+
+        return $pdf->download('veiculos-' . now()->format('Y-m-d-His') . '.pdf');
     }
 }

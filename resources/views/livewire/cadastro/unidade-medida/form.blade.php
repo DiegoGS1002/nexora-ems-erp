@@ -1,7 +1,7 @@
 <div class="nx-list-page" style="max-width:720px;margin:0 auto;">
 
     <div class="nx-form-header" style="margin-bottom:24px;">
-        <a href="{{ route('units-of-measure.index') }}" class="nx-back-link" wire:navigate>
+        <a href="{{ route('unit-of-measures.index') }}" class="nx-back-link" wire:navigate>
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Voltar para Unidades de Medida
         </a>
@@ -88,7 +88,7 @@
         </div>
 
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
-            <a href="{{ route('units-of-measure.index') }}" class="nx-btn nx-btn-ghost" wire:navigate>Cancelar</a>
+            <a href="{{ route('unit-of-measures.index') }}" class="nx-btn nx-btn-ghost" wire:navigate>Cancelar</a>
             <button type="submit" wire:loading.attr="disabled" wire:loading.class="nx-btn--loading" class="nx-btn nx-btn-primary">
                 <svg wire:loading.remove wire:target="save" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                 <svg wire:loading wire:target="save" class="nx-spin" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>

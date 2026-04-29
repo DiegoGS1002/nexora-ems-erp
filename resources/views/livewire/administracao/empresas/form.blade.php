@@ -53,33 +53,35 @@
                 </div>
 
                 {{-- CNPJ + Botão de busca --}}
-                <div class="grid grid-2" style="margin-bottom:16px;align-items:end;">
+                <div class="grid grid-2" style="margin-bottom:16px;">
                     <div class="nx-field">
                         <label>CNPJ</label>
                         <div style="position:relative;">
-                            <input type="text" wire:model.live="form.cnpj"
+                            <input type="text" wire:model.live.debounce.500ms="form.cnpj"
                                    placeholder="00.000.000/0000-00" maxlength="18" autocomplete="off"
                                    style="padding-right: 36px;">
                             {{-- Spinner de auto-busca --}}
-                            <span wire:loading wire:target="updatedFormCnpj"
-                                  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#94A3B8;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                     fill="none" stroke="currentColor" stroke-width="2.5" class="nx-spin">
-                                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                                </svg>
-                            </span>
+                            @if($isSearchingCnpj)
+                                <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#94A3B8;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" stroke-width="2.5" class="nx-spin">
+                                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                                    </svg>
+                                </span>
+                            @endif
                         </div>
                         <small style="color:#94A3B8;">Preenchimento automático ao digitar o CNPJ completo</small>
                         @error('form.cnpj') <span class="nx-field-error">{{ $message }}</span> @enderror
                     </div>
-                    <div class="nx-field" style="align-self:end;">
+                    <div class="nx-field">
+                        <label style="visibility:hidden;user-select:none;">&nbsp;</label>
                         @php $cnpjDigits = strlen(preg_replace('/\D/', '', $form->cnpj ?? '')); @endphp
-                        <button type="button" wire:click="buscarCnpj" wire:loading.attr="disabled"
-                                wire:target="buscarCnpj,updatedFormCnpj"
+                        <button type="button" wire:click="buscarCnpj(true)"
                                 class="nx-lookup-btn"
-                                @if($cnpjDigits < 14) disabled title="Digite um CNPJ completo (14 dígitos)" @endif
-                                style="{{ $cnpjDigits < 14 ? 'opacity:0.45;cursor:not-allowed;' : '' }}">
-                            <span wire:loading.remove wire:target="buscarCnpj,updatedFormCnpj"
+                                @if($cnpjDigits < 14 || $isSearchingCnpj) disabled title="Digite um CNPJ completo (14 dígitos)" @endif
+                                style="width:100%;justify-content:center;{{ ($cnpjDigits < 14 || $isSearchingCnpj) ? 'opacity:0.45;cursor:not-allowed;' : '' }}">
+                            @if(!$isSearchingCnpj)
+                                <span
                                   style="display:inline-flex;align-items:center;gap:7px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                                      fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -87,7 +89,8 @@
                                 </svg>
                                 Consultar CNPJ
                             </span>
-                            <span wire:loading wire:target="buscarCnpj,updatedFormCnpj"
+                            @else
+                                <span
                                   style="display:inline-flex;align-items:center;gap:7px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                                      fill="none" stroke="currentColor" stroke-width="2.5" class="nx-spin">
@@ -95,6 +98,7 @@
                                 </svg>
                                 Consultando...
                             </span>
+                            @endif
                         </button>
                     </div>
                 </div>
@@ -104,6 +108,27 @@
                         {{ $cnpjError }}
                     </div>
                 @endif
+
+                <div class="grid grid-2" style="margin-bottom:16px;align-items:end;">
+                    <div class="nx-field">
+                        <label>Logo da Empresa</label>
+                        <input type="file" wire:model="logoFile" accept="image/png,image/jpeg,image/webp" autocomplete="off">
+                        <small style="color:#94A3B8;">PNG, JPG ou WEBP (máx. 5MB)</small>
+                        @error('logoFile') <span class="nx-field-error">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="nx-field" style="align-self:end;">
+                        @if($logoFile || $currentLogo)
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <img src="{{ $logoFile ? $logoFile->temporaryUrl() : \Illuminate\Support\Facades\Storage::url($currentLogo) }}"
+                                     alt="Logo da empresa"
+                                     style="width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid #E2E8F0;">
+                                <button type="button" wire:click="removeCompanyLogo" class="nx-btn nx-btn-ghost" style="height:40px;">
+                                    Remover logo
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                </div>
 
                 <div class="grid grid-2" style="margin-bottom:16px;">
                     <div class="nx-field">
@@ -187,33 +212,35 @@
                 </div>
 
                 {{-- CEP + busca --}}
-                <div class="grid grid-3" style="margin-bottom:16px;align-items:end;">
+                <div class="grid grid-3" style="margin-bottom:16px;">
                     <div class="nx-field">
                         <label>CEP</label>
                         <div style="position:relative;">
-                            <input type="text" wire:model.live="form.address_zip_code"
+                            <input type="text" wire:model.live.debounce.500ms="form.address_zip_code"
                                    placeholder="00000-000" maxlength="9" autocomplete="off"
                                    style="padding-right: 36px;">
                             {{-- Spinner de auto-busca --}}
-                            <span wire:loading wire:target="updatedFormAddressZipCode"
-                                  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#94A3B8;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                     fill="none" stroke="currentColor" stroke-width="2.5" class="nx-spin">
-                                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                                </svg>
-                            </span>
+                            @if($isSearchingCep)
+                                <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#94A3B8;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" stroke-width="2.5" class="nx-spin">
+                                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                                    </svg>
+                                </span>
+                            @endif
                         </div>
                         <small style="color:#94A3B8;">Preenchimento automático ao digitar o CEP completo</small>
                         @error('form.address_zip_code') <span class="nx-field-error">{{ $message }}</span> @enderror
                     </div>
-                    <div class="nx-field" style="align-self:end;">
+                    <div class="nx-field">
+                        <label style="visibility:hidden;user-select:none;">&nbsp;</label>
                         @php $cepDigits = strlen(preg_replace('/\D/', '', $form->address_zip_code ?? '')); @endphp
-                        <button type="button" wire:click="buscarCep" wire:loading.attr="disabled"
-                                wire:target="buscarCep,updatedFormAddressZipCode"
+                        <button type="button" wire:click="buscarCep(true)"
                                 class="nx-lookup-btn"
-                                @if($cepDigits < 8) disabled title="Digite um CEP completo (8 dígitos)" @endif
-                                style="{{ $cepDigits < 8 ? 'opacity:0.45;cursor:not-allowed;' : '' }}">
-                            <span wire:loading.remove wire:target="buscarCep,updatedFormAddressZipCode"
+                                @if($cepDigits < 8 || $isSearchingCep) disabled title="Digite um CEP completo (8 dígitos)" @endif
+                                style="width:100%;justify-content:center;{{ ($cepDigits < 8 || $isSearchingCep) ? 'opacity:0.45;cursor:not-allowed;' : '' }}">
+                            @if(!$isSearchingCep)
+                                <span
                                   style="display:inline-flex;align-items:center;gap:7px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                                      fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -221,7 +248,8 @@
                                 </svg>
                                 Buscar CEP
                             </span>
-                            <span wire:loading wire:target="buscarCep,updatedFormAddressZipCode"
+                            @else
+                                <span
                                   style="display:inline-flex;align-items:center;gap:7px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                                      fill="none" stroke="currentColor" stroke-width="2.5" class="nx-spin">
@@ -229,6 +257,7 @@
                                 </svg>
                                 Buscando...
                             </span>
+                            @endif
                         </button>
                     </div>
                 </div>

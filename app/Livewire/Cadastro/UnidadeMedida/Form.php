@@ -52,13 +52,13 @@ class Form extends Component
         if ($this->unit) {
             $this->unit->update($payload);
 
-            return redirect()->route('units-of-measure.index')
+            return redirect()->route('unit-of-measures.index')
                 ->with('success', 'Unidade de medida atualizada com sucesso!');
         }
 
         UnitOfMeasure::create($payload);
 
-        return redirect()->route('units-of-measure.index')
+        return redirect()->route('unit-of-measures.index')
             ->with('success', 'Unidade de medida criada com sucesso!');
     }
 
