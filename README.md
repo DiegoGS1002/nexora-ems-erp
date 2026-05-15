@@ -10,7 +10,7 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 **Status:** desenvolvimento ativo.
 
-**Última atualização da documentação:** 2026-04-24 (módulo Empresas, middleware `DetectAiModule`, modelos `FiscalInvoiceIn`/`FiscalInvoiceItemIn`, `Company`, `SalesOrderObserver`, lista completa de controllers).
+**Última atualização da documentação:** 2026-05-05 — atualização de stack: Laravel 13.8, Filament 5.6.2, Livewire 4.3, Pest 4.7, Tinker 3.0, DomPDF 3.1; migration VECTOR INDEX MySQL 9.7 (`2026_05_05_000001`).
 
 ## Índice Rápido
 
@@ -78,10 +78,18 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 | Empresas (`/empresas`) | ✅ Implementado (CRUD Livewire, somente admin) |
 | Fiscal — NF-e Entrada (`/fiscal/nf-entrada`) | 🚧 Em breve (modelos e migration criados) |
 | Painel Administrativo Filament (`/admin`) | ✅ Ativo                                                                       |
-| Assistente IA (chat bubble global) | ✅ Implementado (OpenAI + Gemini + fallback inteligente, context-aware por módulo) |
+| Assistente IA (chat bubble global) | ✅ Implementado (OpenAI + Gemini + fallback inteligente, RAG híbrido, PlaybookEngine, context-aware por módulo) |
 
 ## Mudanças Recentes no README
 
+- **2026-05-05:** **Upgrade de stack completo** — Laravel 12→**13.8.0**, Filament 4→**5.6.2**, Livewire 3→**4.3.0**, Pest 3→**4.7.0**, Tinker 2→**3.0.2**, DomPDF `*`→**3.1.2**. PHP mínimo atualizado para `^8.4`.
+- **2026-05-05:** Migration `2026_05_05_000001_add_vector_index_to_rag_documents_table` — adiciona `VECTOR INDEX idx_rag_embedding` para MySQL 9.x (idempotente, skip em MySQL 8.x).
+- **2026-05-05:** Correção de CSS órfão em `_components.css` (seletor `.nx-log-json` faltando na linha 1832). — busca híbrida (lexical + vetorial) com suporte nativo ao tipo `VECTOR(1536)` do MySQL 9.x e fallback LONGTEXT para MySQL 8.x.
+- **2026-05-05:** Adicionado `PlaybookEngine` — raciocínio estruturado por domínio (fiscal, financeiro, estoque, RH, vendas, compras, acesso) para guiar o agente no chain-of-thought.
+- **2026-05-05:** Quatro novas tools de function calling: `AnalisarXmlNfeTool`, `BuscarCodigoFonteTool`, `ConsultarDiagnosticoSefazTool`, `InspecionarLogsTool`.
+- **2026-05-05:** Novos modelos `RagDocument` (tabela `rag_documents`) e `SefazDiagnostic` (tabela `sefaz_diagnostics`).
+- **2026-05-05:** Novos comandos Artisan `rag:seed` e `rag:search` para popular e testar a base RAG.
+- **2026-05-05:** Campo `is_ia` adicionado à tabela `mensagens_suporte` — identifica mensagens geradas pela IA no chat de suporte.
 - **2026-04-24:** Documentado módulo **Empresas** (`/empresas`) — Livewire CRUD (`EmpresasIndex` + `EmpresasForm`), modelo `Company`, rotas admin-only em `administracao.php`.
 - **2026-04-24:** Adicionado middleware `DetectAiModule` — mapeia segmento de URL para contexto de módulo IA e compartilha `$aiModule` com views.
 - **2026-04-24:** Documentados modelos `FiscalInvoiceIn` e `FiscalInvoiceItemIn` (NF-e de entrada — migration `2026_04_20_200001`, status 🚧 Em breve).
@@ -115,28 +123,31 @@ A aplicação expõe uma página inicial (`/`) com todos os módulos disponívei
 
 | Camada | Tecnologia | Versão |
 |---|---|---|
-| Backend | Laravel | ^12.0 |
-| Componentes reativos | Livewire | ^3.7 |
-| Admin Panel | Filament | ^4.5 |
+| Backend | Laravel | ^13.0 (instalado: 13.8.0) |
+| Componentes reativos | Livewire | ^4.1 (instalado: 4.3.0) |
+| Admin Panel | Filament | ^5.0 (instalado: 5.6.2) |
 | Templating | Blade | — |
-| Build | Vite | ^7.0 |
+| Build | Vite | ^7.0 (instalado: 7.3.1) |
 | CSS Framework | Tailwind CSS | ^4.0 |
-| CSS Componentes | Bootstrap | ^5.3 |
+| CSS Componentes | Bootstrap | ^5.3.8 |
 | Gráficos | ApexCharts | CDN (latest) |
-| IA — Google Gemini | google-gemini-php/laravel | ^2.0 |
+| PDF | barryvdh/laravel-dompdf | ^3.1 (instalado: 3.1.2) |
+| IA — Google Gemini | google-gemini-php/laravel | ^2.0 (instalado: 2.0.4) |
 | IA — OpenAI | openai-php/laravel | ^0.19.1 |
-| Testes | Pest + Plugin Laravel | ^3.8 / ^3.2 |
-| PHP (mínimo) | — | 8.2 |
+| Testes | Pest + Plugin Laravel | ^4.4 / ^4.1 (instalado: 4.7.0 / 4.1.0) |
+| PHP (mínimo) | — | 8.4 (instalado: 8.4.18) |
 
 ### Dependências de Desenvolvimento
 
 | Pacote | Versão |
 |---|---|
 | `fakerphp/faker` | ^1.23 |
-| `laravel/pail` | ^1.2 |
+| `laravel/pail` | ^1.2.2 |
 | `laravel/pint` | ^1.24 |
 | `laravel/sail` | ^1.41 |
 | `nunomaduro/collision` | ^8.6 |
+| `pestphp/pest` | ^4.4 |
+| `pestphp/pest-plugin-laravel` | ^4.1 |
 
 ---
 
@@ -148,15 +159,25 @@ app/
     AgenteService.php           # Orquestra o loop de function calling (OpenAI → Gemini → Fallback)
     ContextBuilder.php          # Monta o histórico de mensagens e contexto do ticket
     FallbackResponder.php       # Resposta de fallback quando todos os provedores falham
+    PlaybookEngine.php          # Raciocínio estruturado por domínio (chain-of-thought guiado)
+    RagService.php              # Serviço RAG híbrido (lexical + vetorial, MySQL 8/9 adaptativo)
     ToolRegistry.php            # Registro e definições das ferramentas disponíveis ao agente
     Tools/
       BaseTool.php              # Classe base com utilitários comuns
+      AnalisarXmlNfeTool.php    # Extrai e valida campos críticos de XML NF-e/NFC-e
+      BuscarCodigoFonteTool.php # Pesquisa no código-fonte do ERP por termos ou mensagens de erro
       BuscarPedidoTool.php      # Consulta pedidos de venda por número ou cliente
       ConsultarClienteTool.php  # Busca informações de clientes
+      ConsultarDiagnosticoSefazTool.php # Diagnóstico determinístico de rejeições SEFAZ por código
       ConsultarEstoqueTool.php  # Verifica saldo em estoque por produto
       ConsultarFinanceiroTool.php # Consulta contas a pagar/receber e fluxo de caixa
       ConsultarTicketTool.php   # Acessa dados do ticket de suporte em andamento
+      InspecionarLogsTool.php   # Consulta logs de auditoria do sistema para diagnóstico
       VerificarNfeTool.php      # Verifica status de Notas Fiscais eletrônicas
+  Console/
+    Commands/
+      RagSeedCommand.php        # php artisan rag:seed — popula a base RAG com documentos iniciais
+      RagSearchCommand.php      # php artisan rag:search — testa busca semântica na base RAG
   Enums/                # Enums de domínio (Pascal case)
     CanalVenda.php
     CategoriaVeiculo.php
@@ -346,6 +367,8 @@ app/
     SalesOrderPayment.php # Pagamento do pedido de venda
     SalesReport.php       # Relatório de vendas
     SchedulingOfDeliveries.php # Agendamento de entregas (data, veículo, janela, prioridade)
+    RagDocument.php       # Documento RAG (título, conteúdo, fonte, embedding vetorial)
+    SefazDiagnostic.php   # Diagnóstico SEFAZ estruturado (código de rejeição, causa, solução)
     Setting.php           # Configurações do sistema (key-value com cache)
     Stock.php             # Estoque (saldo por produto/localização)
     StockMovement.php     # Movimentações de estoque (entrada, saída, ajuste, transferência)
@@ -2213,6 +2236,7 @@ Todos os enums ficam em `app/Enums/` e são usados como cast nos modelos.
 | `user_id` | bigint | FK para `users` |
 | `conteudo` | text | |
 | `is_suporte` | boolean | `true` = mensagem do time de suporte |
+| `is_ia` | boolean | `true` = mensagem gerada pelo assistente de IA |
 | `lida` | boolean | Marcada ao selecionar o ticket |
 
 ### `PlanOfAccount`
@@ -2310,6 +2334,44 @@ Ver documentação completa em [Fiscal — NF-e de Entrada](#fiscal--nf-e-de-ent
 ### `FiscalInvoiceItemIn`
 
 Ver documentação completa em [Fiscal — NF-e de Entrada](#fiscal--nf-e-de-entrada-fiscalnf-entrada).
+
+---
+
+### `RagDocument`
+
+Armazena documentos de conhecimento para o serviço RAG.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `titulo` | string | Título do documento |
+| `conteudo` | mediumText | Conteúdo textual do chunk |
+| `fonte` | string | Origem: `manual`, `faq`, `modulo`, `ticket`, `produto` |
+| `categoria` | string (nullable) | Categoria temática |
+| `metadados` | JSON (nullable) | Dados extras (tags, módulo, versão, etc.) |
+| `tokens` | integer | Estimativa de tokens do conteúdo |
+| `embedding` | VECTOR(1536) / LONGTEXT | Embedding vetorial (MySQL 9.x nativo / 8.x JSON) |
+
+> A coluna `embedding` é manipulada exclusivamente via raw SQL pelo `RagService`.
+
+### `SefazDiagnostic`
+
+Base de diagnósticos determinísticos de rejeições SEFAZ.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | bigint | Auto-increment |
+| `rejection_code` | string(10) | Código de rejeição SEFAZ (único, indexado) |
+| `titulo` | string | Título descritivo da rejeição |
+| `causa` | text | Causa do problema |
+| `solucao` | text | Passos para resolução |
+| `module` | string (nullable) | Módulo relacionado: `fiscal`, `cadastro`, `configuracao` |
+| `severity` | string | `error`, `warning`, `info` |
+| `related_codes` | JSON (nullable) | Códigos de rejeição relacionados |
+| `tags` | JSON (nullable) | Tags de busca (ncm, cfop, cnpj, ie…) |
+| `active` | boolean | Diagnóstico ativo |
+
+**Método:** `SefazDiagnostic::findByCode(string $code): ?self` — retorna diagnóstico ativo pelo código exato.
 
 ---
 
@@ -2542,6 +2604,10 @@ Usuário → AiChatBubble (Livewire) → AiAssistantService → [OpenAI | Gemini
 | `consultar_financeiro` | `ConsultarFinanceiroTool` | Consulta contas a pagar/receber e fluxo de caixa |
 | `consultar_ticket` | `ConsultarTicketTool` | Acessa dados do ticket de suporte em andamento |
 | `verificar_nfe` | `VerificarNfeTool` | Verifica status de Notas Fiscais Eletrônicas |
+| `analisar_xml_nfe` | `AnalisarXmlNfeTool` | Extrai e valida campos críticos (CFOP, NCM, CST, totais) de XML NF-e/NFC-e |
+| `buscar_codigo_fonte` | `BuscarCodigoFonteTool` | Pesquisa no código-fonte do ERP por termos técnicos ou mensagens de erro |
+| `consultar_diagnostico_sefaz` | `ConsultarDiagnosticoSefazTool` | Diagnóstico determinístico de rejeições SEFAZ por código exato (etapa 1 da hierarquia) |
+| `inspecionar_logs` | `InspecionarLogsTool` | Consulta logs de auditoria do sistema para diagnóstico de problemas |
 
 ### Configuração
 
@@ -2566,6 +2632,52 @@ Os contextos por módulo ficam em `config/ai_contexts.php` — edite os textos d
 2. Gemini (api_key configurado) → usa function calling via Google AI
 3. FallbackResponder → resposta genérica sem IA
 ```
+
+### RAG — Recuperação Aumentada por Geração (`RagService`)
+
+O `RagService` fornece busca híbrida para enriquecer as respostas do agente com conhecimento persistido no banco:
+
+- **Busca lexical** — identifica códigos exatos e termos técnicos via `LIKE`
+- **Busca vetorial** — calcula similaridade cosseno entre o embedding da consulta e os documentos armazenados
+- **Merge/rerank** — combina os resultados com score final e retorna os top-K mais relevantes
+
+**Estratégia por versão do MySQL:**
+
+| Versão | Tipo da coluna `embedding` | Método |
+|---|---|---|
+| MySQL 9.x | `VECTOR(1536)` nativo | `VECTOR_TO_STRING()` + cosseno em PHP |
+| MySQL 8.x | `LONGTEXT` (JSON) | cosseno calculado em PHP |
+
+**Hierarquia de busca no Agente:**
+```
+1. SefazDiagnostics (SQL estruturado) → diagnóstico determinístico por código de rejeição
+2. RagService (busca vetorial)        → documentos semânticos relevantes
+3. LLM (OpenAI / Gemini)              → geração contextualizada com os resultados acima
+```
+
+**Comandos Artisan:**
+
+```bash
+# Popular a base RAG com documentos iniciais (FAQs, manuais, tickets resolvidos)
+php artisan rag:seed
+
+# Testar busca semântica na base RAG
+php artisan rag:search "rejeição 539 NF-e"
+```
+
+### PlaybookEngine
+
+Detecta automaticamente o **domínio do problema** com base no assunto e texto do ticket e retorna um playbook de diagnóstico estruturado para guiar o agente no chain-of-thought:
+
+| Domínio detectado | Playbook |
+|---|---|
+| Fiscal | CFOP/NCM/CST, ambiente SEFAZ, certificado digital, XML |
+| Financeiro | contas a pagar/receber, fluxo de caixa, reconciliação |
+| Estoque | saldo negativo, movimentações, falta de produto |
+| RH | ponto, folha, holerite, admissão/demissão |
+| Vendas | pedido, precificação, status, parcelas |
+| Compras | solicitação, cotação, pedido, aprovação |
+| Acesso | login, permissão, módulo bloqueado, licença |
 
 ---
 
@@ -2824,6 +2936,10 @@ php artisan about
 - **RH — Holerite**: usar a rota `/holerite` para a página dedicada ou o modal dentro de `FolhaPagamento`. Impressão via `HoleriteController@print`.
 - **Produção — OP**: usar `ProductionOrder` com `ProductionOrderProduct` (multi-produto) e `ProductionItem` (BOM); o método de progresso atualiza `produced_quantity` em cada `ProductionOrderProduct`.
 - **Assistente IA**: usar `AiAssistantService` para o chat bubble global (injetado via DI). Para adicionar contexto a um novo módulo, incluir a chave correspondente em `config/ai_contexts.php`. Novas ferramentas de consulta devem estender `BaseTool` e ser registradas em `ToolRegistry`. Nunca expor dados sensíveis (senhas, tokens) nas respostas das tools.
+- **RAG**: usar `RagService` para busca híbrida (lexical + vetorial). Novos documentos de conhecimento devem ser inseridos via `php artisan rag:seed` ou programaticamente com `RagService::store()`. O campo `embedding` é sempre gerenciado pelo `RagService` via raw SQL — nunca manipular diretamente pelo Eloquent.
+- **SefazDiagnostics**: diagnósticos determinísticos têm prioridade sobre RAG e LLM. Para adicionar novos códigos de rejeição SEFAZ, inserir diretamente na tabela `sefaz_diagnostics` ou criar um seeder dedicado.
+- **PlaybookEngine**: a detecção de domínio é baseada em palavras-chave no assunto e corpo do ticket. Para adicionar suporte a um novo domínio, implementar os métodos `is{Dominio}()` e `playbook{Dominio}()` na classe `PlaybookEngine`.
+- **Mensagens IA no Suporte**: ao gravar uma mensagem gerada pelo assistente IA no chat de suporte, definir `is_ia = true` no `MensagemSuporte` para diferenciá-la de mensagens humanas e do time de suporte.
 - **Configuração de IA**: as chaves `OPENAI_API_KEY` e `GEMINI_API_KEY` são opcionais — o sistema degrada graciosamente até o `FallbackResponder` se ambas estiverem ausentes.
 
 ---
@@ -2843,3 +2959,20 @@ Propriedade da **Nexora**. Todos os direitos reservados © 2026.
 <div align="center">
 <sub>Desenvolvido com ❤️ pela equipe Nexora</sub>
 </div>
+## 📄 NF-e / Integração SEFAZ
+O sistema possui integração completa com SEFAZ para emissão de Notas Fiscais Eletrônicas (NF-e modelo 55 e NFC-e modelo 65).
+**Recursos implementados:**
+- ✅ Emissão e transmissão de NF-e
+- ✅ Cancelamento de NF-e
+- ✅ Consulta de status SEFAZ
+- ✅ Geração de DANFE em PDF
+- ✅ Armazenamento seguro de XMLs
+**Documentação completa**: [`docs/NF-e/IMPLEMENTACAO_API_NFE.md`](docs/NF-e/IMPLEMENTACAO_API_NFE.md)
+**Configuração rápida:**
+1. Configure as variáveis `NFE_*` no `.env` e `.env.bak`
+2. Coloque o certificado digital A1 em `storage/app/nfe/certificado.pfx`
+3. Execute as migrations: `docker compose exec app php artisan migrate`
+4. Teste a conexão: consulte a documentação para exemplos
+**Bibliotecas utilizadas:**
+- `nfephp-org/sped-nfe` v5.2+ - Geração e comunicação com SEFAZ
+- `nfephp-org/sped-da` v1.1+ - Geração de DANFE

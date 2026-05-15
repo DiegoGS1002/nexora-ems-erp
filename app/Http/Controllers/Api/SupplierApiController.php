@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreSupplierRequest;
+use App\Http\Requests\Api\UpdateSupplierRequest;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class SupplierApiController extends Controller
 {
@@ -19,26 +20,9 @@ class SupplierApiController extends Controller
         return response()->json($supplier->load('products'));
     }
 
-    public function store(Request $request)
+    public function store(StoreSupplierRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'social_name' => 'required|string|max:255',
-            'taxNumber' => 'required|unique:suppliers,taxNumber|max:14',
-            'email' => 'required|email|unique:suppliers,email',
-            'phone_number' => 'required',
-            'address_zip_code' => 'required',
-            'address_street' => 'required',
-            'address_number' => 'required',
-            'address_complement' => 'nullable',
-            'address_district' => 'required',
-            'address_city' => 'required',
-            'address_state' => 'required',
-        ], [
-            'taxNumber.unique' => 'Este CNPJ já está cadastrado.',
-        ]);
-
-        $supplier = Supplier::create($request->all());
+        $supplier = Supplier::create($request->validated());
 
         return response()->json([
             'message' => 'Fornecedor criado com sucesso',
@@ -46,31 +30,9 @@ class SupplierApiController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, Supplier $supplier)
+    public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'social_name' => 'required|string|max:255',
-            'taxNumber' => [
-                'required',
-                Rule::unique('suppliers', 'taxNumber')->ignore($supplier->id),
-            ],
-            'email' => [
-                'required',
-                'email',
-                Rule::unique('suppliers', 'email')->ignore($supplier->id),
-            ],
-            'phone_number' => 'required',
-            'address_zip_code' => 'required',
-            'address_street' => 'required',
-            'address_number' => 'required',
-            'address_complement' => 'nullable',
-            'address_district' => 'required',
-            'address_city' => 'required',
-            'address_state' => 'required',
-        ]);
-
-        $supplier->update($request->all());
+        $supplier->update($request->validated());
 
         return response()->json([
             'message' => 'Fornecedor atualizado com sucesso',

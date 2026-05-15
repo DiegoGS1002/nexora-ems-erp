@@ -6,7 +6,7 @@ use App\Livewire\Financeiro\ContaBancaria;
 use App\Livewire\Financeiro\ContasPagar;
 use App\Livewire\Financeiro\ContasReceber;
 use App\Livewire\Financeiro\FluxoCaixa;
-use App\Http\Controllers\BaccaratAccountsController;
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\FinancialReportsController;
 
 Route::get('/financialReports/print', [FinancialReportsController::class, 'print'])->name('financialReports.print');
@@ -27,7 +27,7 @@ Route::get('/accounts_receivable', ContasReceber::class)->name('accounts_receiva
 Route::get('/cash_flow', FluxoCaixa::class)->name('cash_flow.index');
 
 /* ─── Demais recursos financeiros ─── */
-Route::resource('baccarat_accounts', BaccaratAccountsController::class);
+Route::resource('bank_accounts', BankAccountController::class);
 Route::resource('financial_reports', FinancialReportsController::class);
 
 

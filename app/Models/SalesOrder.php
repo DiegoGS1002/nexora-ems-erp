@@ -258,6 +258,11 @@ class SalesOrder extends Model
         return $this->belongsTo(FiscalNote::class);
     }
 
+    public function fiscalNotes(): HasMany
+    {
+        return $this->hasMany(FiscalNote::class, 'sales_order_id');
+    }
+
     // Métodos auxiliares
     public function billingAddress()
     {

@@ -5,6 +5,7 @@ namespace App\Livewire\Fiscal;
 use App\Enums\FiscalNoteStatus;
 use App\Models\Client;
 use App\Models\FiscalNote;
+use App\Services\NFeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -60,6 +61,18 @@ class NotaFiscal extends Component
     public string  $form_sefaz_message = '';
     public string  $form_amount        = '';
     public string  $form_notes         = '';
+
+    /* ─────────────────────────────────────
+      TRANSMIT MODAL
+     ─────────────────────────────────────*/
+    public bool $showTransmitModal = false;
+    public ?int $transmittingId    = null;
+
+    /* ─────────────────────────────────────
+      SEFAZ STATUS
+     ─────────────────────────────────────*/
+    public bool   $sefazOnline      = true;
+    public string $sefazMessage     = 'Online';
 
     /* ─────────────────────────────────────
       CANCEL FORM
@@ -269,13 +282,26 @@ class NotaFiscal extends Component
         ]);
 
         $note = FiscalNote::findOrFail($this->cancellingId);
-        $note->update([
-            'status'       => FiscalNoteStatus::Cancelled->value,
-            'cancel_reason'=> $this->cancel_reason,
-            'cancelled_at' => now(),
-        ]);
 
-        session()->flash('success', 'Nota fiscal cancelada com sucesso.');
+        try {
+            $nfeService = app(NFeService::class);
+            $result = $nfeService->cancelar($note, $this->cancel_reason);
+
+            if ($result['canceled']) {
+                session()->flash('success', 'Nota fiscal cancelada na SEFAZ. Protocolo: ' . ($result['protocol'] ?? '—'));
+            } else {
+                session()->flash('error', 'SEFAZ não cancelou a nota: ' . ($result['message'] ?? 'Erro desconhecido'));
+            }
+        } catch (\Exception $e) {
+            // Fallback: se não tiver certificado/conexão, cancela localmente
+            $note->update([
+                'status'        => FiscalNoteStatus::Cancelled->value,
+                'cancel_reason' => $this->cancel_reason,
+                'cancelled_at'  => now(),
+            ]);
+            session()->flash('success', 'Nota fiscal cancelada localmente.');
+        }
+
         $this->closeCancelModal();
     }
 
@@ -285,6 +311,57 @@ class NotaFiscal extends Component
         $this->cancellingId    = null;
         $this->cancel_reason   = '';
         $this->resetErrorBag(['cancel_reason']);
+    }
+
+    /* ─────────────────────────────────────
+      TRANSMIT MODAL
+     ─────────────────────────────────────*/
+    public function openTransmit(int $id): void
+    {
+        $this->transmittingId    = $id;
+        $this->showTransmitModal = true;
+    }
+
+    public function confirmTransmit(): void
+    {
+        $note = FiscalNote::with('items', 'client')->findOrFail($this->transmittingId);
+
+        try {
+            $nfeService = app(NFeService::class);
+            $result = $nfeService->transmitir($note, sincrono: true);
+
+            if ($result['authorized']) {
+                session()->flash('success', 'NF-e autorizada pela SEFAZ! Protocolo: ' . ($result['protocol'] ?? '—'));
+            } else {
+                session()->flash('error', 'NF-e não autorizada: [' . ($result['code'] ?? '—') . '] ' . ($result['message'] ?? ''));
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Erro ao transmitir: ' . $e->getMessage());
+        }
+
+        $this->closeTransmitModal();
+    }
+
+    public function closeTransmitModal(): void
+    {
+        $this->showTransmitModal = false;
+        $this->transmittingId    = null;
+    }
+
+    /* ─────────────────────────────────────
+      CHECK SEFAZ STATUS
+     ─────────────────────────────────────*/
+    public function checkSefazStatus(): void
+    {
+        try {
+            $nfeService       = app(NFeService::class);
+            $status           = $nfeService->consultarStatus();
+            $this->sefazOnline  = $status['online'];
+            $this->sefazMessage = $status['message'] ?? ($status['online'] ? 'Online' : 'Offline');
+        } catch (\Exception $e) {
+            $this->sefazOnline  = false;
+            $this->sefazMessage = 'Erro: ' . $e->getMessage();
+        }
     }
 
     /* ─────────────────────────────────────

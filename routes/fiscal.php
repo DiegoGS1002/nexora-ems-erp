@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EntranceController;
+use App\Http\Controllers\Api\NFeController;
 use App\Livewire\Fiscal\NotaFiscal;
+use App\Livewire\Fiscal\NFeGestao;
 use App\Livewire\Fiscal\TipoOperacao\Index as TipoOperacaoIndex;
 use App\Livewire\Fiscal\TipoOperacao\Form as TipoOperacaoForm;
 use App\Livewire\Fiscal\GrupoTributario\Index as GrupoTributarioIndex;
@@ -10,6 +12,9 @@ use App\Livewire\Fiscal\GrupoTributario\Form as GrupoTributarioForm;
 
 /* ─── Notas Fiscais Eletrônicas (Livewire) ─── */
 Route::get('/fiscal/notas-fiscais', NotaFiscal::class)->name('fiscal.nfe.index');
+
+/* ─── Gestão Individual de NF-e (visualizar, transmitir, eventos) ─── */
+Route::get('/fiscal/nfe/{noteId}/editar', NFeGestao::class)->name('fiscal.nfe.editar');
 
 /* ─── Notas Fiscais de Saída — aponta para o mesmo componente de NF-e ─── */
 Route::get('/fiscal/saida', NotaFiscal::class)->name('fiscal.exit.index');
@@ -25,3 +30,15 @@ Route::get('/fiscal/grupos-tributarios/create', GrupoTributarioForm::class)->nam
 Route::get('/fiscal/grupos-tributarios/{grupo}/edit', GrupoTributarioForm::class)->name('fiscal.grupo-tributario.edit');
 
 Route::resource('/fiscal/entrada', EntranceController::class)->names('fiscal.entrance');
+
+/* ─── API NF-e (SEFAZ) ─── */
+Route::prefix('api/nfe')->middleware('auth')->group(function () {
+    Route::post('/{note}/transmitir', [NFeController::class, 'transmitir'])->name('api.nfe.transmitir');
+    Route::post('/{note}/cancelar', [NFeController::class, 'cancelar'])->name('api.nfe.cancelar');
+    Route::get('/status', [NFeController::class, 'status'])->name('api.nfe.status');
+    Route::post('/consultar', [NFeController::class, 'consultar'])->name('api.nfe.consultar');
+    Route::get('/{note}/danfe', [NFeController::class, 'danfe'])->name('api.nfe.danfe');
+    Route::get('/{note}/danfe/visualizar', [NFeController::class, 'visualizarDanfe'])->name('api.nfe.danfe.visualizar');
+    Route::get('/{note}/xml', [NFeController::class, 'xml'])->name('api.nfe.xml');
+});
+

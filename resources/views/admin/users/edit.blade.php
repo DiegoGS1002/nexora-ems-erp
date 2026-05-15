@@ -120,10 +120,15 @@
                             type="password"
                             placeholder="Mínimo 8 caracteres"
                             autocomplete="new-password"
+                            oninput="nxValidatePasswordEdit()"
                         >
                         @error('password')
                             <small style="color:#EF4444;">{{ $message }}</small>
                         @enderror
+                        <small style="color:#64748B;">Mín. 8 caracteres, maiúscula, minúscula, número, símbolo e sem espaços.</small>
+                        <div style="height:4px;border-radius:4px;margin-top:6px;background:#E2E8F0;overflow:hidden;">
+                            <div id="edit-pwd-fill" style="height:100%;width:0;transition:width 0.3s,background 0.3s;border-radius:4px;"></div>
+                        </div>
                     </div>
                     <div class="nx-field">
                         <label for="password_confirmation">Confirmar Nova Senha</label>
@@ -133,8 +138,83 @@
                             type="password"
                             placeholder="Repita a nova senha"
                             autocomplete="new-password"
+                            oninput="nxValidatePasswordEdit()"
                         >
+                        <small id="edit-pwd-confirm-msg" style="color:#64748B;"></small>
                     </div>
+
+                <script>
+                function nxValidatePasswordEdit() {
+                    const pwd  = document.getElementById('password').value;
+                    const conf = document.getElementById('password_confirmation').value;
+                    const fill = document.getElementById('edit-pwd-fill');
+                    const confirmMsg = document.getElementById('edit-pwd-confirm-msg');
+                    const submitBtn  = document.getElementById('btn-submit-edit');
+
+                    if (pwd.length === 0) {
+                        fill.style.width = '0';
+                        confirmMsg.textContent = '';
+                        // Campo opcional: habilitar botão quando senha está vazia
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '1';
+                        submitBtn.style.cursor  = 'pointer';
+                        return;
+                    }
+
+                    const hasUpper  = /[A-Z]/.test(pwd);
+                    const hasLower  = /[a-z]/.test(pwd);
+                    const hasNumber = /[0-9]/.test(pwd);
+                    const hasSymbol = /[^A-Za-z0-9\s]/.test(pwd);
+                    const hasLength = pwd.length >= 8;
+                    const noSpaces  = !/\s/.test(pwd);
+
+                    const score = [hasUpper, hasLower, hasNumber, hasSymbol, hasLength, noSpaces].filter(Boolean).length;
+                    const colors = ['#EF4444','#EF4444','#F59E0B','#F59E0B','#10B981','#10B981'];
+                    fill.style.width = ((score / 6) * 100) + '%';
+                    fill.style.background = colors[score - 1] ?? '#E2E8F0';
+
+                    const pwdOk = hasUpper && hasLower && hasNumber && hasSymbol && hasLength && noSpaces;
+
+                    if (conf.length > 0) {
+                        confirmMsg.textContent = pwd === conf ? '✓ As senhas coincidem' : '✗ As senhas não coincidem';
+                        confirmMsg.style.color = pwd === conf ? '#10B981' : '#EF4444';
+                    } else {
+                        confirmMsg.textContent = '';
+                    }
+
+                    // Habilitar/desabilitar botão de salvar
+                    const canSubmit = pwdOk && conf.length > 0 && pwd === conf;
+                    submitBtn.disabled = !canSubmit;
+                    submitBtn.style.opacity = canSubmit ? '1' : '0.5';
+                    submitBtn.style.cursor  = canSubmit ? 'pointer' : 'not-allowed';
+                }
+
+                ['password','password_confirmation'].forEach(function(id) {
+                    document.getElementById(id).addEventListener('keydown', function(e) {
+                        if (e.key === ' ') e.preventDefault();
+                    });
+                });
+
+                document.querySelector('form').addEventListener('submit', function(e) {
+                    const pwd  = document.getElementById('password').value;
+                    const conf = document.getElementById('password_confirmation').value;
+                    if (pwd.length === 0) return; // campo opcional na edição
+
+                    const ok = /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd)
+                             && /[^A-Za-z0-9\s]/.test(pwd) && pwd.length >= 8 && !/\s/.test(pwd);
+
+                    if (!ok) {
+                        e.preventDefault();
+                        alert('A senha deve ter no mínimo 8 caracteres, uma letra maiúscula, uma minúscula, um número, um símbolo e não pode conter espaços.');
+                        return;
+                    }
+                    if (pwd !== conf) {
+                        e.preventDefault();
+                        alert('A nova senha e a confirmação não coincidem. Corrija antes de continuar.');
+                        document.getElementById('password_confirmation').focus();
+                    }
+                });
+                </script>
                 </div>
             </div>
 
@@ -350,7 +430,7 @@
         {{-- ── FOOTER ── --}}
         <div class="nx-form-footer">
             <a href="{{ route('users.index') }}" class="nx-btn nx-btn-ghost">Cancelar</a>
-            <button type="submit" class="nx-btn nx-btn-primary">
+            <button type="submit" id="btn-submit-edit" class="nx-btn nx-btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>

@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Company;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class UsersController extends Controller
 {
@@ -46,24 +49,14 @@ class UsersController extends Controller
         return view('admin.users.create', compact('companies'));
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|email|unique:users,email',
-            'password'    => 'required|string|min:8|confirmed',
-            'is_admin'    => 'required|in:0,1',
-            'is_active'   => 'required|in:0,1',
-            'has_license' => 'required|in:0,1',
-            'modules'     => 'nullable|array',
-            'modules.*'   => 'string',
-            'company_id'  => 'nullable|exists:companies,id',
-        ]);
+        $validated = $request->validated();
 
         User::create([
             'name'        => $validated['name'],
             'email'       => $validated['email'],
-            'password'    => $validated['password'],
+            'password'    => Hash::make($validated['password']),
             'is_admin'    => (bool) $validated['is_admin'],
             'is_active'   => (bool) $validated['is_active'],
             'has_license' => (bool) $validated['has_license'],
@@ -82,19 +75,9 @@ class UsersController extends Controller
         return view('admin.users.edit', compact('user', 'companies'));
     }
 
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|email|unique:users,email,' . $user->id,
-            'password'    => 'nullable|string|min:8|confirmed',
-            'is_admin'    => 'required|in:0,1',
-            'is_active'   => 'required|in:0,1',
-            'has_license' => 'required|in:0,1',
-            'modules'     => 'nullable|array',
-            'modules.*'   => 'string',
-            'company_id'  => 'nullable|exists:companies,id',
-        ]);
+        $validated = $request->validated();
 
         $user->name        = $validated['name'];
         $user->email       = $validated['email'];
@@ -105,7 +88,7 @@ class UsersController extends Controller
         $user->company_id  = $validated['company_id'] ?? null;
 
         if (!empty($validated['password'])) {
-            $user->password = $validated['password'];
+            $user->password = Hash::make($validated['password']);
         }
 
         $user->save();

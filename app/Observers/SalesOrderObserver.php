@@ -42,10 +42,13 @@ class SalesOrderObserver
     {
         // Se mudou de status — registrar log de auditoria + tratar negócio
         if ($salesOrder->wasChanged('status')) {
+            $oldRaw = $salesOrder->getOriginal('status');
+            $oldValue = $oldRaw instanceof \BackedEnum ? $oldRaw->value : (string) $oldRaw;
+
             $salesOrder->logAction(
                 'status_changed',
-                'Status alterado de ' . $salesOrder->getOriginal('status') . ' para ' . $salesOrder->status->value,
-                $salesOrder->getOriginal('status'),
+                'Status alterado de ' . $oldValue . ' para ' . $salesOrder->status->value,
+                $oldValue,
                 $salesOrder->status->value
             );
             $this->handleStatusChange($salesOrder);
@@ -149,7 +152,8 @@ class SalesOrderObserver
      */
     protected function handleStatusChange(SalesOrder $salesOrder): void
     {
-        $oldStatus = $salesOrder->getOriginal('status');
+        $oldRaw = $salesOrder->getOriginal('status');
+        $oldStatus = $oldRaw instanceof \BackedEnum ? $oldRaw->value : (string) $oldRaw;
         $newStatus = $salesOrder->status;
 
         Log::info("Pedido {$salesOrder->order_number} mudou de status", [
@@ -158,10 +162,11 @@ class SalesOrderObserver
         ]);
 
         match ($newStatus) {
-            SalesOrderStatus::Approved => $this->onApproved($salesOrder),
-            SalesOrderStatus::EmSeparacao => $this->onSeparation($salesOrder),
-            SalesOrderStatus::Invoiced => $this->onInvoiced($salesOrder),
-            SalesOrderStatus::Cancelled => $this->onCancelled($salesOrder),
+            SalesOrderStatus::Approved     => $this->onApproved($salesOrder),
+            SalesOrderStatus::EmSeparacao  => $this->onSeparation($salesOrder),
+            SalesOrderStatus::Invoiced     => $this->onInvoiced($salesOrder),
+            SalesOrderStatus::NfTransmitida => $this->onNfTransmitida($salesOrder),
+            SalesOrderStatus::Cancelled    => $this->onCancelled($salesOrder),
             default => null,
         };
     }
@@ -327,6 +332,15 @@ class SalesOrderObserver
 
             Log::info("Pedido {$salesOrder->order_number} — reversão concluída");
         });
+    }
+
+    /**
+     * Quando NF-e é transmitida e autorizada pela SEFAZ
+     */
+    protected function onNfTransmitida(SalesOrder $salesOrder): void
+    {
+        Log::info("Pedido {$salesOrder->order_number} — NF-e transmitida/autorizada");
+        // Aqui pode disparar notificação ao cliente, etc.
     }
 
     /**

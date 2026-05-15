@@ -44,16 +44,28 @@
         </div>
     </div>
 
-    {{-- NOTIFICAÇÃO FLASH --}}
-    @session('success')
-        <div class="nx-alert nx-alert--success" x-data="{ show: true }" x-show="show"
-             x-init="setTimeout(() => show = false, 5000)" style="margin-bottom:16px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    {{-- NOTIFICAÇÃO TOAST (não desloca o layout) --}}
+    @if($flashSucesso)
+        <div x-data="{ show: false }"
+             x-init="
+                 setTimeout(() => show = true, 50);
+                 setTimeout(() => show = false, 4000);
+             "
+             @flash-sucesso.window="show = true; setTimeout(() => show = false, 4000)"
+             x-show="show"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:10px;background:#10B981;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 32px rgba(16,185,129,0.35);font-size:14px;font-weight:500;max-width:340px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;">
                 <path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
             </svg>
-            {{ $value }}
+            {{ $flashSucesso }}
         </div>
-    @endsession
+    @endif
 
     {{-- LAYOUT PRINCIPAL DO CHAT --}}
     <div class="nx-chat-layout">

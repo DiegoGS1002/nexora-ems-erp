@@ -27,6 +27,7 @@ class Chat extends Component
 
     public bool $showNovoTicket = false;
     public bool $iaRespondendo = false;
+    public string $flashSucesso = '';
 
     #[Validate('required|min:2')]
     public string $novaMensagemTexto = '';
@@ -180,7 +181,8 @@ class Chat extends Component
         $this->iaRespondendo = false;
         unset($this->tickets, $this->mensagensAtivas, $this->ticketAtivo);
 
-        session()->flash('success', 'Ticket criado! A IA já está analisando sua solicitação.');
+        $this->flashSucesso = 'Ticket criado! A IA já está analisando sua solicitação.';
+        $this->dispatch('flash-sucesso');
     }
 
     public function atualizarStatus(string $status): void
@@ -230,7 +232,8 @@ class Chat extends Component
 
         unset($this->tickets, $this->mensagensAtivas, $this->ticketAtivo);
 
-        session()->flash('success', 'Chat excluido com sucesso.');
+        $this->flashSucesso = 'Chat excluído com sucesso.';
+        $this->dispatch('flash-sucesso');
     }
 
     public function render()

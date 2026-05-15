@@ -18,13 +18,18 @@
         <div class="nx-page-actions">
             {{-- Monitor de Status SEFAZ --}}
             <div class="nx-nfe-sefaz-monitor">
-                <div class="nx-nfe-sefaz-dot"></div>
+                <div class="nx-nfe-sefaz-dot" style="{{ $sefazOnline ? '' : 'background:#EF4444;' }}"></div>
                 <div class="nx-nfe-sefaz-info">
                     <span class="nx-nfe-sefaz-label">SEFAZ</span>
-                    <span class="nx-nfe-sefaz-status">Online</span>
+                    <span class="nx-nfe-sefaz-status">{{ $sefazOnline ? 'Online' : 'Offline' }}</span>
                 </div>
-                <button type="button" class="nx-nfe-sefaz-sync" title="Sincronizar status">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <button type="button" wire:click="checkSefazStatus" wire:loading.attr="disabled"
+                    class="nx-nfe-sefaz-sync" title="Verificar status SEFAZ">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                        wire:loading.class="animate-spin" wire:target="checkSefazStatus">
+                        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
                 </button>
             </div>
             <button type="button" wire:click="openCreate" class="nx-btn nx-btn-primary">
@@ -257,20 +262,28 @@
                                             Visualizar
                                         </button>
 
+                                        {{-- Transmitir (só rascunho) --}}
+                                        @if($note->status === \App\Enums\FiscalNoteStatus::Draft)
+                                            <button type="button" wire:click="openTransmit({{ $note->id }})" @click="open=false" class="nx-nfe-dropdown-item nx-dropdown-transmit">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                                Transmitir SEFAZ
+                                            </button>
+                                        @endif
+
                                         {{-- Imprimir DANFE --}}
                                         @if($note->status === \App\Enums\FiscalNoteStatus::Authorized)
-                                            <button type="button" @click="open=false" class="nx-nfe-dropdown-item nx-dropdown-danfe">
+                                            <a href="{{ route('api.nfe.danfe', $note->id) }}" target="_blank" @click="open=false" class="nx-nfe-dropdown-item nx-dropdown-danfe">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                                                 Imprimir DANFE
-                                            </button>
+                                            </a>
                                         @endif
 
                                         {{-- Baixar XML --}}
                                         @if($note->hasXml())
-                                            <button type="button" @click="open=false" class="nx-nfe-dropdown-item nx-dropdown-xml">
+                                            <a href="{{ route('api.nfe.xml', $note->id) }}" target="_blank" @click="open=false" class="nx-nfe-dropdown-item nx-dropdown-xml">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                                                 Baixar XML
-                                            </button>
+                                            </a>
                                         @endif
 
                                         {{-- Editar (só rascunho) --}}
@@ -677,10 +690,51 @@
 
 
     {{-- ══════════════════════════════════════════════════
+         MODAL — TRANSMITIR NOTA PARA SEFAZ
+    ══════════════════════════════════════════════════ --}}
+    @if($showTransmitModal)
+    <div class="nx-modal-overlay" wire:click.self="closeTransmitModal">
+        <div class="nx-modal nx-modal--sm" x-data x-trap.noscroll="true">
+
+            <div class="nx-modal-header">
+                <div class="nx-modal-header-left">
+                    <div class="nx-modal-icon-wrap" style="background:rgba(16,185,129,0.1);color:#10B981;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="nx-modal-title">Transmitir para SEFAZ</h2>
+                        <p class="nx-modal-subtitle">A nota será assinada e enviada ao ambiente configurado.</p>
+                    </div>
+                </div>
+                <button type="button" wire:click="closeTransmitModal" class="nx-modal-close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div class="nx-modal-body">
+                <p style="font-size:14px;color:#475569;text-align:center;padding:8px 0;">
+                    Confirma a transmissão desta nota fiscal para a SEFAZ?<br>
+                    <strong>Certifique-se que o certificado digital está configurado.</strong>
+                </p>
+            </div>
+
+            <div class="nx-modal-footer">
+                <button type="button" wire:click="closeTransmitModal" class="nx-btn nx-btn-ghost">Cancelar</button>
+                <button type="button" wire:click="confirmTransmit" wire:loading.attr="disabled" class="nx-btn nx-btn-primary">
+                    <span wire:loading.remove wire:target="confirmTransmit">Transmitir</span>
+                    <span wire:loading wire:target="confirmTransmit">Transmitindo…</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+    @endif
+
+
+    {{-- ══════════════════════════════════════════════════
          MODAL — CONFIRMAR EXCLUSÃO
     ══════════════════════════════════════════════════ --}}
-    @if($showDeleteModal)
-    <div class="nx-modal-overlay" wire:click.self="cancelDelete">
+    @if($showDeleteModal)    <div class="nx-modal-overlay" wire:click.self="cancelDelete">
         <div class="nx-modal nx-modal--sm" x-data x-trap.noscroll="true">
 
             <div class="nx-modal-header">

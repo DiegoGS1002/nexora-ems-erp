@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreClientRequest;
+use App\Http\Requests\Api\UpdateClientRequest;
 use App\Models\Client;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class ClientApiController extends Controller
 {
@@ -43,30 +44,9 @@ class ClientApiController extends Controller
         return response()->json($client->load('priceTable'));
     }
 
-    public function store(Request $request)
+    public function store(StoreClientRequest $request)
     {
-        $validated = $request->validate([
-            'tipo_pessoa'              => ['required', Rule::in(['PF', 'PJ'])],
-            'name'                     => 'required|string|max:255',
-            'social_name'              => 'nullable|string|max:255',
-            'taxNumber'                => 'required|unique:clients,taxNumber',
-            'inscricao_estadual'       => 'nullable|string|max:50',
-            'email'                    => 'required|email|unique:clients,email',
-            'phone_number'             => 'required|string|max:20',
-            'address'                  => 'nullable|string|max:500',
-            'address_zip_code'         => 'nullable|string|max:10',
-            'address_street'           => 'nullable|string|max:255',
-            'address_number'           => 'nullable|string|max:20',
-            'address_complement'       => 'nullable|string|max:100',
-            'address_district'         => 'nullable|string|max:100',
-            'address_city'             => 'nullable|string|max:100',
-            'address_state'            => 'nullable|string|max:2',
-            'credit_limit'             => 'nullable|numeric|min:0',
-            'payment_condition_default'=> 'nullable|string|max:100',
-            'situation'                => 'nullable|string|in:active,inactive,defaulter',
-            'price_table_id'           => 'nullable|exists:price_tables,id',
-            'discount_limit'           => 'nullable|numeric|min:0|max:100',
-        ]);
+        $validated = $request->validated();
 
         $client = Client::create($validated);
 
@@ -76,30 +56,9 @@ class ClientApiController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, Client $client)
+    public function update(UpdateClientRequest $request, Client $client)
     {
-        $validated = $request->validate([
-            'tipo_pessoa'              => ['nullable', Rule::in(['PF', 'PJ'])],
-            'name'                     => 'required|string|max:255',
-            'social_name'              => 'nullable|string|max:255',
-            'taxNumber'                => ['required', Rule::unique('clients', 'taxNumber')->ignore($client->id)],
-            'inscricao_estadual'       => 'nullable|string|max:50',
-            'email'                    => ['required', 'email', Rule::unique('clients', 'email')->ignore($client->id)],
-            'phone_number'             => 'required|string|max:20',
-            'address'                  => 'nullable|string|max:500',
-            'address_zip_code'         => 'nullable|string|max:10',
-            'address_street'           => 'nullable|string|max:255',
-            'address_number'           => 'nullable|string|max:20',
-            'address_complement'       => 'nullable|string|max:100',
-            'address_district'         => 'nullable|string|max:100',
-            'address_city'             => 'nullable|string|max:100',
-            'address_state'            => 'nullable|string|max:2',
-            'credit_limit'             => 'nullable|numeric|min:0',
-            'payment_condition_default'=> 'nullable|string|max:100',
-            'situation'                => 'nullable|string|in:active,inactive,defaulter',
-            'price_table_id'           => 'nullable|exists:price_tables,id',
-            'discount_limit'           => 'nullable|numeric|min:0|max:100',
-        ]);
+        $validated = $request->validated();
 
         $client->update($validated);
 

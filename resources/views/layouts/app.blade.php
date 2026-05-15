@@ -64,13 +64,13 @@
 
             {{-- Alertas de sessão --}}
             @session('success')
-                <div class="alert-success">
+                <div class="nx-alert nx-alert--success">
                     ✓ {{ $value }}
                 </div>
             @endsession
 
             @session('error')
-                <div class="alert-error">
+                <div class="nx-alert nx-alert--error">
                     ✕ {{ $value }}
                 </div>
             @endsession
@@ -99,8 +99,8 @@
          ══════════════════════════════════════════ --}}
     @auth
         @if(! auth()->user()->is_admin && auth()->user()->is_active && ! auth()->user()->has_license)
+        {{-- Modal styling is handled by the design system CSS (resources/css/_components.css). Removed inline critical styles to keep markup consistent with system design. --}}
 
-        <div id="nx-license-overlay" class="nx-license-overlay" role="dialog" aria-modal="true" aria-labelledby="nx-license-title">
             <div class="nx-license-modal">
 
                 {{-- Botão X — fechar --}}

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateProfileInfoRequest;
+use App\Http\Requests\UpdatePasswordRequest;
+use App\Http\Requests\UploadAvatarRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
@@ -23,19 +25,11 @@ class ProfileController extends Controller
     /**
      * Atualizar informações pessoais.
      */
-    public function updateInfo(Request $request)
+    public function updateInfo(UpdateProfileInfoRequest $request)
     {
         $user = Auth::user();
 
-        $validated = $request->validate([
-            'name'       => ['required', 'string', 'max:100'],
-            'phone'      => ['nullable', 'string', 'max:20'],
-            'job_title'  => ['nullable', 'string', 'max:100'],
-            'department' => ['nullable', 'string', 'max:100'],
-            'bio'        => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $user->update($validated);
+        $user->update($request->validated());
 
         return back()->with('success', 'Informações atualizadas com sucesso.');
     }
@@ -43,14 +37,10 @@ class ProfileController extends Controller
     /**
      * Alterar senha do usuário.
      */
-    public function updatePassword(Request $request)
+    public function updatePassword(UpdatePasswordRequest $request)
     {
         $user = Auth::user();
 
-        $request->validate([
-            'current_password' => ['required', 'string'],
-            'password'         => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
-        ]);
 
         if (! Hash::check($request->current_password, $user->password)) {
             return back()
@@ -66,13 +56,10 @@ class ProfileController extends Controller
     /**
      * Fazer upload do avatar do usuário.
      */
-    public function uploadAvatar(Request $request)
+    public function uploadAvatar(UploadAvatarRequest $request)
     {
         $user = Auth::user();
 
-        $request->validate([
-            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-        ]);
 
         // Remover avatar anterior, se existir
         if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {

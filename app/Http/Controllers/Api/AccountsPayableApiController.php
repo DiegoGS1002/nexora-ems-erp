@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\AccountsPayable;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\StoreAccountPayableRequest;
+use App\Http\Requests\Api\UpdateAccountPayableRequest;
+use App\Models\AccountPayable;
 
 class AccountsPayableApiController extends Controller
 {
@@ -13,13 +14,13 @@ class AccountsPayableApiController extends Controller
      */
     public function index()
     {
-        return AccountsPayable::orderBy('due_date', 'asc')->get();
+        return AccountPayable::orderBy('due_date', 'asc')->get();
     }
 
     /**
      * Exibe uma conta a pagar específica
      */
-    public function show(AccountsPayable $accountPayable)
+    public function show(AccountPayable $accountPayable)
     {
         return response()->json($accountPayable);
     }
@@ -27,21 +28,9 @@ class AccountsPayableApiController extends Controller
     /**
      * Cria uma nova conta a pagar
      */
-    public function store(Request $request)
+    public function store(StoreAccountPayableRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'value' => 'required|numeric|min:0',
-            'due_date' => 'required|date',
-        ]);
-
-        $accountPayable = AccountsPayable::create($request->only([
-            'name',
-            'description',
-            'value',
-            'due_date',
-        ]));
+        $accountPayable = AccountPayable::create($request->validated());
 
         return response()->json([
             'message' => 'Conta a pagar criada com sucesso',
@@ -52,21 +41,9 @@ class AccountsPayableApiController extends Controller
     /**
      * Atualiza uma conta a pagar
      */
-    public function update(Request $request, AccountsPayable $accountPayable)
+    public function update(UpdateAccountPayableRequest $request, AccountPayable $accountPayable)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'value' => 'required|numeric|min:0',
-            'due_date' => 'required|date',
-        ]);
-
-        $accountPayable->update($request->only([
-            'name',
-            'description',
-            'value',
-            'due_date',
-        ]));
+        $accountPayable->update($request->validated());
 
         return response()->json([
             'message' => 'Conta a pagar atualizada com sucesso',
@@ -77,7 +54,7 @@ class AccountsPayableApiController extends Controller
     /**
      * Remove uma conta a pagar
      */
-    public function destroy(AccountsPayable $accountPayable)
+    public function destroy(AccountPayable $accountPayable)
     {
         $accountPayable->delete();
 
@@ -86,6 +63,5 @@ class AccountsPayableApiController extends Controller
         ]);
     }
 }
-
 
 

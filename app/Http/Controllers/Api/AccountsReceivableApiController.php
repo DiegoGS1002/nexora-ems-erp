@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreAccountReceivableRequest;
+use App\Http\Requests\Api\UpdateAccountReceivableRequest;
 use App\Models\AccountReceivable;
 use Illuminate\Http\Request;
 
@@ -27,17 +29,9 @@ class AccountsReceivableApiController extends Controller
     /**
      * Cria uma nova conta a receber
      */
-    public function store(Request $request)
+    public function store(StoreAccountReceivableRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        $accountReceivable = AccountReceivable::create($request->only([
-            'name',
-            'description',
-        ]));
+        $accountReceivable = AccountReceivable::create($request->validated());
 
         return response()->json([
             'message' => 'Conta a receber criada com sucesso',
@@ -48,17 +42,9 @@ class AccountsReceivableApiController extends Controller
     /**
      * Atualiza uma conta a receber
      */
-    public function update(Request $request, AccountReceivable $accountReceivable)
+    public function update(UpdateAccountReceivableRequest $request, AccountReceivable $accountReceivable)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        $accountReceivable->update($request->only([
-            'name',
-            'description',
-        ]));
+        $accountReceivable->update($request->validated());
 
         return response()->json([
             'message' => 'Conta a receber atualizada com sucesso',

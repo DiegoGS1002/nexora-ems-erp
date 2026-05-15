@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Financeiro;
 
-use App\Models\BaccaratAccount;
+use App\Models\BankAccount;
 use App\Models\PlanOfAccount;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -111,7 +111,7 @@ class ContaBancaria extends Component
     ─────────────────────────────────────*/
     public function openEdit(int $id): void
     {
-        $account = BaccaratAccount::findOrFail($id);
+        $account = BankAccount::findOrFail($id);
 
         $this->editingId                 = $id;
         $this->form_name                 = $account->name ?? '';
@@ -154,10 +154,10 @@ class ContaBancaria extends Component
         ];
 
         if ($this->isEditing) {
-            BaccaratAccount::findOrFail($this->editingId)->update($data);
+            BankAccount::findOrFail($this->editingId)->update($data);
             session()->flash('success', 'Conta bancária atualizada com sucesso!');
         } else {
-            BaccaratAccount::create($data);
+            BankAccount::create($data);
             session()->flash('success', 'Conta bancária cadastrada com sucesso!');
         }
 
@@ -176,7 +176,7 @@ class ContaBancaria extends Component
     public function delete(): void
     {
         if ($this->deletingId) {
-            BaccaratAccount::findOrFail($this->deletingId)->delete();
+            BankAccount::findOrFail($this->deletingId)->delete();
             session()->flash('success', 'Conta bancária excluída com sucesso!');
         }
 
@@ -195,7 +195,7 @@ class ContaBancaria extends Component
     ─────────────────────────────────────*/
     public function toggleActive(int $id): void
     {
-        $account = BaccaratAccount::findOrFail($id);
+        $account = BankAccount::findOrFail($id);
         $account->update(['is_active' => ! $account->is_active]);
     }
 
@@ -204,7 +204,7 @@ class ContaBancaria extends Component
     ─────────────────────────────────────*/
     public function toggleReconciled(int $id): void
     {
-        $account = BaccaratAccount::findOrFail($id);
+        $account = BankAccount::findOrFail($id);
         $account->update([
             'is_reconciled'      => ! $account->is_reconciled,
             'last_reconciled_at' => ! $account->is_reconciled ? now() : null,
@@ -229,8 +229,8 @@ class ContaBancaria extends Component
         $this->validateOnly('transfer_to', $this->transferRules(), $this->transferMessages());
         $this->validateOnly('transfer_amount', $this->transferRules(), $this->transferMessages());
 
-        $from   = BaccaratAccount::findOrFail($this->transfer_from);
-        $to     = BaccaratAccount::findOrFail($this->transfer_to);
+        $from   = BankAccount::findOrFail($this->transfer_from);
+        $to     = BankAccount::findOrFail($this->transfer_to);
         $amount = (float) str_replace(['.', ','], ['', '.'], $this->transfer_amount);
 
         if ($from->balance < $amount) {
@@ -285,7 +285,7 @@ class ContaBancaria extends Component
     ─────────────────────────────────────*/
     public function getAccountsProperty()
     {
-        $query = BaccaratAccount::with('chartOfAccount');
+        $query = BankAccount::with('chartOfAccount');
 
         if ($this->search !== '') {
             $q = '%' . $this->search . '%';
@@ -311,7 +311,7 @@ class ContaBancaria extends Component
 
     public function getAllAccountsProperty()
     {
-        return BaccaratAccount::where('is_active', true)->orderBy('name')->get();
+        return BankAccount::where('is_active', true)->orderBy('name')->get();
     }
 
     public function getChartAccountsProperty()
@@ -325,27 +325,27 @@ class ContaBancaria extends Component
 
     public function getTotalBalanceProperty(): float
     {
-        return (float) BaccaratAccount::where('is_active', true)->sum('balance');
+        return (float) BankAccount::where('is_active', true)->sum('balance');
     }
 
     public function getTotalPredictedProperty(): float
     {
-        return (float) BaccaratAccount::where('is_active', true)->sum('predicted_balance');
+        return (float) BankAccount::where('is_active', true)->sum('predicted_balance');
     }
 
     public function getActiveCountProperty(): int
     {
-        return BaccaratAccount::where('is_active', true)->count();
+        return BankAccount::where('is_active', true)->count();
     }
 
     public function getTotalCountProperty(): int
     {
-        return BaccaratAccount::count();
+        return BankAccount::count();
     }
 
     public function getReconciledCountProperty(): int
     {
-        return BaccaratAccount::where('is_reconciled', true)->where('is_active', true)->count();
+        return BankAccount::where('is_reconciled', true)->where('is_active', true)->count();
     }
 
     /* ─────────────────────────────────────

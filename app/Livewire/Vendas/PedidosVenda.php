@@ -275,15 +275,9 @@ class PedidosVenda extends Component
     ───────────────────────────────────────── */
     public function openModal()
     {
-        $this->resetForm();
-        $this->status         = SalesOrderStatus::Aberto->value;
-        $this->origin         = OrigemPedido::Manual->value;
-        $this->sales_channel  = CanalVenda::Balcao->value;
-        $this->operation_type = TipoOperacaoVenda::VendaNormal->value;
-        $this->order_date     = now()->format('Y-m-d\TH:i');
-        $this->showModal      = true;
-        $this->activeTab      = 'geral';
+        $this->redirect(route('vendas.pedidos.novo'), navigate: true);
     }
+
     public function closeModal()
     {
         $this->showModal = false;
@@ -310,71 +304,9 @@ class PedidosVenda extends Component
     ───────────────────────────────────────── */
     public function edit(int $id)
     {
-        $order = SalesOrder::with(['items', 'addresses'])->findOrFail($id);
-        $this->editingId              = $order->id;
-        $this->client_id              = (string) $order->client_id;
-        $this->seller_id              = (string) ($order->seller_id ?? '');
-        $this->is_fiscal              = $order->is_fiscal;
-        $this->status                 = $order->status->value;
-        $this->operation_type         = $order->operation_type?->value ?? '';
-        $this->sales_channel          = $order->sales_channel?->value ?? '';
-        $this->origin                 = $order->origin?->value ?? '';
-        $this->company_branch         = $order->company_branch ?? '';
-        $this->order_date             = $order->order_date?->format('Y-m-d\TH:i') ?? '';
-        $this->expected_delivery_date = $order->expected_delivery_date?->format('Y-m-d') ?? '';
-        $this->delivery_date          = $order->delivery_date?->format('Y-m-d') ?? '';
-        $this->payment_condition      = $order->payment_condition ?? '';
-        $this->price_table_id         = (string) ($order->price_table_id ?? '');
-        $this->discount_amount        = (string) ($order->discount_amount ?? 0);
-        $this->additions_amount       = (string) ($order->additions_amount ?? 0);
-        $this->shipping_amount        = (string) ($order->shipping_amount ?? 0);
-        $this->insurance_amount       = (string) ($order->insurance_amount ?? 0);
-        $this->other_expenses         = (string) ($order->other_expenses ?? 0);
-        $this->carrier_id             = (string) ($order->carrier_id ?? '');
-        $this->freight_type           = $order->freight_type?->value ?? '';
-        $this->gross_weight           = (string) ($order->gross_weight ?? '');
-        $this->net_weight             = (string) ($order->net_weight ?? '');
-        $this->volumes                = (string) ($order->volumes ?? '');
-        $this->tracking_code          = $order->tracking_code ?? '';
-        $this->delivery_notes         = $order->delivery_notes ?? '';
-        $this->internal_notes         = $order->internal_notes ?? '';
-        $this->customer_notes         = $order->customer_notes ?? '';
-        $this->fiscal_notes_obs       = $order->fiscal_notes_obs ?? '';
-        $this->orderItems = $order->items->map(fn($item) => [
-            'product_id'       => $item->product_id,
-            'product_name'     => $item->product?->name ?? 'N/A',
-            'sku'              => $item->sku ?? '',
-            'ean'              => $item->ean ?? '',
-            'unit'             => $item->unit ?? 'UN',
-            'quantity'         => (string) $item->quantity,
-            'unit_price'       => (string) $item->unit_price,
-            'discount'         => (string) $item->discount,
-            'discount_percent' => (string) ($item->discount_percent ?? 0),
-            'addition'         => (string) ($item->addition ?? 0),
-            'cfop'             => $item->cfop ?? '5102',
-            'ncm'              => $item->ncm ?? '',
-            'cst'              => $item->cst ?? '',
-            'csosn'            => $item->csosn ?? '',
-            'origin'           => $item->origin ?? '0',
-            'icms_percent'     => (string) ($item->icms_percent ?? 0),
-            'ipi_percent'      => (string) ($item->ipi_percent ?? 0),
-            'pis_percent'      => (string) ($item->pis_percent ?? 0),
-            'cofins_percent'   => (string) ($item->cofins_percent ?? 0),
-        ])->toArray();
-        $billingAddr  = $order->addresses->firstWhere('type','billing');
-        $deliveryAddr = $order->addresses->firstWhere('type','delivery');
-        if ($billingAddr) {
-            $this->billing = ['zip_code'=>$billingAddr->zip_code??'','street'=>$billingAddr->street??'','number'=>$billingAddr->number??'','complement'=>$billingAddr->complement??'','district'=>$billingAddr->district??'','city'=>$billingAddr->city??'','state'=>$billingAddr->state??''];
-        }
-        if ($deliveryAddr) {
-            $this->same_billing_delivery = false;
-            $this->delivery = ['zip_code'=>$deliveryAddr->zip_code??'','street'=>$deliveryAddr->street??'','number'=>$deliveryAddr->number??'','complement'=>$deliveryAddr->complement??'','district'=>$deliveryAddr->district??'','city'=>$deliveryAddr->city??'','state'=>$deliveryAddr->state??''];
-        }
-        $this->showDetail = false;
-        $this->viewingId  = null;
-        $this->showModal  = true;
-        $this->activeTab  = 'geral';
+        $this->redirect(route('vendas.pedidos.editar', $id), navigate: true);
     }
+
     /* ─────────────────────────────────────────
        SAVE
     ───────────────────────────────────────── */

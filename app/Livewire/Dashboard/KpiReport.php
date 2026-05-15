@@ -130,9 +130,9 @@ class KpiReport extends Component
         $totalPedidos = array_sum(array_column($this->tableRows, 'pedidos'));
         $ticketMedio = $totalPedidos > 0 ? $totalFaturamento / $totalPedidos : 0;
 
-        $metaMensal = 150000;
-        $metaPedidos = 100;
-        $metaTicket = 2000;
+        $metaMensal  = (float) $this->getSettingValue('kpi_meta_faturamento_mensal', 150000);
+        $metaPedidos = (int)   $this->getSettingValue('kpi_meta_pedidos_mes', 100);
+        $metaTicket  = (float) $this->getSettingValue('kpi_meta_ticket_medio', 2000);
 
         $this->desempenhoStats = [
             [

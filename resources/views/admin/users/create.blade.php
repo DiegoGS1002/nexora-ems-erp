@@ -199,11 +199,17 @@
                             placeholder="Mínimo 8 caracteres"
                             required
                             autocomplete="new-password"
+                            oninput="nxValidatePasswordCreate()"
                         >
                         @error('password')
                             <small style="color:#EF4444;">{{ $message }}</small>
                         @enderror
-                        <small>Use letras, números e símbolos para aumentar a segurança.</small>
+                        <small id="pwd-rules-hint" style="color:#64748B;">
+                            Obrigatório: mín. 8 caracteres, maiúscula, minúscula, número, símbolo e sem espaços.
+                        </small>
+                        <div id="pwd-strength-bar" style="height:4px;border-radius:4px;margin-top:6px;background:#E2E8F0;overflow:hidden;">
+                            <div id="pwd-strength-fill" style="height:100%;width:0;transition:width 0.3s,background 0.3s;border-radius:4px;"></div>
+                        </div>
                     </div>
                     <div class="nx-field">
                         <label for="password_confirmation">Confirmar Senha</label>
@@ -214,9 +220,95 @@
                             placeholder="Repita a senha"
                             required
                             autocomplete="new-password"
+                            oninput="nxValidatePasswordCreate()"
                         >
+                        <small id="pwd-confirm-msg" style="color:#64748B;"></small>
                     </div>
                 </div>
+
+                <script>
+                function nxValidatePasswordCreate() {
+                    const pwd = document.getElementById('password').value;
+                    const conf = document.getElementById('password_confirmation').value;
+                    const fill = document.getElementById('pwd-strength-fill');
+                    const confirmMsg = document.getElementById('pwd-confirm-msg');
+                    const submitBtn = document.getElementById('btn-submit-create');
+
+                    // Critérios de força
+                    const hasUpper   = /[A-Z]/.test(pwd);
+                    const hasLower   = /[a-z]/.test(pwd);
+                    const hasNumber  = /[0-9]/.test(pwd);
+                    const hasSymbol  = /[^A-Za-z0-9\s]/.test(pwd);
+                    const hasLength  = pwd.length >= 8;
+                    const noSpaces   = !/\s/.test(pwd);
+
+                    const score = [hasUpper, hasLower, hasNumber, hasSymbol, hasLength, noSpaces].filter(Boolean).length;
+                    const colors = ['#EF4444','#EF4444','#F59E0B','#F59E0B','#10B981','#10B981'];
+                    fill.style.width = ((score / 6) * 100) + '%';
+                    fill.style.background = colors[score - 1] ?? '#E2E8F0';
+
+                    const pwdOk = hasUpper && hasLower && hasNumber && hasSymbol && hasLength && noSpaces;
+
+                    // Mensagem de confirmação
+                    if (conf.length > 0) {
+                        if (pwd === conf) {
+                            confirmMsg.textContent = '✓ As senhas coincidem';
+                            confirmMsg.style.color = '#10B981';
+                        } else {
+                            confirmMsg.textContent = '✗ As senhas não coincidem';
+                            confirmMsg.style.color = '#EF4444';
+                        }
+                    } else {
+                        confirmMsg.textContent = '';
+                    }
+
+                    // Habilitar/desabilitar botão de salvar
+                    const canSubmit = pwdOk && pwd.length > 0 && conf.length > 0 && pwd === conf;
+                    submitBtn.disabled = !canSubmit;
+                    submitBtn.style.opacity = canSubmit ? '1' : '0.5';
+                    submitBtn.style.cursor  = canSubmit ? 'pointer' : 'not-allowed';
+                }
+
+                // Bloquear espaços nos campos de senha
+                ['password','password_confirmation'].forEach(function(id) {
+                    document.getElementById(id).addEventListener('keydown', function(e) {
+                        if (e.key === ' ') e.preventDefault();
+                    });
+                });
+
+                // Garantia adicional no submit
+                document.querySelector('form').addEventListener('submit', function(e) {
+                    const pwd  = document.getElementById('password').value;
+                    const conf = document.getElementById('password_confirmation').value;
+
+                    const hasUpper  = /[A-Z]/.test(pwd);
+                    const hasLower  = /[a-z]/.test(pwd);
+                    const hasNumber = /[0-9]/.test(pwd);
+                    const hasSymbol = /[^A-Za-z0-9\s]/.test(pwd);
+                    const hasLength = pwd.length >= 8;
+                    const noSpaces  = !/\s/.test(pwd);
+
+                    if (!hasLength || !hasUpper || !hasLower || !hasNumber || !hasSymbol || !noSpaces) {
+                        e.preventDefault();
+                        alert('A senha deve ter no mínimo 8 caracteres, uma letra maiúscula, uma minúscula, um número, um símbolo e não pode conter espaços.');
+                        return;
+                    }
+
+                    if (pwd !== conf) {
+                        e.preventDefault();
+                        alert('A nova senha e a confirmação não coincidem. Corrija antes de continuar.');
+                        document.getElementById('password_confirmation').focus();
+                    }
+                });
+
+                // Inicializa o botão como desabilitado (campos vazios)
+                (function() {
+                    const btn = document.getElementById('btn-submit-create');
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor  = 'not-allowed';
+                })();
+                </script>
             </div>
 
             {{-- ── SEÇÃO: STATUS E LICENÇA ── --}}
@@ -337,7 +429,7 @@
         {{-- ── FOOTER ── --}}
         <div class="nx-form-footer">
             <a href="{{ route('users.index') }}" class="nx-btn nx-btn-ghost">Cancelar</a>
-            <button type="submit" class="nx-btn nx-btn-primary">
+            <button type="submit" id="btn-submit-create" class="nx-btn nx-btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>

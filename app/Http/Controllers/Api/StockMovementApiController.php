@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreStockMovementRequest;
+use App\Http\Requests\Api\UpdateStockMovementRequest;
 use App\Models\Entrance;
 use Illuminate\Http\Request;
 
@@ -27,17 +29,9 @@ class StockMovementApiController extends Controller
     /**
      * Cria uma nova movimentação de estoque
      */
-    public function store(Request $request)
+    public function store(StoreStockMovementRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        $stockMovement = Entrance::create($request->only([
-            'name',
-            'description',
-        ]));
+        $stockMovement = Entrance::create($request->validated());
 
         return response()->json([
             'message' => 'Movimentação de estoque criada com sucesso',
@@ -48,17 +42,9 @@ class StockMovementApiController extends Controller
     /**
      * Atualiza uma movimentação de estoque
      */
-    public function update(Request $request, Entrance $stockMovement)
+    public function update(UpdateStockMovementRequest $request, Entrance $stockMovement)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        $stockMovement->update($request->only([
-            'name',
-            'description',
-        ]));
+        $stockMovement->update($request->validated());
 
         return response()->json([
             'message' => 'Movimentação de estoque atualizada com sucesso',

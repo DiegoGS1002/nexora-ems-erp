@@ -6,7 +6,7 @@ use App\Enums\PayableStatus;
 use App\Enums\ReceivableStatus;
 use App\Models\AccountPayable;
 use App\Models\AccountReceivable;
-use App\Models\BaccaratAccount;
+use App\Models\BankAccount;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Contracts\View\View;
@@ -91,7 +91,7 @@ class FluxoCaixa extends Component
     #[Computed]
     public function initialBalance(): float
     {
-        return (float) BaccaratAccount::where('is_active', true)->sum('balance');
+        return (float) BankAccount::where('is_active', true)->sum('balance');
     }
 
     /* ─────────────────────────────────────
