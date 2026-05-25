@@ -217,24 +217,7 @@
 
             {{-- ── Rodapé paginação ── --}}
             <div class="nx-table-footer">
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                    <span class="nx-table-count">
-                        Mostrando {{ $notifications->firstItem() }} a {{ $notifications->lastItem() }}
-                        de {{ number_format($notifications->total(), 0, ',', '.') }} notificações
-                    </span>
-                    <div style="display:flex;align-items:center;gap:6px;">
-                        <label style="font-size:12.5px;color:#64748B;font-weight:500;">Por página:</label>
-                        <select wire:model.live="perPage" class="nx-filter-select" style="padding:5px 8px;font-size:12.5px;">
-                            <option value="10">10</option>
-                            <option value="15">15</option>
-                            <option value="30">30</option>
-                            <option value="50">50</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="nx-pagination">
-                    {{ $notifications->links() }}
-                </div>
+                <div class="nx-pagination">{{ $notifications->links() }}</div>
             </div>
         @endif
 

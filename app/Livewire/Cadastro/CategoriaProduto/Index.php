@@ -3,6 +3,7 @@
 namespace App\Livewire\Cadastro\CategoriaProduto;
 
 use App\Models\ProductCategory;
+use App\Support\PerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -50,7 +51,7 @@ class Index extends Component
                 $query->where('name', 'like', "%{$this->search}%");
             })
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate(PerPage::resolve());
 
         return view('livewire.cadastro.categoria-produto.index', [
             'categories' => $categories,

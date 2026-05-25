@@ -5,6 +5,7 @@ namespace App\Livewire\Vendas;
 use App\Models\PriceTable;
 use App\Models\PriceTableItem;
 use App\Models\Product;
+use App\Support\PerPage;
 use App\Services\PricingService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
@@ -72,7 +73,7 @@ class TabelasPrecificacao extends Component
                                                 ->orWhere('code', 'like', '%' . $this->search . '%'))
             ->when($this->filterActive !== '', fn($q) => $q->where('is_active', (bool) $this->filterActive))
             ->latest()
-            ->paginate(10);
+            ->paginate(PerPage::resolve());
     }
 
     #[Computed]
@@ -110,7 +111,7 @@ class TabelasPrecificacao extends Component
             ->with('product')
             ->whereNull('quantity_from') // Apenas preços base
             ->orderBy('updated_at', 'desc')
-            ->paginate(15, ['*'], 'itemsPage');
+            ->paginate(PerPage::resolve(), ['*'], 'itemsPage');
     }
 
     /* ─────────────────────────────────────────

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PerPage;
 use App\Models\User;
 use App\Models\Company;
 use App\Http\Requests\StoreUserRequest;
@@ -31,7 +32,7 @@ class UsersController extends Controller
             $query->where('is_active', $request->input('status') === 'ativo');
         }
 
-        $users = $query->paginate(15)->withQueryString();
+        $users = $query->paginate(PerPage::resolve())->withQueryString();
 
         $stats = [
             'total'    => User::count(),

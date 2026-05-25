@@ -13,6 +13,7 @@ use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\SalesOrderLog;
 use App\Models\TipoOperacaoFiscal;
+use App\Support\PerPage;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -107,7 +108,7 @@ class PedidosVenda extends Component
         if ($this->filterStatus) {
             $query->where('status', $this->filterStatus);
         }
-        return $query->paginate(15);
+        return $query->paginate(PerPage::resolve());
     }
     #[Computed]
     public function stats(): array

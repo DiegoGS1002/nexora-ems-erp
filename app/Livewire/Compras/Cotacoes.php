@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
+use App\Support\PerPage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -74,7 +75,7 @@ class Cotacoes extends Component
             })
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->latest()
-            ->paginate(15);
+            ->paginate(PerPage::resolve());
     }
 
     #[Computed]

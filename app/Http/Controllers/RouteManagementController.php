@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RouteManagement;
+use App\Support\PerPage;
 use Illuminate\Http\Request;
 
 class RouteManagementController extends Controller
@@ -17,7 +18,7 @@ class RouteManagementController extends Controller
                     ->orWhere('description', 'like', "%{$search}%");
             })
             ->orderByDesc('created_at')
-            ->paginate(10)
+            ->paginate(PerPage::resolve())
             ->withQueryString();
 
         return view('logistica.route_management.index', [

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Administracao\Notifications;
 
+use App\Support\PerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -17,7 +18,7 @@ class Index extends Component
     public string $filterType  = '';
     public string $filterRead  = '';
     public string $filterDate  = '';
-    public int    $perPage     = 15;
+    public int    $perPage     = 10;
 
     protected string $paginationTheme = 'tailwind';
 
@@ -25,7 +26,16 @@ class Index extends Component
     public function updatingFilterType(): void  { $this->resetPage(); }
     public function updatingFilterRead(): void  { $this->resetPage(); }
     public function updatingFilterDate(): void  { $this->resetPage(); }
-    public function updatingPerPage(): void     { $this->resetPage(); }
+    public function updatingPerPage($value): void
+    {
+        $this->perPage = PerPage::sanitize((int) $value);
+        $this->resetPage();
+    }
+
+    public function mount(): void
+    {
+        $this->perPage = PerPage::resolve($this->perPage);
+    }
 
     /* ── Ações ───────────────────────────────────── */
 
@@ -113,7 +123,8 @@ class Index extends Component
 
     public function render()
     {
-        $notifications = $this->buildQuery()->paginate($this->perPage);
+        $perPage = PerPage::sanitize($this->perPage);
+        $notifications = $this->buildQuery()->paginate($perPage);
 
         if ($this->filterType !== '') {
             $all = $this->buildQuery()
@@ -125,9 +136,9 @@ class Index extends Component
             $total       = $all->count();
 
             $notifications = new \Illuminate\Pagination\LengthAwarePaginator(
-                $all->forPage($currentPage, $this->perPage),
+                $all->forPage($currentPage, $perPage),
                 $total,
-                $this->perPage,
+                $perPage,
                 $currentPage,
                 ['path' => request()->url()]
             );

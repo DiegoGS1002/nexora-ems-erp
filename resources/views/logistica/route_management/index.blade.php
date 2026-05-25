@@ -100,8 +100,8 @@
                     </table>
                 </div>
 
-                <div class="route-pagination">
-                    {{ $routes->links() }}
+                <div class="nx-table-footer">
+                    <div class="nx-pagination">{{ $routes->links() }}</div>
                 </div>
             @endif
         </section>

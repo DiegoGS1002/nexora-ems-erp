@@ -230,10 +230,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
-    background: #F8FAFC;
+    padding: 14px 18px;
+    background: #FAFBFD;
     border-top: 1px solid #F1F5F9;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
@@ -243,7 +243,13 @@
     font-weight: 500;
 }
 
-.nx-pagination { display: flex; align-items: center; gap: 4px; }
+.nx-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 
 /* ══════════════════════════════════════════════
    ACTION BUTTONS (editar / excluir na tabela)

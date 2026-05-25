@@ -341,7 +341,7 @@
                     {{ $users->total() }} {{ $users->total() === 1 ? 'usuário' : 'usuários' }} encontrado{{ $users->total() === 1 ? '' : 's' }}
                 </span>
                 @if($users->hasPages())
-                    <div>{{ $users->links() }}</div>
+                    <div class="nx-pagination">{{ $users->links() }}</div>
                 @endif
             </div>
         @endif

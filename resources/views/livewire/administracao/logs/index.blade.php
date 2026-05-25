@@ -269,23 +269,7 @@
 
         {{-- ── Rodapé: contagem + paginação + per-page ─── --}}
         <div class="nx-table-footer">
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                <span class="nx-table-count">
-                    Mostrando {{ $logs->firstItem() }} a {{ $logs->lastItem() }} de {{ number_format($logs->total(), 0, ',', '.') }} registros
-                </span>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <label style="font-size:12.5px;color:#64748B;font-weight:500;">Por página:</label>
-                    <select wire:model.live="perPage" class="nx-filter-select" style="padding:5px 8px;font-size:12.5px;">
-                        <option value="10">10</option>
-                        <option value="15">15</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-            </div>
-            <div class="nx-pagination">
-                {{ $logs->links() }}
-            </div>
+            <div class="nx-pagination">{{ $logs->links() }}</div>
         </div>
 
         @endif

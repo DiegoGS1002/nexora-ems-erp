@@ -3,6 +3,7 @@
 namespace App\Livewire\Administracao\Logs;
 
 use App\Models\SystemLog;
+use App\Support\PerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -21,7 +22,7 @@ class Index extends Component
     public string $filterAction  = '';
     public string $filterDateStart = '';
     public string $filterDateEnd   = '';
-    public int    $perPage       = 15;
+    public int    $perPage       = 10;
 
     /* ── Modal de detalhes ──────────────────────────────── */
     public ?int  $selectedLogId = null;
@@ -36,7 +37,16 @@ class Index extends Component
     public function updatingFilterAction(): void  { $this->resetPage(); }
     public function updatingFilterDateStart(): void { $this->resetPage(); }
     public function updatingFilterDateEnd(): void   { $this->resetPage(); }
-    public function updatingPerPage(): void       { $this->resetPage(); }
+    public function updatingPerPage($value): void
+    {
+        $this->perPage = PerPage::sanitize((int) $value);
+        $this->resetPage();
+    }
+
+    public function mount(): void
+    {
+        $this->perPage = PerPage::resolve($this->perPage);
+    }
 
     /* ── Ações ──────────────────────────────────────────── */
 
@@ -165,7 +175,7 @@ class Index extends Component
     public function render()
     {
         return view('livewire.administracao.logs.index', [
-            'logs' => $this->buildQuery()->paginate($this->perPage),
+            'logs' => $this->buildQuery()->paginate(PerPage::sanitize($this->perPage)),
         ]);
     }
 }

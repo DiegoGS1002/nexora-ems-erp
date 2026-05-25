@@ -12,24 +12,25 @@ use OpenAI\Laravel\Facades\OpenAI;
  * Serviço RAG (Retrieval-Augmented Generation).
  *
  * Estratégia automática por versão do MySQL:
- *  - MySQL 9.x → VECTOR(1536) nativo + VECTOR_TO_STRING() para cálculo de similaridade em PHP
- *  - MySQL 8.x → LONGTEXT com JSON + similaridade coseno calculada em PHP
+ *  - MySQL 9.x → VECTOR(1536) nativo + VEC_DISTANCE_COSINE() nativo (ANN via VECTOR INDEX)
+ *  - MySQL 8.x → LONGTEXT com JSON + similaridade cosseno calculada em PHP
  *
  * Recuperação híbrida:
  *  - Busca lexical (códigos exatos e termos técnicos)
- *  - Busca vetorial (contexto semântico)
+ *  - Busca vetorial nativa ou PHP
  *  - Merge/rerank por score final
  */
 class RagService
 {
-    private const EMBEDDING_MODEL     = 'text-embedding-3-small';
-    private const DIMENSIONS          = 1536;
+    private const EMBEDDING_MODEL      = 'text-embedding-3-small';
+    private const DIMENSIONS           = 1536;
     private const MAX_TOKENS_PER_CHUNK = 500;
 
-    private ?bool $mysqlNativeVector = null;
+    private ?bool  $mysqlNativeVector = null;
+    private ?bool  $hasVecDistFunc    = null;
 
     // -------------------------------------------------------------------------
-    // Detecção de versão
+    // Detecção de versão e capacidades
     // -------------------------------------------------------------------------
 
     private function hasNativeVector(): bool
@@ -40,6 +41,24 @@ class RagService
         }
 
         return $this->mysqlNativeVector;
+    }
+
+    /**
+     * Verifica se VEC_DISTANCE_COSINE() está disponível (MySQL 9.7+).
+     * Em MySQL 9.0–9.6 pode não existir ainda.
+     */
+    private function hasVecDistanceFunction(): bool
+    {
+        if ($this->hasVecDistFunc === null) {
+            try {
+                DB::selectOne("SELECT VEC_DISTANCE_COSINE(STRING_TO_VECTOR('[1.0]'), STRING_TO_VECTOR('[1.0]')) AS d");
+                $this->hasVecDistFunc = true;
+            } catch (\Throwable) {
+                $this->hasVecDistFunc = false;
+            }
+        }
+
+        return $this->hasVecDistFunc;
     }
 
     // -------------------------------------------------------------------------
@@ -66,7 +85,6 @@ class RagService
 
         if ($embedding === null) {
             Log::warning('RagService: falha ao gerar embedding — documento não armazenado.', ['titulo' => $titulo]);
-
             return null;
         }
 
@@ -156,12 +174,12 @@ class RagService
      */
     public function search(
         string $query,
-        int $limit = 5,
+        int $limit = 6,
         ?string $categoria = null,
         ?string $fonte = null,
         float $threshold = 1.0
     ): Collection {
-        $keywordDocs = $this->searchKeyword($query, max(8, $limit * 2), $categoria, $fonte);
+        $keywordDocs = $this->searchKeyword($query, max(10, $limit * 2), $categoria, $fonte);
 
         $embedding = $this->embed($query);
 
@@ -175,24 +193,76 @@ class RagService
         }
 
         $vectorDocs = $this->hasNativeVector()
-            ? $this->searchNative($embedding, $limit, $categoria, $fonte, $threshold)
-            : $this->searchPhp($embedding, $limit, $categoria, $fonte, $threshold);
+            ? $this->searchNative($embedding, $limit * 2, $categoria, $fonte, $threshold)
+            : $this->searchPhp($embedding, $limit * 2, $categoria, $fonte, $threshold);
 
         return $this->mergeHybridResults($keywordDocs, $vectorDocs, $limit);
     }
 
-    /** MySQL 9.x — vec_distance_cosine() nativo */
+    /**
+     * MySQL 9.7+ — usa VEC_DISTANCE_COSINE() nativo com VECTOR INDEX (ANN real).
+     * Fallback para cálculo PHP se a função não estiver disponível.
+     */
     private function searchNative(array $embedding, int $limit, ?string $categoria, ?string $fonte, float $threshold): Collection
     {
-        // MySQL 9.x armazena como VECTOR; recupera como JSON via VECTOR_TO_STRING
-        // e calcula similaridade em PHP (funções de distância nativas chegam em versões futuras)
+        // MySQL 9.7+: VEC_DISTANCE_COSINE() com VECTOR INDEX faz busca ANN diretamente no SQL
+        if ($this->hasVecDistanceFunction()) {
+            try {
+                $vecJson = $this->vectorToJson($embedding);
+
+                $where  = 'WHERE VEC_DISTANCE_COSINE(embedding, STRING_TO_VECTOR(?)) <= ?';
+                $params = [$vecJson, $threshold];
+
+                if ($categoria) {
+                    $where   .= ' AND categoria = ?';
+                    $params[] = $categoria;
+                }
+                if ($fonte) {
+                    $where   .= ' AND fonte = ?';
+                    $params[] = $fonte;
+                }
+
+                $params[] = $limit;
+
+                $rows = DB::select(
+                    "SELECT id, titulo, conteudo, fonte, categoria, metadados, tokens,
+                            VEC_DISTANCE_COSINE(embedding, STRING_TO_VECTOR(?)) AS distancia
+                     FROM rag_documents
+                     {$where}
+                     ORDER BY distancia ASC
+                     LIMIT ?",
+                    array_merge([$vecJson], $params)
+                );
+
+                return collect($rows)->map(function ($row) {
+                    return (object) [
+                        'id'        => $row->id,
+                        'titulo'    => $row->titulo,
+                        'conteudo'  => $row->conteudo,
+                        'fonte'     => $row->fonte,
+                        'categoria' => $row->categoria,
+                        'metadados' => is_array($row->metadados ?? null) ? $row->metadados : json_decode($row->metadados ?? '{}', true),
+                        'tokens'    => $row->tokens,
+                        'distancia' => round((float) $row->distancia, 4),
+                        'score'     => round((1 - (float) $row->distancia) * 100, 1),
+                    ];
+                })->filter(fn ($r) => $r->distancia <= $threshold)
+                    ->sortBy('distancia')
+                    ->values();
+            } catch (\Throwable $e) {
+                Log::warning('RagService: VEC_DISTANCE_COSINE() falhou, voltando para cálculo PHP.', [
+                    'error' => substr($e->getMessage(), 0, 200),
+                ]);
+            }
+        }
+
+        // Fallback: MySQL 9.x sem VEC_DISTANCE_COSINE — usa VECTOR_TO_STRING + PHP
         $q = RagDocument::query()
             ->selectRaw('id, titulo, conteudo, fonte, categoria, metadados, tokens, VECTOR_TO_STRING(embedding) AS embedding');
 
         if ($categoria) {
             $q->where('categoria', $categoria);
         }
-
         if ($fonte) {
             $q->where('fonte', $fonte);
         }
@@ -200,11 +270,9 @@ class RagService
         return $q->get()
             ->map(function ($doc) use ($embedding) {
                 $vec = json_decode($doc->embedding ?? '[]', true);
-
                 if (empty($vec)) {
                     return null;
                 }
-
                 return $this->formatRow($doc, $this->cosineDistance($embedding, $vec));
             })
             ->filter(fn ($r) => $r !== null && $r->distancia <= $threshold)
@@ -213,7 +281,7 @@ class RagService
             ->values();
     }
 
-    /** MySQL 8.x — similaridade coseno em PHP */
+    /** MySQL 8.x — similaridade cosseno em PHP */
     private function searchPhp(array $queryEmbedding, int $limit, ?string $categoria, ?string $fonte, float $threshold): Collection
     {
         $q = RagDocument::query()->select(['id', 'titulo', 'conteudo', 'fonte', 'categoria', 'metadados', 'tokens', 'embedding']);
@@ -221,7 +289,6 @@ class RagService
         if ($categoria) {
             $q->where('categoria', $categoria);
         }
-
         if ($fonte) {
             $q->where('fonte', $fonte);
         }
@@ -229,11 +296,9 @@ class RagService
         return $q->get()
             ->map(function (RagDocument $doc) use ($queryEmbedding) {
                 $vec = json_decode($doc->embedding ?? '[]', true);
-
                 if (empty($vec)) {
                     return null;
                 }
-
                 return $this->formatRow($doc, $this->cosineDistance($queryEmbedding, $vec));
             })
             ->filter(fn ($r) => $r !== null && $r->distancia <= $threshold)
@@ -273,7 +338,6 @@ class RagService
         if ($categoria) {
             $q->where('categoria', $categoria);
         }
-
         if ($fonte) {
             $q->where('fonte', $fonte);
         }
@@ -301,9 +365,7 @@ class RagService
                     }
                 }
 
-                // Distância sintética: quanto maior score lexical, menor distância.
                 $distance = max(0.0, 1.0 - min(100, $score) / 100);
-
                 return $this->formatRow($doc, $distance);
             })
             ->sortBy('distancia')
@@ -367,12 +429,12 @@ class RagService
     }
 
     /**
-     * Formata os documentos recuperados em um bloco de contexto para o prompt.
+     * Monta contexto RAG formatado para injeção no prompt.
      *
-     * @param  string $query  Pergunta original do usuário
-     * @param  int    $limit  Número de chunks a recuperar
+     * @param  string $query  Pergunta do usuário
+     * @param  int    $limit  Número de chunks
      */
-    public function buildContext(string $query, int $limit = 4): string
+    public function buildContext(string $query, int $limit = 6): string
     {
         $docs = $this->search($query, $limit);
 
@@ -380,22 +442,22 @@ class RagService
             return '';
         }
 
-        $context  = "## Base de Conhecimento (RAG)\n";
-        $context .= "Os trechos abaixo foram recuperados da base de conhecimento do Nexora ERP:\n\n";
+        $context  = "## 📚 Base de Conhecimento RAG — Nexora ERP\n";
+        $context .= "Trechos recuperados da base de conhecimento para esta pergunta:\n\n";
 
         foreach ($docs as $i => $doc) {
             $n        = $i + 1;
             $context .= "### [{$n}] {$doc->titulo}";
 
             if ($doc->categoria) {
-                $context .= " *(categoria: {$doc->categoria})*";
+                $context .= " *(módulo: {$doc->categoria})*";
             }
 
             $context .= " — relevância: {$doc->score}%\n";
             $context .= $doc->conteudo . "\n\n";
         }
 
-        $context .= "---\n*Use os trechos acima como base para sua resposta quando relevantes.*\n";
+        $context .= "---\n*Utilize os trechos acima como base para sua resposta. Priorize dados reais do sistema.*\n";
 
         return $context;
     }
@@ -413,7 +475,6 @@ class RagService
     {
         if (! config('openai.api_key')) {
             Log::warning('RagService: OPENAI_API_KEY não configurada.');
-
             return null;
         }
 
@@ -427,13 +488,12 @@ class RagService
             return $response->embeddings[0]->embedding ?? null;
         } catch (\Throwable $e) {
             Log::error('RagService: erro ao gerar embedding.', ['error' => substr($e->getMessage(), 0, 300)]);
-
             return null;
         }
     }
 
     // -------------------------------------------------------------------------
-    // Similaridade coseno (PHP)
+    // Similaridade cosseno (PHP fallback)
     // -------------------------------------------------------------------------
 
     private function cosineDistance(array $a, array $b): float
@@ -501,7 +561,6 @@ class RagService
     private function truncateForEmbedding(string $text): string
     {
         $maxChars = 8191 * 4;
-
         return mb_strlen($text) > $maxChars ? mb_substr($text, 0, $maxChars) : $text;
     }
 

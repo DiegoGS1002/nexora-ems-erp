@@ -13,6 +13,7 @@ use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseRequisition;
 use App\Models\PurchaseRequisitionItem;
 use App\Models\User;
+use App\Support\PerPage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -81,7 +82,7 @@ class SolicitacoesCompra extends Component
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->when($this->filterPriority, fn($q) => $q->where('priority', $this->filterPriority))
             ->latest()
-            ->paginate(15);
+            ->paginate(PerPage::resolve());
     }
 
     #[Computed]

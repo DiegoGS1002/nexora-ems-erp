@@ -4,6 +4,7 @@ namespace App\Livewire\Cadastro\Produtos;
 
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Support\PerPage;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -112,7 +113,7 @@ class Index extends Component
                 $query->whereNull('expiration_date');
             })
             ->orderBy('name')
-            ->paginate(10);
+            ->paginate(PerPage::resolve());
 
         return view('livewire.cadastro.produtos.index', [
             'products' => $products,

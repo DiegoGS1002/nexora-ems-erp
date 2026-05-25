@@ -4,6 +4,7 @@ namespace App\Livewire\Fiscal\TipoOperacao;
 
 use App\Enums\TipoMovimentoFiscal;
 use App\Models\TipoOperacaoFiscal;
+use App\Support\PerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -57,7 +58,7 @@ class Index extends Component
             ->when($this->filterMovimento !== '', fn($q) => $q->where('tipo_movimento', $this->filterMovimento))
             ->when($this->filterCfop !== '', fn($q) => $q->where('cfop', 'like', "%{$this->filterCfop}%"))
             ->orderBy('codigo')
-            ->paginate(15);
+            ->paginate(PerPage::resolve());
 
         return view('livewire.fiscal.tipo-operacao.index', [
             'operacoes'  => $operacoes,

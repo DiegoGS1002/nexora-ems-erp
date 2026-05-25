@@ -7,6 +7,7 @@ use App\Livewire\Forms\ContasPagarForm;
 use App\Models\AccountPayable;
 use App\Models\PlanOfAccount;
 use App\Models\Supplier;
+use App\Support\PerPage;
 use App\Services\ContasPagarService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
@@ -95,7 +96,7 @@ class ContasPagar extends Component
             $query->whereYear('due_date_at', $year)->whereMonth('due_date_at', $month);
         }
 
-        return $query->paginate(15);
+        return $query->paginate(PerPage::resolve());
     }
 
     /* ─────────────────────────────────────

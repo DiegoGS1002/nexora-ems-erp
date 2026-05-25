@@ -3,6 +3,7 @@
 namespace App\Livewire\Cadastro\UnidadeMedida;
 
 use App\Models\UnitOfMeasure;
+use App\Support\PerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -51,7 +52,7 @@ class Index extends Component
                     ->orWhere('abbreviation', 'like', "%{$this->search}%");
             })
             ->orderBy('abbreviation')
-            ->paginate(15);
+            ->paginate(PerPage::resolve());
 
         return view('livewire.cadastro.unidade-medida.index', [
             'units' => $units,

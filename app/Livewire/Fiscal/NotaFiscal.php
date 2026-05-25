@@ -5,6 +5,7 @@ namespace App\Livewire\Fiscal;
 use App\Enums\FiscalNoteStatus;
 use App\Models\Client;
 use App\Models\FiscalNote;
+use App\Support\PerPage;
 use App\Services\NFeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -112,7 +113,7 @@ class NotaFiscal extends Component
             $query->where('environment', $this->filterEnv);
         }
 
-        return $query->paginate(15);
+        return $query->paginate(PerPage::resolve());
     }
 
     /* ─────────────────────────────────────
