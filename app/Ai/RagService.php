@@ -478,10 +478,10 @@ class RagService
             return null;
         }
 
-        $maxAttempts = 5;
-        $delay       = 2; // seconds
+        // Free-tier OpenAI: ~3 RPM → wait 30s, 60s, 120s between retries
+        $delays = [30, 60, 120];
 
-        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+        for ($attempt = 0; $attempt <= count($delays); $attempt++) {
             try {
                 $response = OpenAI::embeddings()->create([
                     'model'      => self::EMBEDDING_MODEL,
@@ -493,20 +493,20 @@ class RagService
             } catch (\Throwable $e) {
                 $msg = $e->getMessage();
 
-                // Rate limit or overload — retry with exponential backoff
                 $isRateLimit = str_contains($msg, 'rate limit')
                     || str_contains($msg, 'Rate limit')
                     || str_contains($msg, '429')
                     || str_contains($msg, 'overloaded');
 
-                if ($isRateLimit && $attempt < $maxAttempts) {
-                    $wait = $delay * (2 ** ($attempt - 1)); // 2, 4, 8, 16 seconds
-                    Log::warning("RagService: rate limit, aguardando {$wait}s (tentativa {$attempt}/{$maxAttempts}).");
+                if ($isRateLimit && $attempt < count($delays)) {
+                    $wait = $delays[$attempt];
+                    Log::warning("RagService: rate limit, aguardando {$wait}s (tentativa " . ($attempt + 1) . '/' . count($delays) . ').');
                     sleep($wait);
                     continue;
                 }
 
                 Log::error('RagService: erro ao gerar embedding.', ['error' => substr($msg, 0, 300)]);
+
                 return null;
             }
         }

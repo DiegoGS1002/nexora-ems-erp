@@ -140,7 +140,7 @@ class RagSeedCommand extends Command
                 $count++;
             }
 
-            usleep(300000); // 300ms entre chamadas para evitar rate limit
+            sleep(22); // ~3 RPM free-tier limit
         }
 
         $this->line("  <fg=green>{$count} FAQ(s) indexado(s).</>");
@@ -166,7 +166,7 @@ class RagSeedCommand extends Command
             );
 
             $count += count($docs);
-            usleep(300000);
+            sleep(22);
         }
 
         $this->line("  <fg=green>{$count} chunk(s) de regras indexado(s).</>");
@@ -194,7 +194,7 @@ class RagSeedCommand extends Command
             if ($doc) {
                 $count++;
             }
-            usleep(300000);
+            sleep(22);
         }
 
         $this->line("  <fg=green>{$count} rejeição(ões) SEFAZ indexada(s).</>");
