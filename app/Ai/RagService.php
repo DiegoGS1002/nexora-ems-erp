@@ -478,18 +478,40 @@ class RagService
             return null;
         }
 
-        try {
-            $response = OpenAI::embeddings()->create([
-                'model'      => self::EMBEDDING_MODEL,
-                'input'      => $this->truncateForEmbedding($text),
-                'dimensions' => self::DIMENSIONS,
-            ]);
+        $maxAttempts = 5;
+        $delay       = 2; // seconds
 
-            return $response->embeddings[0]->embedding ?? null;
-        } catch (\Throwable $e) {
-            Log::error('RagService: erro ao gerar embedding.', ['error' => substr($e->getMessage(), 0, 300)]);
-            return null;
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                $response = OpenAI::embeddings()->create([
+                    'model'      => self::EMBEDDING_MODEL,
+                    'input'      => $this->truncateForEmbedding($text),
+                    'dimensions' => self::DIMENSIONS,
+                ]);
+
+                return $response->embeddings[0]->embedding ?? null;
+            } catch (\Throwable $e) {
+                $msg = $e->getMessage();
+
+                // Rate limit or overload — retry with exponential backoff
+                $isRateLimit = str_contains($msg, 'rate limit')
+                    || str_contains($msg, 'Rate limit')
+                    || str_contains($msg, '429')
+                    || str_contains($msg, 'overloaded');
+
+                if ($isRateLimit && $attempt < $maxAttempts) {
+                    $wait = $delay * (2 ** ($attempt - 1)); // 2, 4, 8, 16 seconds
+                    Log::warning("RagService: rate limit, aguardando {$wait}s (tentativa {$attempt}/{$maxAttempts}).");
+                    sleep($wait);
+                    continue;
+                }
+
+                Log::error('RagService: erro ao gerar embedding.', ['error' => substr($msg, 0, 300)]);
+                return null;
+            }
         }
+
+        return null;
     }
 
     // -------------------------------------------------------------------------
@@ -561,6 +583,7 @@ class RagService
     private function truncateForEmbedding(string $text): string
     {
         $maxChars = 8191 * 4;
+
         return mb_strlen($text) > $maxChars ? mb_substr($text, 0, $maxChars) : $text;
     }
 
