@@ -17,8 +17,8 @@ const STATIC_ASSETS = [
     '/offline',
     '/manifest.json',
     '/favicon.ico',
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png',
+    '/pwa-icons/icon-192x192.png',
+    '/pwa-icons/icon-512x512.png',
 ];
 
 // ──────────────────────────────────────────────
@@ -95,8 +95,8 @@ self.addEventListener('push', (event) => {
 
     const options = {
         body: data.body || '',
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-96x96.png',
+        icon: '/pwa-icons/icon-192x192.png',
+        badge: '/pwa-icons/icon-96x96.png',
         vibrate: [200, 100, 200],
         data: { url: data.url || '/' },
         actions: data.actions || [],
@@ -225,7 +225,7 @@ function isStaticAsset(url) {
         url.pathname.startsWith('/js/') ||
         url.pathname.startsWith('/fonts/') ||
         url.pathname.startsWith('/images/') ||
-        url.pathname.startsWith('/icons/') ||
+        url.pathname.startsWith('/pwa-icons/') ||
         /\.(woff2?|ttf|eot|otf|svg|png|jpe?g|gif|webp|ico|css|js)$/.test(url.pathname)
     );
 }

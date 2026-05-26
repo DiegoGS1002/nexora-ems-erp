@@ -7,10 +7,14 @@ use App\Ai\Tools\AnalisarXmlNfeTool;
 use App\Ai\Tools\BuscarCodigoFonteTool;
 use App\Ai\Tools\BuscarPedidoTool;
 use App\Ai\Tools\ConsultarClienteTool;
+use App\Ai\Tools\ConsultarComprasTool;
 use App\Ai\Tools\ConsultarDiagnosticoSefazTool;
 use App\Ai\Tools\ConsultarEstoqueTool;
 use App\Ai\Tools\ConsultarFinanceiroTool;
+use App\Ai\Tools\ConsultarProducaoTool;
+use App\Ai\Tools\ConsultarRhTool;
 use App\Ai\Tools\ConsultarTicketTool;
+use App\Ai\Tools\ConsultarTransporteTool;
 use App\Ai\Tools\InspecionarLogsTool;
 use App\Ai\Tools\VerificarNfeTool;
 
@@ -31,6 +35,10 @@ class ToolRegistry
         $this->register(new ConsultarClienteTool());
         $this->register(new ConsultarEstoqueTool());
         $this->register(new ConsultarFinanceiroTool());
+        $this->register(new ConsultarRhTool());
+        $this->register(new ConsultarComprasTool());
+        $this->register(new ConsultarProducaoTool());
+        $this->register(new ConsultarTransporteTool());
         $this->register(new ConsultarTicketTool());
     }
 

@@ -66,6 +66,75 @@ class RagService
     // -------------------------------------------------------------------------
 
     /**
+     * Armazena um documento SEM embedding (apenas texto, para busca lexical).
+     * Muito mais rápido que store() — não faz chamadas à OpenAI.
+     */
+    public function storeTextOnly(
+        string $titulo,
+        string $conteudo,
+        string $fonte = 'manual',
+        ?string $categoria = null,
+        array $metadados = []
+    ): ?RagDocument {
+        $tokens   = $this->estimateTokens($conteudo);
+        $metaJson = json_encode($metadados, JSON_UNESCAPED_UNICODE);
+        $now      = now()->toDateTimeString();
+
+        if ($this->hasNativeVector()) {
+            $zeroVec = '[' . implode(',', array_fill(0, self::DIMENSIONS, 0)) . ']';
+            DB::statement(
+                'INSERT INTO rag_documents (titulo, conteudo, fonte, categoria, metadados, tokens, embedding, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?, STRING_TO_VECTOR(?), ?, ?)',
+                [$titulo, $conteudo, $fonte, $categoria, $metaJson, $tokens, $zeroVec, $now, $now]
+            );
+        } else {
+            DB::statement(
+                'INSERT INTO rag_documents (titulo, conteudo, fonte, categoria, metadados, tokens, embedding, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?)',
+                [$titulo, $conteudo, $fonte, $categoria, $metaJson, $tokens, $now, $now]
+            );
+        }
+
+        return RagDocument::latest('id')->first();
+    }
+
+    /**
+     * Gera embeddings para documentos que ainda têm vetor zero (indexados sem OpenAI).
+     * Útil para re-vetorizar a base após configurar a chave de API.
+     *
+     * @return int Número de documentos atualizados
+     */
+    public function generateMissingEmbeddings(int $batchSize = 10): int
+    {
+        if (! $this->hasNativeVector() || ! config('openai.api_key')) {
+            return 0;
+        }
+
+        // Documentos com embedding zerado (vetor placeholder)
+        $zeroVec = '[' . implode(',', array_fill(0, self::DIMENSIONS, 0)) . ']';
+        $docs = DB::select(
+            "SELECT id, conteudo FROM rag_documents
+             WHERE embedding = STRING_TO_VECTOR(?) LIMIT ?",
+            [$zeroVec, $batchSize]
+        );
+
+        $updated = 0;
+        foreach ($docs as $doc) {
+            $embedding = $this->embed($doc->conteudo);
+            if ($embedding) {
+                $vecJson = $this->vectorToJson($embedding);
+                DB::statement(
+                    'UPDATE rag_documents SET embedding = STRING_TO_VECTOR(?) WHERE id = ?',
+                    [$vecJson, $doc->id]
+                );
+                $updated++;
+            }
+        }
+
+        return $updated;
+    }
+
+    /**
      * Armazena um documento com seu embedding vetorial.
      *
      * @param  string      $titulo    Título / identificador legível
@@ -83,28 +152,46 @@ class RagService
     ): ?RagDocument {
         $embedding = $this->embed($conteudo);
 
-        if ($embedding === null) {
-            Log::warning('RagService: falha ao gerar embedding — documento não armazenado.', ['titulo' => $titulo]);
-            return null;
-        }
-
         $tokens   = $this->estimateTokens($conteudo);
         $metaJson = json_encode($metadados, JSON_UNESCAPED_UNICODE);
         $now      = now()->toDateTimeString();
-        $vecJson  = $this->vectorToJson($embedding);
 
-        if ($this->hasNativeVector()) {
-            DB::statement(
-                'INSERT INTO rag_documents (titulo, conteudo, fonte, categoria, metadados, tokens, embedding, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, ?, STRING_TO_VECTOR(?), ?, ?)',
-                [$titulo, $conteudo, $fonte, $categoria, $metaJson, $tokens, $vecJson, $now, $now]
-            );
+        if ($embedding !== null) {
+            // Com embedding vetorial (OpenAI disponível)
+            $vecJson = $this->vectorToJson($embedding);
+
+            if ($this->hasNativeVector()) {
+                DB::statement(
+                    'INSERT INTO rag_documents (titulo, conteudo, fonte, categoria, metadados, tokens, embedding, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, STRING_TO_VECTOR(?), ?, ?)',
+                    [$titulo, $conteudo, $fonte, $categoria, $metaJson, $tokens, $vecJson, $now, $now]
+                );
+            } else {
+                DB::statement(
+                    'INSERT INTO rag_documents (titulo, conteudo, fonte, categoria, metadados, tokens, embedding, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [$titulo, $conteudo, $fonte, $categoria, $metaJson, $tokens, $vecJson, $now, $now]
+                );
+            }
         } else {
-            DB::statement(
-                'INSERT INTO rag_documents (titulo, conteudo, fonte, categoria, metadados, tokens, embedding, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [$titulo, $conteudo, $fonte, $categoria, $metaJson, $tokens, $vecJson, $now, $now]
-            );
+            // Sem embedding — armazena apenas o texto para busca lexical
+            Log::info('RagService: armazenando documento sem embedding (busca lexical apenas).', ['titulo' => $titulo]);
+
+            if ($this->hasNativeVector()) {
+                // MySQL 9.x VECTOR NOT NULL — usa vetor zero como placeholder
+                $zeroVec = '[' . implode(',', array_fill(0, self::DIMENSIONS, 0)) . ']';
+                DB::statement(
+                    'INSERT INTO rag_documents (titulo, conteudo, fonte, categoria, metadados, tokens, embedding, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, STRING_TO_VECTOR(?), ?, ?)',
+                    [$titulo, $conteudo, $fonte, $categoria, $metaJson, $tokens, $zeroVec, $now, $now]
+                );
+            } else {
+                DB::statement(
+                    'INSERT INTO rag_documents (titulo, conteudo, fonte, categoria, metadados, tokens, embedding, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?)',
+                    [$titulo, $conteudo, $fonte, $categoria, $metaJson, $tokens, $now, $now]
+                );
+            }
         }
 
         return RagDocument::latest('id')->first();

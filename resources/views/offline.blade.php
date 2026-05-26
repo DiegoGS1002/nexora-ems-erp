@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0B1220">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/pwa-icons/favicon-32x32.png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <title>Sem conexão — Nexora ERP</title>
     <link rel="icon" href="/favicon.ico">
@@ -147,7 +147,7 @@
 </head>
 <body>
 
-    <img src="/icons/icon-128x128.png" alt="Nexora" class="logo">
+    <img src="/pwa-icons/icon-128x128.png" alt="Nexora" class="logo">
 
     <div class="status-badge">
         <span class="status-dot"></span>

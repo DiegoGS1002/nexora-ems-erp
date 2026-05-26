@@ -402,6 +402,8 @@ app/
     SuporteService.php          # Criação e gestão de tickets de suporte
   Observers/            # Observers Eloquent (registrados via atributo #[ObservedBy])
     SalesOrderObserver.php      # Observa eventos do SalesOrder (created/updated/deleted)
+  Support/
+    PerPage.php         # Seletor de itens por página: OPTIONS=[10,20,50,100,200], resolve() lê ?per_page= da URL
 config/
   ai_contexts.php       # Contextos de sistema por módulo (textos de prompt para o assistente IA)
   gemini.php            # Configuração do provedor Google Gemini (api_key, model)
@@ -412,6 +414,13 @@ database/
     AdminUserSeeder.php   # Cria usuário administrador padrão
     ClientSeeder.php      # Carga inicial de clientes
     DatabaseSeeder.php    # Orquestrador principal
+    ProductSeeder.php     # Carga inicial de produtos
+    RagKnowledgeSeeder.php  # 47 documentos RAG (todos os módulos — executar + ai:vectorize para embeddings)
+    SefazDiagnosticsSeeder.php # 21 diagnósticos determinísticos de rejeição SEFAZ
+    SettingsSeeder.php    # Valores padrão das 9 seções de configuração
+    SupplierSeeder.php    # Carga inicial de fornecedores
+    SystemLogSeeder.php   # Logs de exemplo para desenvolvimento
+    UserSeeder.php        # Usuários de exemplo para desenvolvimento
     ProductSeeder.php     # Carga inicial de produtos
     SettingsSeeder.php    # Valores padrão das 9 seções de configuração
     SupplierSeeder.php    # Carga inicial de fornecedores
@@ -2900,6 +2909,7 @@ php artisan about
 ## Diretrizes de Desenvolvimento
 
 - **Controllers**: slim — lógica de negócio em classes de serviço em `app/Services/`.
+- **Paginação**: usar `->paginate(PerPage::resolve())` em todos os componentes Livewire. A view customizada `vendor/pagination/tailwind.blade.php` já exibe o seletor de itens por página (10/20/50/100/200). Nunca usar `->paginate(15)` com valor fixo.
 - **Livewire**: componentes full-page usam `#[Layout('layouts.app')]` e `#[Title('...')]`.
 - **CSS**: edite apenas os arquivos parciais em `resources/css/`; rode `npm run build` após cada alteração em produção.
 - **Enums**: sempre em `app/Enums/`, com cast no modelo e uso em toda a aplicação.

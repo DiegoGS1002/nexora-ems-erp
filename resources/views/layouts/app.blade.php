@@ -9,9 +9,9 @@
          FAVICON — aba do navegador (logo Nexora)
          ═══════════════════════════════════════════ --}}
     <link rel="icon" type="image/x-icon"  href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16"  href="/icons/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32"  href="/icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="16x16"  href="/pwa-icons/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32"  href="/pwa-icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-icons/icon-192x192.png">
     <link rel="shortcut icon" href="/favicon.ico">
 
     {{-- ═══════════════════════════════════════════
@@ -30,13 +30,13 @@
     <meta name="apple-mobile-web-app-title" content="Nexora ERP">
     <link rel="apple-touch-icon"              href="/apple-touch-icon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/pwa-icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/pwa-icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="/pwa-icons/icon-128x128.png">
 
     {{-- Windows / Edge pinned tile --}}
     <meta name="msapplication-TileColor"    content="#0B1220">
-    <meta name="msapplication-TileImage"    content="/icons/icon-144x144.png">
+    <meta name="msapplication-TileImage"    content="/pwa-icons/icon-144x144.png">
     <meta name="msapplication-config"       content="none">
 
     <title>{{ $title ?? trim($__env->yieldContent('title', 'Nexora ERP')) }} — Nexora</title>
@@ -101,8 +101,14 @@
         @if(! auth()->user()->is_admin && auth()->user()->is_active && ! auth()->user()->has_license)
         {{-- Modal styling is handled by the design system CSS (resources/css/_components.css). Removed inline critical styles to keep markup consistent with system design. --}}
 
-            <div id="nx-license-overlay" class="nx-license-overlay" role="dialog" aria-modal="true" aria-labelledby="nx-license-title">
-                <div class="nx-license-modal">
+            <div id="nx-license-overlay" class="nx-license-overlay" role="dialog" aria-modal="true" aria-labelledby="nx-license-title"
+                 style="position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;
+                        display:flex;align-items:center;justify-content:center;
+                        z-index:99999;background:rgba(15,23,42,0.70);
+                        backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+                        margin:0;padding:20px;box-sizing:border-box;
+                        opacity:0;pointer-events:none;transition:opacity 0.28s ease;">
+                <div class="nx-license-modal" style="position:relative;width:100%;max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 24px 64px rgba(2,6,23,0.36);border:1px solid rgba(245,158,11,0.18);">
 
                     {{-- Botão X — fechar --}}
                     <button onclick="nxLicenseClose()" class="nx-license-modal-x" aria-label="Fechar aviso">
@@ -174,18 +180,34 @@
                 var SHOW_MS   = 8000;   // visível 8 s, depois fecha sozinho
                 var CYCLE_S   = 15;     // segundos até reaparecer após fechar
 
-                var overlay   = document.getElementById('nx-license-overlay');
-                var bar       = document.getElementById('nx-license-bar');
-                var timerEl   = document.getElementById('nx-license-timer');
-                var secondsEl = document.getElementById('nx-license-seconds');
-
                 var autoCloseTimer, countdownInterval, reopenTimer;
 
+                function getEls() {
+                    return {
+                        overlay:   document.getElementById('nx-license-overlay'),
+                        bar:       document.getElementById('nx-license-bar'),
+                        timerEl:   document.getElementById('nx-license-timer'),
+                        secondsEl: document.getElementById('nx-license-seconds'),
+                    };
+                }
+
                 function showModal() {
+                    var els = getEls();
+                    var overlay = els.overlay;
+                    var bar = els.bar;
+                    var timerEl = els.timerEl;
                     if (!overlay) return;
                     clearTimeout(reopenTimer);
                     clearInterval(countdownInterval);
                     if (timerEl) timerEl.style.display = 'none';
+
+                    // Garantir posicionamento correto via inline style (irrefutável)
+                    overlay.style.cssText = 'position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;' +
+                        'width:100vw!important;height:100vh!important;z-index:99999!important;' +
+                        'display:flex!important;align-items:center!important;justify-content:center!important;' +
+                        'background:rgba(15,23,42,0.70);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);' +
+                        'margin:0!important;padding:20px;box-sizing:border-box;' +
+                        'opacity:1;pointer-events:all;transition:opacity 0.28s ease;';
 
                     overlay.classList.add('nx-license-overlay--visible');
 
@@ -206,8 +228,15 @@
                 }
 
                 function closeModal() {
+                    var els = getEls();
+                    var overlay = els.overlay;
+                    var bar = els.bar;
+                    var timerEl = els.timerEl;
+                    var secondsEl = els.secondsEl;
                     if (!overlay) return;
                     overlay.classList.remove('nx-license-overlay--visible');
+                    overlay.style.opacity = '0';
+                    overlay.style.pointerEvents = 'none';
                     if (bar) bar.classList.remove('nx-running');
                     clearTimeout(autoCloseTimer);
 
@@ -221,17 +250,20 @@
                         remaining--;
                         if (remaining <= 0) {
                             clearInterval(countdownInterval);
-                            if (timerEl) timerEl.style.display = 'none';
+                            var te = document.getElementById('nx-license-timer');
+                            if (te) te.style.display = 'none';
                             return;
                         }
-                        if (secondsEl) secondsEl.textContent = remaining;
+                        var se = document.getElementById('nx-license-seconds');
+                        if (se) se.textContent = remaining;
                     }, 1000);
 
                     // Reabre após CYCLE_S segundos
                     clearTimeout(reopenTimer);
                     reopenTimer = setTimeout(function () {
                         clearInterval(countdownInterval);
-                        if (timerEl) timerEl.style.display = 'none';
+                        var te = document.getElementById('nx-license-timer');
+                        if (te) te.style.display = 'none';
                         showModal();
                     }, CYCLE_S * 1000);
                 }
@@ -240,14 +272,28 @@
                 window.nxLicenseClose = closeModal;
 
                 // Fecha ao clicar no overlay (fora do modal)
-                if (overlay) {
-                    overlay.addEventListener('click', function (e) {
-                        if (e.target === overlay) closeModal();
-                    });
+                function bindOverlayClick() {
+                    var ov = document.getElementById('nx-license-overlay');
+                    if (ov && !ov._nxBound) {
+                        ov._nxBound = true;
+                        ov.addEventListener('click', function (e) {
+                            if (e.target === ov) closeModal();
+                        });
+                    }
                 }
+                bindOverlayClick();
 
                 // Primeira exibição: 1,5 s após carregar
                 setTimeout(showModal, 1500);
+
+                // Re-inicializar após wire:navigate (Livewire SPA)
+                document.addEventListener('livewire:navigated', function () {
+                    clearTimeout(autoCloseTimer);
+                    clearTimeout(reopenTimer);
+                    clearInterval(countdownInterval);
+                    bindOverlayClick();
+                    setTimeout(showModal, 1500);
+                });
             })();
             </script>
         @endif
