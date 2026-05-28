@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+
 use App\Http\Requests\Api\StoreStockMovementRequest;
 use App\Http\Requests\Api\UpdateStockMovementRequest;
 use App\Models\Entrance;

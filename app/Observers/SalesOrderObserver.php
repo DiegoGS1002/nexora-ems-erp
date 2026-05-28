@@ -14,18 +14,10 @@ use Illuminate\Support\Facades\Log;
 
 class SalesOrderObserver
 {
-    /**
-     * Handle the SalesOrder "created" event.
-     */
     public function created(SalesOrder $salesOrder): void
     {
-        // Garante que os itens e produtos estejam carregados
         $salesOrder->load('items.product');
-
-        // Registrar log de auditoria
         $salesOrder->logAction('created', 'Pedido criado');
-
-        // Verifica se precisa de aprovação
         $this->checkIfNeedsApproval($salesOrder);
 
         Log::info("Pedido {$salesOrder->order_number} criado", [
@@ -35,12 +27,8 @@ class SalesOrderObserver
         ]);
     }
 
-    /**
-     * Handle the SalesOrder "updated" event.
-     */
     public function updated(SalesOrder $salesOrder): void
     {
-        // Se mudou de status — registrar log de auditoria + tratar negócio
         if ($salesOrder->wasChanged('status')) {
             $oldRaw = $salesOrder->getOriginal('status');
             $oldValue = $oldRaw instanceof \BackedEnum ? $oldRaw->value : (string) $oldRaw;
@@ -54,15 +42,11 @@ class SalesOrderObserver
             $this->handleStatusChange($salesOrder);
         }
 
-        // Se foi aprovado
         if ($salesOrder->wasChanged('approved_at') && $salesOrder->approved_at) {
             $this->handleApproval($salesOrder);
         }
     }
 
-    /**
-     * Handle the SalesOrder "deleted" event.
-     */
     public function deleted(SalesOrder $salesOrder): void
     {
         Log::warning("Pedido {$salesOrder->order_number} deletado", [
@@ -70,27 +54,21 @@ class SalesOrderObserver
         ]);
     }
 
-    /**
-     * Verifica se o pedido precisa de aprovação
-     */
     protected function checkIfNeedsApproval(SalesOrder $salesOrder): void
     {
         $needsApproval = false;
         $reasons = [];
 
-        // Verifica NCM e Grupo Tributário para pedidos fiscais
         if ($salesOrder->is_fiscal) {
             $itemsWithoutNCM = [];
             $itemsWithoutGrupoTributario = [];
 
             foreach ($salesOrder->items as $item) {
-                // Verifica NCM no item ou no produto
                 $hasNCM = !empty($item->ncm) || (!empty($item->product) && !empty($item->product->ncm));
                 if (!$hasNCM) {
                     $itemsWithoutNCM[] = $item->description ?? $item->product?->name ?? "Item #{$item->id}";
                 }
 
-                // Verifica Grupo Tributário no produto
                 if ($item->product && empty($item->product->grupo_tributario_id)) {
                     $itemsWithoutGrupoTributario[] = $item->product->name ?? "Item #{$item->id}";
                 }
@@ -109,7 +87,6 @@ class SalesOrderObserver
             }
         }
 
-        // Verifica desconto alto (acima de 10%)
         if ($salesOrder->total_amount > 0 && $salesOrder->gross_total > 0) {
             $discountPercent = ($salesOrder->discount_amount / $salesOrder->gross_total) * 100;
             if ($discountPercent > 10) {
@@ -118,19 +95,16 @@ class SalesOrderObserver
             }
         }
 
-        // Verifica se cliente é inadimplente
         if ($salesOrder->client && $salesOrder->client->isDefaulter()) {
             $needsApproval = true;
             $reasons[] = "Cliente inadimplente";
         }
 
-        // Verifica limite de crédito
         if ($salesOrder->client && !$salesOrder->client->hasAvailableCredit($salesOrder->total_amount ?? 0)) {
             $needsApproval = true;
             $reasons[] = "Limite de crédito excedido";
         }
 
-        // Verifica valor alto (acima de R$ 10.000)
         if (($salesOrder->total_amount ?? 0) > 10000) {
             $needsApproval = true;
             $reasons[] = "Valor acima de R$ 10.000,00";
@@ -139,7 +113,7 @@ class SalesOrderObserver
         if ($needsApproval) {
             $salesOrder->needs_approval = true;
             $salesOrder->approval_reason = implode('; ', $reasons);
-            $salesOrder->saveQuietly(); // Salva sem disparar eventos novamente
+            $salesOrder->saveQuietly();
 
             Log::info("Pedido {$salesOrder->order_number} marcado para aprovação", [
                 'reasons' => $reasons,
@@ -147,9 +121,6 @@ class SalesOrderObserver
         }
     }
 
-    /**
-     * Trata mudança de status
-     */
     protected function handleStatusChange(SalesOrder $salesOrder): void
     {
         $oldRaw = $salesOrder->getOriginal('status');
@@ -162,36 +133,20 @@ class SalesOrderObserver
         ]);
 
         match ($newStatus) {
-            SalesOrderStatus::Approved     => $this->onApproved($salesOrder),
-            SalesOrderStatus::EmSeparacao  => $this->onSeparation($salesOrder),
-            SalesOrderStatus::Invoiced     => $this->onInvoiced($salesOrder),
+            SalesOrderStatus::Approved      => $this->onApproved($salesOrder),
+            SalesOrderStatus::EmSeparacao   => $this->onSeparation($salesOrder),
+            SalesOrderStatus::Invoiced      => $this->onInvoiced($salesOrder),
             SalesOrderStatus::NfTransmitida => $this->onNfTransmitida($salesOrder),
-            SalesOrderStatus::Cancelled    => $this->onCancelled($salesOrder),
+            SalesOrderStatus::Cancelled     => $this->onCancelled($salesOrder),
             default => null,
         };
     }
 
-    /**
-     * Quando pedido é aprovado
-     */
     protected function onApproved(SalesOrder $salesOrder): void
     {
-        // Aqui você pode:
-        // - Reservar estoque
-        // - Enviar notificação para separação
-        // - Criar registros financeiros
-
         Log::info("Pedido {$salesOrder->order_number} aprovado - iniciando reserva de estoque");
-
-        // Exemplo: reservar estoque
-        // foreach ($salesOrder->items as $item) {
-        //     StockReservation::create([...]);
-        // }
     }
 
-    /**
-     * Quando pedido entra em separação — debita estoque reservado
-     */
     protected function onSeparation(SalesOrder $salesOrder): void
     {
         if (!$salesOrder->separation_date) {
@@ -201,7 +156,6 @@ class SalesOrderObserver
 
         Log::info("Pedido {$salesOrder->order_number} entrou em separação");
 
-        // Estoque — saída (output) por item do pedido
         DB::transaction(function () use ($salesOrder) {
             $salesOrder->loadMissing('items.product');
             foreach ($salesOrder->items as $item) {
@@ -217,7 +171,6 @@ class SalesOrderObserver
                     'observation' => 'Separação do Pedido #' . $salesOrder->order_number,
                 ]);
 
-                // Decrementa o estoque do produto
                 if ($item->product && $item->product->stock >= $item->quantity) {
                     $item->product->decrement('stock', $item->quantity);
                 }
@@ -225,9 +178,6 @@ class SalesOrderObserver
         });
     }
 
-    /**
-     * Quando pedido é faturado — gera contas a receber e rascunho de NF-e
-     */
     protected function onInvoiced(SalesOrder $salesOrder): void
     {
         Log::info("Pedido {$salesOrder->order_number} faturado");
@@ -235,7 +185,6 @@ class SalesOrderObserver
         DB::transaction(function () use ($salesOrder) {
             $salesOrder->loadMissing('installments', 'client');
 
-            // 1. Financeiro — criar contas a receber por parcela
             $installments = $salesOrder->installments;
             if ($installments->isNotEmpty()) {
                 foreach ($installments as $i => $installment) {
@@ -252,7 +201,6 @@ class SalesOrderObserver
                     ]);
                 }
             } elseif ($salesOrder->total_amount > 0) {
-                // Sem parcelas definidas — uma única conta a receber
                 AccountReceivable::create([
                     'description_title'  => 'Pedido #' . $salesOrder->order_number,
                     'client_id'          => $salesOrder->client_id,
@@ -265,7 +213,6 @@ class SalesOrderObserver
                 ]);
             }
 
-            // 2. Fiscal — criar rascunho de NF-e se pedido fiscal
             if ($salesOrder->is_fiscal) {
                 FiscalNote::create([
                     'client_id'      => $salesOrder->client_id,
@@ -281,9 +228,6 @@ class SalesOrderObserver
         });
     }
 
-    /**
-     * Quando pedido é cancelado — reverte estoque, cancela contas a receber e NF-e rascunho
-     */
     protected function onCancelled(SalesOrder $salesOrder): void
     {
         Log::warning("Pedido {$salesOrder->order_number} cancelado — iniciando reversão");
@@ -291,11 +235,9 @@ class SalesOrderObserver
         DB::transaction(function () use ($salesOrder) {
             $salesOrder->loadMissing('items.product');
 
-            // 1. Reverter movimentações de estoque (criar entrada de devolução)
             foreach ($salesOrder->items as $item) {
                 if (!$item->product_id) continue;
 
-                // Verifica se já havia saída de estoque para este pedido
                 $hadOutput = StockMovement::where('origin', 'sales_order')
                     ->where('observation', 'like', '%#' . $salesOrder->order_number . '%')
                     ->where('type', 'output')
@@ -313,19 +255,16 @@ class SalesOrderObserver
                         'observation' => 'Cancelamento do Pedido #' . $salesOrder->order_number,
                     ]);
 
-                    // Incrementa estoque do produto
                     if ($item->product) {
                         $item->product->increment('stock', $item->quantity);
                     }
                 }
             }
 
-            // 2. Cancelar contas a receber pendentes geradas por este pedido
             AccountReceivable::where('observation', 'like', '%Pedido de Venda #' . $salesOrder->order_number . '%')
                 ->whereIn('status', [ReceivableStatus::Pending->value, ReceivableStatus::Overdue->value])
                 ->update(['status' => ReceivableStatus::Cancelled->value]);
 
-            // 3. Cancelar NF-e rascunho associada (apenas rascunhos — autorizadas precisam cancelar na SEFAZ)
             FiscalNote::where('sales_order_id', $salesOrder->id)
                 ->where('status', FiscalNoteStatus::Draft->value)
                 ->update(['status' => FiscalNoteStatus::Cancelled->value]);
@@ -334,25 +273,13 @@ class SalesOrderObserver
         });
     }
 
-    /**
-     * Quando NF-e é transmitida e autorizada pela SEFAZ
-     */
     protected function onNfTransmitida(SalesOrder $salesOrder): void
     {
         Log::info("Pedido {$salesOrder->order_number} — NF-e transmitida/autorizada");
-        // Aqui pode disparar notificação ao cliente, etc.
     }
 
-    /**
-     * Quando pedido é aprovado (approved_at preenchido)
-     */
     protected function handleApproval(SalesOrder $salesOrder): void
     {
         Log::info("Pedido {$salesOrder->order_number} aprovado por {$salesOrder->approver->name}");
-
-        // Notificar vendedor
-        // Notificar cliente
-        // event(new SalesOrderApproved($salesOrder));
     }
 }
-

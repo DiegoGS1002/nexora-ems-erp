@@ -33,13 +33,7 @@ Route::middleware(['auth', 'midnight.session', MaintenanceERP::class])->group(fu
 
     Route::get('/suporte/chat', ChatSuporte::class)->name('suporte.chat');
 
-/*
-|--------------------------------------------------------------------------
-| PRINT ROUTES (ficam aqui para evitar conflito)
-|--------------------------------------------------------------------------
-*/
-
-require __DIR__.'/administracao.php';
+    require __DIR__.'/administracao.php';
 require __DIR__.'/cadastro.php';
 require __DIR__.'/compras.php';
 require __DIR__.'/producao.php';

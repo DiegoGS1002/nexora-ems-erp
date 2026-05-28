@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+
 use App\Http\Requests\Api\StoreAccountReceivableRequest;
 use App\Http\Requests\Api\UpdateAccountReceivableRequest;
 use App\Models\AccountReceivable;

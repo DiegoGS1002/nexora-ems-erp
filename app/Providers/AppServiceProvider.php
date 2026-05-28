@@ -10,30 +10,16 @@ use App\Observers\SalesOrderObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Force HTTPS only when explicitly enabled via FORCE_HTTPS=true in .env.bak
-        // Do NOT rely on APP_ENV to decide this — always configure explicitly.
         if (config('app.force_https', false)) {
             URL::forceScheme('https');
         }
 
         SalesOrder::observe(SalesOrderObserver::class);
 
-        // ── NexPagination: define o template padrão para controladores
-        //    não-Livewire. Componentes Livewire usam vendor/livewire/tailwind.blade.php
-        //    automaticamente via SupportPagination.
         Paginator::defaultView('vendor.pagination.tailwind');
         Paginator::defaultSimpleView('vendor.pagination.simple-tailwind');
     }

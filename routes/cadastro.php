@@ -24,30 +24,11 @@ use App\Livewire\Cadastro\Veiculos\Form as VehicleForm;
 use App\Livewire\Cadastro\Veiculos\Index as VehicleIndex;
 use App\Http\Controllers\ProductSupplierController;
 
-/*
-|--------------------------------------------------------------------------
-| PRINT
-|--------------------------------------------------------------------------
-*/
-
 Route::get('/clients/print', [ClientController::class, 'print'])->name('clients.print');
 Route::get('/products/print', [ProductController::class, 'print'])->name('products.print');
 Route::get('/suppliers/print', [SupplierController::class, 'print'])->name('suppliers.print');
-Route::get('/employees/print', [
-    App\Http\Controllers\EmployeeController::class,
-    'print'
-])->name('employees.print');
-Route::get('/vehicles/print', [
-    App\Http\Controllers\VehicleController::class,
-    'print'
-])->name('vehicles.print');
-
-
-/*
-|--------------------------------------------------------------------------
-| RESOURCES
-|--------------------------------------------------------------------------
-*/
+Route::get('/employees/print', [EmployeeController::class, 'print'])->name('employees.print');
+Route::get('/vehicles/print', [VehicleController::class, 'print'])->name('vehicles.print');
 
 Route::get('/clients', ClientIndex::class)->name('clients.index');
 Route::get('/clients/create', ClientForm::class)->name('clients.create');
@@ -74,12 +55,6 @@ Route::get('/unit-of-measures', UnitOfMeasureIndex::class)->name('unit-of-measur
 Route::get('/unit-of-measures/create', UnitOfMeasureForm::class)->name('unit-of-measures.create');
 Route::get('/unit-of-measures/{unit}/edit', UnitOfMeasureForm::class)->name('unit-of-measures.edit');
 
-
-/*
-|--------------------------------------------------------------------------
-| PRODUCT SUPPLIERS
-|--------------------------------------------------------------------------
-*/
 
 Route::get('/products/{product}/suppliers', [ProductSupplierController::class, 'index'])->name('products.suppliers.index');
 Route::post('/products/{product}/suppliers', [ProductSupplierController::class, 'store'])->name('products.suppliers.store');

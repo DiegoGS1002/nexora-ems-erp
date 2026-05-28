@@ -19,7 +19,6 @@ class Product extends Model
     protected string $logModule = 'Cadastros';
     protected string $logName   = 'Produto';
 
-    protected $primaryKey = 'id';
     public $incrementing = false;
     protected $keyType = 'string';
 

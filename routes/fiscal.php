@@ -10,28 +10,20 @@ use App\Livewire\Fiscal\TipoOperacao\Form as TipoOperacaoForm;
 use App\Livewire\Fiscal\GrupoTributario\Index as GrupoTributarioIndex;
 use App\Livewire\Fiscal\GrupoTributario\Form as GrupoTributarioForm;
 
-/* ─── Notas Fiscais Eletrônicas (Livewire) ─── */
 Route::get('/fiscal/notas-fiscais', NotaFiscal::class)->name('fiscal.nfe.index');
-
-/* ─── Gestão Individual de NF-e (visualizar, transmitir, eventos) ─── */
 Route::get('/fiscal/nfe/{noteId}/editar', NFeGestao::class)->name('fiscal.nfe.editar');
-
-/* ─── Notas Fiscais de Saída — aponta para o mesmo componente de NF-e ─── */
 Route::get('/fiscal/saida', NotaFiscal::class)->name('fiscal.exit.index');
 
-/* ─── Tipos de Operação Fiscal (Livewire) ─── */
 Route::get('/fiscal/tipos-operacao', TipoOperacaoIndex::class)->name('fiscal.tipo-operacao.index');
 Route::get('/fiscal/tipos-operacao/create', TipoOperacaoForm::class)->name('fiscal.tipo-operacao.create');
 Route::get('/fiscal/tipos-operacao/{operacao}/edit', TipoOperacaoForm::class)->name('fiscal.tipo-operacao.edit');
 
-/* ─── Grupos Tributários (Livewire) ─── */
 Route::get('/fiscal/grupos-tributarios', GrupoTributarioIndex::class)->name('fiscal.grupo-tributario.index');
 Route::get('/fiscal/grupos-tributarios/create', GrupoTributarioForm::class)->name('fiscal.grupo-tributario.create');
 Route::get('/fiscal/grupos-tributarios/{grupo}/edit', GrupoTributarioForm::class)->name('fiscal.grupo-tributario.edit');
 
 Route::resource('/fiscal/entrada', EntranceController::class)->names('fiscal.entrance');
 
-/* ─── API NF-e (SEFAZ) ─── */
 Route::prefix('api/nfe')->middleware('auth')->group(function () {
     Route::post('/{note}/transmitir', [NFeController::class, 'transmitir'])->name('api.nfe.transmitir');
     Route::post('/{note}/cancelar', [NFeController::class, 'cancelar'])->name('api.nfe.cancelar');
@@ -41,4 +33,3 @@ Route::prefix('api/nfe')->middleware('auth')->group(function () {
     Route::get('/{note}/danfe/visualizar', [NFeController::class, 'visualizarDanfe'])->name('api.nfe.danfe.visualizar');
     Route::get('/{note}/xml', [NFeController::class, 'xml'])->name('api.nfe.xml');
 });
-
