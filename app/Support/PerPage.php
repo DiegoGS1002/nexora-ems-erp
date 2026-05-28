@@ -5,9 +5,15 @@ namespace App\Support;
 final class PerPage
 {
     /**
+     * Opções permitidas de itens por página.
+     * Padrão enterprise: 10, 25, 50, 100
+     *
      * @var array<int>
      */
-    public const OPTIONS = [10, 20, 50, 100, 200];
+    public const OPTIONS = [10, 25, 50, 100];
+
+    /** Valor padrão global */
+    public const DEFAULT = 10;
 
     public static function resolve(int $default = 10, string $queryParam = 'per_page'): int
     {

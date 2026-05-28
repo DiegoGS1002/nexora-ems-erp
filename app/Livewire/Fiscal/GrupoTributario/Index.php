@@ -5,6 +5,7 @@ namespace App\Livewire\Fiscal\GrupoTributario;
 use App\Enums\RegimeTributario;
 use App\Models\GrupoTributario;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -16,6 +17,7 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     #[Url(as: 'search')]
     public string $search = '';
@@ -55,7 +57,7 @@ class Index extends Component
             })
             ->when($this->filterRegime !== '', fn($q) => $q->where('regime_tributario', $this->filterRegime))
             ->orderBy('codigo')
-            ->paginate(PerPage::resolve());
+            ->paginate($this->perPage);
 
         return view('livewire.fiscal.grupo-tributario.index', [
             'grupos'  => $grupos,

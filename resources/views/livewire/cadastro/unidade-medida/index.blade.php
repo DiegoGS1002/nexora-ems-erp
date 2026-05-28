@@ -104,9 +104,8 @@
             </table>
         </div>
         <div class="nx-table-footer">
-            <span class="nx-table-count">{{ $units->total() }} {{ $units->total() === 1 ? 'unidade' : 'unidades' }}</span>
-            <div class="nx-pagination">{{ $units->links() }}</div>
-        </div>
+                {{ $units->links() }}
+            </div>
         @endif
     </div>
 

@@ -269,8 +269,8 @@
 
         {{-- ── Rodapé: contagem + paginação + per-page ─── --}}
         <div class="nx-table-footer">
-            <div class="nx-pagination">{{ $logs->links() }}</div>
-        </div>
+                {{ $logs->links() }}
+            </div>
 
         @endif
     </div>

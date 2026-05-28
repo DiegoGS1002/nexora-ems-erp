@@ -177,9 +177,8 @@
             </table>
         </div>
         <div class="nx-table-footer">
-            <span class="nx-table-count">{{ $operacoes->total() }} {{ $operacoes->total() === 1 ? 'tipo' : 'tipos' }} de operação</span>
-            <div class="nx-pagination">{{ $operacoes->links() }}</div>
-        </div>
+                {{ $operacoes->links() }}
+            </div>
         @endif
     </div>
 

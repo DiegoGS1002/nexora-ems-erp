@@ -396,12 +396,7 @@
         {{-- Footer / Pagination --}}
         @if($accounts->hasPages())
             <div class="nx-table-footer">
-                <span class="nx-table-count">
-                    Exibindo {{ $accounts->firstItem() }}–{{ $accounts->lastItem() }} de {{ $accounts->total() }} registros
-                </span>
-                <div class="nx-pagination">
-                    {{ $accounts->links() }}
-                </div>
+                {{ $accounts->links() }}
             </div>
         @else
             <div class="nx-table-footer">

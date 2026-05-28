@@ -18,6 +18,11 @@ class SalesOrderSeeder extends Seeder
 {
     public function run(): void
     {
+        if (SalesOrder::count() > 0) {
+            $this->command->warn('Pedidos de venda já existem. Seeder ignorado.');
+            return;
+        }
+
         $clients  = Client::all();
         $products = Product::where('is_active', true)->take(20)->get();
         $sellers  = User::where('is_active', true)->take(3)->get();

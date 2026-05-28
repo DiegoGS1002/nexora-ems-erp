@@ -10,6 +10,7 @@ use App\Models\SchedulingOfDeliveries;
 use App\Models\SalesOrder;
 use App\Models\Vehicle;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -22,6 +23,7 @@ use Livewire\WithPagination;
 class AgendamentoEntregas extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     /* ─── Filtros ─── */
     public string $search         = '';
@@ -75,7 +77,7 @@ class AgendamentoEntregas extends Component
             ->when($this->filterDate,   fn($q) => $q->whereDate('delivery_date', $this->filterDate))
             ->when($this->filterPriority, fn($q) => $q->where('priority', $this->filterPriority))
             ->latest()
-            ->paginate(PerPage::resolve());
+            ->paginate($this->perPage);
     }
 
     #[Computed]

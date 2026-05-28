@@ -158,9 +158,8 @@
             </table>
         </div>
         <div class="nx-table-footer">
-            <span class="nx-table-count">{{ $grupos->total() }} {{ $grupos->total() === 1 ? 'grupo' : 'grupos' }}</span>
-            <div class="nx-pagination">{{ $grupos->links() }}</div>
-        </div>
+                {{ $grupos->links() }}
+            </div>
         @endif
     </div>
 

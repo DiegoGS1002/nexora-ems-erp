@@ -217,7 +217,7 @@
 
             {{-- ── Rodapé paginação ── --}}
             <div class="nx-table-footer">
-                <div class="nx-pagination">{{ $notifications->links() }}</div>
+                {{ $notifications->links() }}
             </div>
         @endif
 

@@ -10,6 +10,11 @@ class SystemLogSeeder extends Seeder
 {
     public function run(): void
     {
+        if (SystemLog::count() > 0) {
+            $this->command->warn('Logs do sistema já existem. Seeder ignorado.');
+            return;
+        }
+
         $admin = User::where('is_admin', true)->first();
         $user  = User::where('is_admin', false)->first();
 

@@ -5,6 +5,7 @@ namespace App\Livewire\Cadastro\Produtos;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -17,6 +18,7 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     #[Url(as: 'search')]
     public string $search = '';
@@ -113,7 +115,7 @@ class Index extends Component
                 $query->whereNull('expiration_date');
             })
             ->orderBy('name')
-            ->paginate(PerPage::resolve());
+            ->paginate($this->perPage);
 
         return view('livewire.cadastro.produtos.index', [
             'products' => $products,

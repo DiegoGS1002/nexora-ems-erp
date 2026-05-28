@@ -14,6 +14,11 @@ class ProductionOrderSeeder extends Seeder
 {
     public function run(): void
     {
+        if (ProductionOrder::count() > 0) {
+            $this->command->warn('Ordens de produção já existem. Seeder ignorado.');
+            return;
+        }
+
         $products = Product::where('is_active', true)->take(20)->get();
         $users    = User::where('is_active', true)->take(3)->get();
 

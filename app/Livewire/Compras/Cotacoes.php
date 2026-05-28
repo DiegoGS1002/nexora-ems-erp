@@ -13,6 +13,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -26,6 +27,7 @@ use Livewire\WithPagination;
 class Cotacoes extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     /* ─── Filters ─── */
     public string $search       = '';
@@ -75,7 +77,7 @@ class Cotacoes extends Component
             })
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->latest()
-            ->paginate(PerPage::resolve());
+            ->paginate($this->perPage);
     }
 
     #[Computed]

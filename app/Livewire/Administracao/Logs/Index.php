@@ -4,6 +4,7 @@ namespace App\Livewire\Administracao\Logs;
 
 use App\Models\SystemLog;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -14,6 +15,7 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     /* ── Filtros ────────────────────────────────────────── */
     public string $search        = '';

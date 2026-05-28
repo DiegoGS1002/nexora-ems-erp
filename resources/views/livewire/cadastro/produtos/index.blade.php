@@ -157,9 +157,8 @@
             </table>
         </div>
         <div class="nx-table-footer">
-            <span class="nx-table-count">{{ $products->total() }} {{ $products->total() === 1 ? 'produto' : 'produtos' }}</span>
-            <div class="nx-pagination">{{ $products->links() }}</div>
-        </div>
+                {{ $products->links() }}
+            </div>
         @endif
     </div>
 

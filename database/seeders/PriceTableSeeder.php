@@ -11,6 +11,11 @@ class PriceTableSeeder extends Seeder
 {
     public function run(): void
     {
+        if (PriceTable::count() > 0) {
+            $this->command->warn('Tabelas de preço já existem. Seeder ignorado.');
+            return;
+        }
+
         // Tabela de Preço Varejo
         $varejo = PriceTable::create([
             'name' => 'Tabela Varejo',

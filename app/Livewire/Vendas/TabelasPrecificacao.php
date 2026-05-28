@@ -6,6 +6,7 @@ use App\Models\PriceTable;
 use App\Models\PriceTableItem;
 use App\Models\Product;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use App\Services\PricingService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
@@ -19,6 +20,7 @@ use Livewire\WithPagination;
 class TabelasPrecificacao extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     /* ─── Filters ─── */
     public string $search = '';
@@ -73,7 +75,7 @@ class TabelasPrecificacao extends Component
                                                 ->orWhere('code', 'like', '%' . $this->search . '%'))
             ->when($this->filterActive !== '', fn($q) => $q->where('is_active', (bool) $this->filterActive))
             ->latest()
-            ->paginate(PerPage::resolve());
+            ->paginate($this->perPage);
     }
 
     #[Computed]

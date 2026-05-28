@@ -11,6 +11,7 @@ use App\Models\PurchaseOrder;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +93,7 @@ class NotaFiscalEntrada extends Component
             }))
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->latest()
-            ->paginate(PerPage::resolve());
+            ->paginate($this->perPage);
     }
 
     #[Computed]

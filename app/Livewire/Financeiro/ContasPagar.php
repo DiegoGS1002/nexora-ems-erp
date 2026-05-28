@@ -8,6 +8,7 @@ use App\Models\AccountPayable;
 use App\Models\PlanOfAccount;
 use App\Models\Supplier;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use App\Services\ContasPagarService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
@@ -21,6 +22,7 @@ use Livewire\WithPagination;
 class ContasPagar extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     /* ─────────────────────────────────────
       FORM OBJECT
@@ -96,7 +98,7 @@ class ContasPagar extends Component
             $query->whereYear('due_date_at', $year)->whereMonth('due_date_at', $month);
         }
 
-        return $query->paginate(PerPage::resolve());
+        return $query->paginate($this->perPage);
     }
 
     /* ─────────────────────────────────────

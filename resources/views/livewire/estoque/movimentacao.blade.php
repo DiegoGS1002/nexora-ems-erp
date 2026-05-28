@@ -280,7 +280,7 @@
     </div>
 
     {{-- Paginação --}}
-    <div style="margin-top:-4px;">
+    <div class="nx-table-footer">
         {{ $movements->links() }}
     </div>
 

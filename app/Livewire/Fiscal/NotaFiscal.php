@@ -6,6 +6,7 @@ use App\Enums\FiscalNoteStatus;
 use App\Models\Client;
 use App\Models\FiscalNote;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use App\Services\NFeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,7 @@ use Livewire\WithPagination;
 class NotaFiscal extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     /* ─────────────────────────────────────
       FILTERS
@@ -113,7 +115,7 @@ class NotaFiscal extends Component
             $query->where('environment', $this->filterEnv);
         }
 
-        return $query->paginate(PerPage::resolve());
+        return $query->paginate($this->perPage);
     }
 
     /* ─────────────────────────────────────

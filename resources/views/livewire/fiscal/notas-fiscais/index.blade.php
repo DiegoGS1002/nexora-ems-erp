@@ -344,10 +344,7 @@
         {{-- Footer / Pagination --}}
         @if($notes->hasPages())
             <div class="nx-table-footer">
-                <span class="nx-table-count">
-                    Exibindo {{ $notes->firstItem() }}–{{ $notes->lastItem() }} de {{ $notes->total() }} registros
-                </span>
-                <div class="nx-pagination">{{ $notes->links() }}</div>
+                {{ $notes->links() }}
             </div>
         @else
             <div class="nx-table-footer">

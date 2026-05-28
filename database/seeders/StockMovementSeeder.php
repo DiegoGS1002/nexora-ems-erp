@@ -15,6 +15,11 @@ class StockMovementSeeder extends Seeder
      */
     public function run(): void
     {
+        if (StockMovement::count() > 0) {
+            $this->command->warn('Movimentações de estoque já existem. Seeder ignorado.');
+            return;
+        }
+
         $admin = User::first();
 
         if (!$admin) {

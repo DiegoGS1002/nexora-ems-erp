@@ -108,9 +108,8 @@
             </table>
         </div>
         <div class="nx-table-footer">
-            <span class="nx-table-count">{{ $categories->total() }} {{ $categories->total() === 1 ? 'categoria' : 'categorias' }}</span>
-            <div class="nx-pagination">{{ $categories->links() }}</div>
-        </div>
+                {{ $categories->links() }}
+            </div>
         @endif
     </div>
 

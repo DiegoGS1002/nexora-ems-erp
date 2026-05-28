@@ -180,11 +180,9 @@
                 @endforelse
             </tbody>
         </table>
-        @if($orders->hasPages())
-            <div style="padding:16px 20px;border-top:1px solid #F1F5F9;">
-                {{ $orders->links() }}
-            </div>
-        @endif
+        <div class="nx-table-footer">
+            {{ $orders->links() }}
+        </div>
         </div>{{-- /.nx-table-wrap --}}
     </div>{{-- /.nx-card --}}
     {{-- ══════════════════════════════════════════

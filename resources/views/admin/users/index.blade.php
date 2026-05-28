@@ -337,11 +337,13 @@
             </div>
 
             <div class="nx-table-footer">
-                <span class="nx-table-count">
-                    {{ $users->total() }} {{ $users->total() === 1 ? 'usuário' : 'usuários' }} encontrado{{ $users->total() === 1 ? '' : 's' }}
-                </span>
                 @if($users->hasPages())
-                    <div class="nx-pagination">{{ $users->links() }}</div>
+                    {{ $users->links() }}
+                @else
+                    <span class="nexpag-count" style="padding:14px 20px;display:block;">
+                        <strong>{{ number_format($users->total(), 0, ',', '.') }}</strong>
+                        {{ $users->total() === 1 ? 'usuário' : 'usuários' }} encontrado{{ $users->total() === 1 ? '' : 's' }}
+                    </span>
                 @endif
             </div>
         @endif

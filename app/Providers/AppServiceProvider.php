@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Pagination\Paginator;
 use App\Models\SalesOrder;
 use App\Observers\SalesOrderObserver;
 
@@ -29,5 +30,11 @@ class AppServiceProvider extends ServiceProvider
         }
 
         SalesOrder::observe(SalesOrderObserver::class);
+
+        // ── NexPagination: define o template padrão para controladores
+        //    não-Livewire. Componentes Livewire usam vendor/livewire/tailwind.blade.php
+        //    automaticamente via SupportPagination.
+        Paginator::defaultView('vendor.pagination.tailwind');
+        Paginator::defaultSimpleView('vendor.pagination.simple-tailwind');
     }
 }

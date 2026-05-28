@@ -358,13 +358,13 @@ class OrdemProducao extends Component
                     StockMovement::create([
                         'product_id'  => $item->component_id,
                         'user_id'     => auth()->id(),
-                        'quantity'    => $item->quantity,
+                        'quantity'    => $item->required_qty,
                         'type'        => 'output',
                         'origin'      => 'production_order',
                         'observation' => 'Consumo de insumo — OP #' . $order->id,
                     ]);
                     if ($item->component) {
-                        $item->component->decrement('stock', $item->quantity);
+                        $item->component->decrement('stock', $item->required_qty);
                     }
                 }
 

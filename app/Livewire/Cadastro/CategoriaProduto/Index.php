@@ -4,6 +4,7 @@ namespace App\Livewire\Cadastro\CategoriaProduto;
 
 use App\Models\ProductCategory;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -15,6 +16,7 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     #[Url(as: 'search')]
     public string $search = '';
@@ -51,7 +53,7 @@ class Index extends Component
                 $query->where('name', 'like', "%{$this->search}%");
             })
             ->orderBy('name')
-            ->paginate(PerPage::resolve());
+            ->paginate($this->perPage);
 
         return view('livewire.cadastro.categoria-produto.index', [
             'categories' => $categories,

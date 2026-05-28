@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Administracao\Notifications;
 
-use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -14,11 +14,11 @@ use Illuminate\Notifications\DatabaseNotification;
 class Index extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     public string $filterType  = '';
     public string $filterRead  = '';
     public string $filterDate  = '';
-    public int    $perPage     = 10;
 
     protected string $paginationTheme = 'tailwind';
 
@@ -26,16 +26,6 @@ class Index extends Component
     public function updatingFilterType(): void  { $this->resetPage(); }
     public function updatingFilterRead(): void  { $this->resetPage(); }
     public function updatingFilterDate(): void  { $this->resetPage(); }
-    public function updatingPerPage($value): void
-    {
-        $this->perPage = PerPage::sanitize((int) $value);
-        $this->resetPage();
-    }
-
-    public function mount(): void
-    {
-        $this->perPage = PerPage::resolve($this->perPage);
-    }
 
     /* ── Ações ───────────────────────────────────── */
 
@@ -123,7 +113,7 @@ class Index extends Component
 
     public function render()
     {
-        $perPage = PerPage::sanitize($this->perPage);
+        $perPage = $this->perPage;
         $notifications = $this->buildQuery()->paginate($perPage);
 
         if ($this->filterType !== '') {
@@ -149,5 +139,3 @@ class Index extends Component
         ]);
     }
 }
-
-

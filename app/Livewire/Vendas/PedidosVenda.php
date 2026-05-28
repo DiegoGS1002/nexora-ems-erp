@@ -14,6 +14,7 @@ use App\Models\SalesOrderItem;
 use App\Models\SalesOrderLog;
 use App\Models\TipoOperacaoFiscal;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,7 @@ use Livewire\WithPagination;
 class PedidosVenda extends Component
 {
     use WithPagination;
+    use HasPerPage;
     /* ─── Filters ─── */
     public string $search = '';
     public string $filterStatus = '';
@@ -108,7 +110,7 @@ class PedidosVenda extends Component
         if ($this->filterStatus) {
             $query->where('status', $this->filterStatus);
         }
-        return $query->paginate(PerPage::resolve());
+        return $query->paginate($this->perPage);
     }
     #[Computed]
     public function stats(): array

@@ -5,6 +5,7 @@ namespace App\Livewire\Estoque;
 use App\Models\StockMovement;
 use App\Models\Product;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -18,6 +19,7 @@ use Livewire\WithPagination;
 class Movimentacao extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     /* ─────────────────────────────────────
       PROPRIEDADES DE FILTRO
@@ -72,7 +74,7 @@ class Movimentacao extends Component
             $query->where('product_id', $this->filterProduct);
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(PerPage::resolve());
+        return $query->orderBy('created_at', 'desc')->paginate($this->perPage);
     }
 
     /* ─────────────────────────────────────

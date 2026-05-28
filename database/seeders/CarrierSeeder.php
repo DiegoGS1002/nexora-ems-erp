@@ -9,6 +9,11 @@ class CarrierSeeder extends Seeder
 {
     public function run(): void
     {
+        if (Carrier::count() > 0) {
+            $this->command->warn('Transportadoras já existem. Seeder ignorado.');
+            return;
+        }
+
         $carriers = [
             [
                 'name' => 'Correios',

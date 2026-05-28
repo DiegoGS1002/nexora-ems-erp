@@ -399,168 +399,14 @@ form + .nx-action-btn { margin-left: 4px; }
 .nx-badge-neutral { background: #F1F5F9; color: #475569; }
 
 /* ══════════════════════════════════════════════
-   PAGINATION — design system nx-
-   ══════════════════════════════════════════════ */
-
-/* Bloco de paginação */
-.nx-pag-layout {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    flex-wrap: wrap;
-}
-
-.nx-pag-meta {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.nx-pag-count {
-    font-size: 12.5px;
-    color: #64748B;
-    font-weight: 500;
-}
-
-.nx-pag-size-form {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.nx-pag-size-label {
-    font-size: 12.5px;
-    color: #64748B;
-    font-weight: 500;
-}
-
-.nx-pag-size-select {
-    min-width: 84px;
-    height: 36px;
-    padding: 0 10px;
-    border-radius: 10px;
-    border: 1px solid #D7E0EA;
-    background: #FFFFFF;
-    color: #334155;
-    font-size: 12.5px;
-    font-weight: 600;
-    outline: none;
-}
-
-.nx-pag-size-select:focus {
-    border-color: #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
-}
-
-.nx-pag-nav {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-}
-
-.nx-pag-wrap {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 6px;
-}
-
-.nx-pag-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 38px;
-    height: 38px;
-    padding: 0 12px;
-    border-radius: 10px;
-    border: 1px solid transparent;
-    background: #FFFFFF;
-    color: #475569;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1;
-    text-decoration: none;
-    cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    white-space: nowrap;
-    user-select: none;
-}
-
-.nx-pag-btn:hover {
-    background: #EFF6FF;
-    border-color: #BFDBFE;
-    color: #1D4ED8;
-    transform: translateY(-1px);
-}
-
-.nx-pag-btn.nx-pag-active {
-    background: #2563EB;
-    border-color: #2563EB;
-    color: #FFFFFF;
-    font-weight: 700;
-    cursor: default;
-    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.28);
-    transform: none;
-}
-
-.nx-pag-btn.nx-pag-active:hover {
-    background: #2563EB;
-    border-color: #2563EB;
-    color: #FFFFFF;
-}
-
-.nx-pag-btn.nx-pag-btn-arrow {
-    min-width: 38px;
-    padding: 0;
-}
-
-.nx-pag-btn.nx-pag-disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-.nx-pag-btn.nx-pag-dots {
-    border-color: transparent;
-    background: transparent;
-    cursor: default;
-    pointer-events: none;
-    color: #94A3B8;
-    font-size: 14px;
-    letter-spacing: 0.04em;
-    padding: 0 4px;
-    min-width: auto;
-}
-
-/* ── Wrapper legado — mantido para compatibilidade ─── */
-.nx-pagination {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 16px 18px;
-    border-top: 1px solid #F1F5F9;
-}
-
-/* ══════════════════════════════════════════════
    TABLE FOOTER
+   (paginação gerida por _pagination.css)
    ══════════════════════════════════════════════ */
 .nx-table-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    border-top: 1px solid #F1F5F9;
+    border-top: 1px solid #EEF2F7;
     background: #FAFBFD;
-    flex-wrap: wrap;
-    gap: 8px;
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
 }
 
 .nx-table-count {
@@ -569,10 +415,15 @@ form + .nx-action-btn { margin-left: 4px; }
     font-weight: 500;
 }
 
-/* Pagination inside footer */
+/* Wrapper legado — compatibilidade com .links() envolto em .nx-pagination */
+.nx-pagination {
+    display: block;
+    width: 100%;
+}
+
 .nx-table-footer .nx-pagination {
-    border-top: none;
     padding: 0;
+    border-top: none;
 }
 
 /* ══════════════════════════════════════════════
@@ -610,13 +461,4 @@ form + .nx-action-btn { margin-left: 4px; }
     .nx-search-wrap { max-width: 100%; }
     .nx-empty-state { padding: 40px 20px; }
     .nx-empty-illustration { width: 140px; }
-    .nx-pag-layout,
-    .nx-pag-meta,
-    .nx-pagination {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .nx-pag-nav {
-        justify-content: center;
-    }
 }

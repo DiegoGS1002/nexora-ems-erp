@@ -186,11 +186,9 @@
                         </tbody>
                     </table>
                 </div>
-                @if($priceTableItems->hasPages())
-                    <div style="padding:16px 20px;border-top:1px solid #F1F5F9;">
-                        {{ $priceTableItems->links() }}
-                    </div>
-                @endif
+                <div class="nx-table-footer">
+            {{ $priceTableItems->links() }}
+        </div>
             @else
                 <div style="padding:60px 20px;text-align:center;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5" style="margin:0 auto 16px;">
@@ -283,11 +281,9 @@
                 </tbody>
             </table>
         </div>
-        @if($tables->hasPages())
-            <div style="padding:16px 20px;border-top:1px solid #F1F5F9;">
-                {{ $tables->links() }}
-            </div>
-        @endif
+        <div class="nx-table-footer">
+            {{ $tables->links() }}
+        </div>
     </div>
 
     {{-- ══════════════════════════════════════════════════════════════

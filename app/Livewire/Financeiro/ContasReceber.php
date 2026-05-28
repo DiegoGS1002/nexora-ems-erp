@@ -8,6 +8,7 @@ use App\Models\AccountReceivable;
 use App\Models\Client;
 use App\Models\PlanOfAccount;
 use App\Support\PerPage;
+use App\Traits\HasPerPage;
 use App\Services\ContasReceberService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
@@ -21,6 +22,7 @@ use Livewire\WithPagination;
 class ContasReceber extends Component
 {
     use WithPagination;
+    use HasPerPage;
 
     /* ─────────────────────────────────────
       FORM OBJECT
@@ -101,7 +103,7 @@ class ContasReceber extends Component
             $query->where('payment_method', $this->filterPayMethod);
         }
 
-        return $query->paginate(PerPage::resolve());
+        return $query->paginate($this->perPage);
     }
 
     /* ─────────────────────────────────────
