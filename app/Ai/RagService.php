@@ -345,7 +345,8 @@ class RagService
 
         // Fallback: MySQL 9.x sem VEC_DISTANCE_COSINE — usa VECTOR_TO_STRING + PHP
         $q = RagDocument::query()
-            ->selectRaw('id, titulo, conteudo, fonte, categoria, metadados, tokens, VECTOR_TO_STRING(embedding) AS embedding');
+            ->selectRaw('id, titulo, conteudo, fonte, categoria, metadados, tokens, VECTOR_TO_STRING(embedding) AS embedding')
+            ->whereRaw('embedding IS NOT NULL');
 
         if ($categoria) {
             $q->where('categoria', $categoria);
