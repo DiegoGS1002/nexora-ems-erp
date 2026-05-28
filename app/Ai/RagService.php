@@ -36,8 +36,21 @@ class RagService
     private function hasNativeVector(): bool
     {
         if ($this->mysqlNativeVector === null) {
-            $version                 = DB::selectOne('SELECT VERSION() AS v')->v;
-            $this->mysqlNativeVector = (int) explode('.', $version)[0] >= 9;
+            $version = DB::selectOne('SELECT VERSION() AS v')->v;
+
+            if ((int) explode('.', $version)[0] < 9) {
+                $this->mysqlNativeVector = false;
+            } else {
+                // Verifica se a coluna embedding é realmente do tipo VECTOR
+                // (pode ser LONGTEXT em instâncias que migraram do MySQL 8)
+                $col = DB::selectOne(
+                    "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE()
+                       AND TABLE_NAME   = 'rag_documents'
+                       AND COLUMN_NAME  = 'embedding'"
+                );
+                $this->mysqlNativeVector = $col && strtolower($col->DATA_TYPE) === 'vector';
+            }
         }
 
         return $this->mysqlNativeVector;
