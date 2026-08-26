@@ -7,6 +7,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnforceMidnightSession;
 use App\Http\Middleware\MaintenanceERP;
+use App\Http\Middleware\ResolveTenantContext;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin'            => EnsureUserIsAdmin::class,
             'midnight.session' => EnforceMidnightSession::class,
             'maintenance.erp'  => MaintenanceERP::class,
+            'tenant'           => ResolveTenantContext::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

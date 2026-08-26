@@ -18,7 +18,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 });
 
-Route::middleware(['auth', 'midnight.session', MaintenanceERP::class])->group(function () {
+Route::middleware(['auth', 'tenant', 'midnight.session', MaintenanceERP::class])->group(function () {
 
     Route::get('/', function () {
         return view('home-page', [

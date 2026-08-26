@@ -7,10 +7,14 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Pagination\Paginator;
 use App\Models\SalesOrder;
 use App\Observers\SalesOrderObserver;
+use App\Tenancy\TenantContext;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->scoped(TenantContext::class);
+    }
 
     public function boot(): void
     {

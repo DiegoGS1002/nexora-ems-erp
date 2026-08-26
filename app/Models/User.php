@@ -48,6 +48,19 @@ class User extends Authenticatable implements FilamentUser
         return (bool) $this->is_admin;
     }
 
+    public function isPlatformAdmin(): bool
+    {
+        return $this->is_admin
+            && in_array($this->email, config('tenancy.platform_admin_emails', []), true);
+    }
+
+    public function isTenantAdmin(): bool
+    {
+        return $this->is_admin
+            && $this->company_id !== null
+            && ! $this->isPlatformAdmin();
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

@@ -1,22 +1,33 @@
 <?php
 
-use App\Http\Controllers\Api\ProductApiController;
-use App\Http\Controllers\Api\SupplierApiController;
-use App\Http\Controllers\Api\ProductSupplierApiController;
-use App\Http\Controllers\Api\ClientApiController;
-use App\Http\Controllers\Api\StockMovementApiController;
 use App\Http\Controllers\Api\AccountsPayableApiController;
 use App\Http\Controllers\Api\AccountsReceivableApiController;
+use App\Http\Controllers\Api\ClientApiController;
+use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\Api\ProductSupplierApiController;
 use App\Http\Controllers\Api\SalesOrderController;
+use App\Http\Controllers\Api\StockMovementApiController;
+use App\Http\Controllers\Api\SupplierApiController;
 use App\Http\Controllers\ExternalApiProxyController;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-Route::middleware('auth')->group(function () {
+Route::middleware([
+    EncryptCookies::class,
+    AddQueuedCookiesToResponse::class,
+    StartSession::class,
+    ShareErrorsFromSession::class,
+    'auth',
+    'tenant',
+    ValidateCsrfToken::class,
+])->group(function () {
     Route::get('/proxy/cnpj/{cnpj}', [ExternalApiProxyController::class, 'getCnpj']);
     Route::get('/proxy/cep/{cep}', [ExternalApiProxyController::class, 'getCep']);
-});
 
-Route::middleware('api')->group(function () {
     // Products
     Route::get('/products', [ProductApiController::class, 'index']);
     Route::post('/products', [ProductApiController::class, 'store']);
@@ -88,4 +99,3 @@ Route::middleware('api')->group(function () {
         Route::get('/{order}/attachments', [SalesOrderController::class, 'attachments'])->name('api.sales-orders.attachments');
     });
 });
-
