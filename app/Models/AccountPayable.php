@@ -30,6 +30,8 @@ class AccountPayable extends Model
         'attachment_path',
         'is_recurring',
         'recurrence_day',
+        'fiscal_invoice_in_id',
+        'installment_number',
     ];
 
     protected $casts = [

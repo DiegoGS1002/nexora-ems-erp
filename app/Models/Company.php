@@ -16,6 +16,9 @@ class Company extends Model
         'cnpj',
         'inscricao_estadual',
         'inscricao_municipal',
+        'crt',
+        'cnae',
+        'ibge_municipio',
         'email',
         'phone',
         'website',
@@ -30,15 +33,29 @@ class Company extends Model
         'segment',
         'is_active',
         'notes',
+        'certificate_path',
+        'certificate_expires_at',
+        'xml_retention_years',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'certificate_expires_at' => 'datetime',
     ];
 
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function fiscalNotes(): HasMany
+    {
+        return $this->hasMany(FiscalNote::class);
+    }
+
+    public function fiscalNumberSequences(): HasMany
+    {
+        return $this->hasMany(FiscalNumberSequence::class);
     }
 
     public function getFullAddress(): string
@@ -61,7 +78,7 @@ class Company extends Model
         foreach (array_slice($words, 0, 2) as $word) {
             $initials .= strtoupper(substr($word, 0, 1));
         }
+
         return $initials;
     }
 }
-

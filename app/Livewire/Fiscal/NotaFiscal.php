@@ -5,9 +5,9 @@ namespace App\Livewire\Fiscal;
 use App\Enums\FiscalNoteStatus;
 use App\Models\Client;
 use App\Models\FiscalNote;
-use App\Support\PerPage;
-use App\Traits\HasPerPage;
+use App\Services\FiscalNumberService;
 use App\Services\NFeService;
+use App\Traits\HasPerPage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -20,62 +20,83 @@ use Livewire\WithPagination;
 #[Title('Notas Fiscais')]
 class NotaFiscal extends Component
 {
-    use WithPagination;
     use HasPerPage;
+    use WithPagination;
 
     /* ─────────────────────────────────────
       FILTERS
      ─────────────────────────────────────*/
-    public string $search          = '';
-    public string $filterStatus    = '';
-    public string $filterType      = '';
-    public string $filterEnv       = '';
+    public string $search = '';
+
+    public string $filterStatus = '';
+
+    public string $filterType = '';
+
+    public string $filterEnv = '';
 
     protected $queryString = ['search', 'filterStatus', 'filterType', 'filterEnv'];
 
     /* ─────────────────────────────────────
       MODAL STATE
      ─────────────────────────────────────*/
-    public bool  $showModal        = false;
-    public bool  $isEditing        = false;
-    public ?int  $editingId        = null;
+    public bool $showModal = false;
 
-    public bool  $showViewModal    = false;
-    public ?int  $viewingId        = null;
+    public bool $isEditing = false;
 
-    public bool  $showCancelModal  = false;
-    public ?int  $cancellingId     = null;
+    public ?int $editingId = null;
 
-    public bool  $showDeleteModal  = false;
-    public ?int  $deletingId       = null;
+    public bool $showViewModal = false;
+
+    public ?int $viewingId = null;
+
+    public bool $showCancelModal = false;
+
+    public ?int $cancellingId = null;
+
+    public bool $showDeleteModal = false;
+
+    public ?int $deletingId = null;
 
     /* ─────────────────────────────────────
       FORM FIELDS
      ─────────────────────────────────────*/
-    public string  $form_client_id     = '';
-    public string  $form_client_name   = '';
-    public string  $form_invoice_number = '';
-    public string  $form_series        = '1';
-    public string  $form_type          = 'nfe';
-    public string  $form_environment   = 'homologation';
-    public string  $form_status        = 'draft';
-    public string  $form_access_key    = '';
-    public string  $form_protocol      = '';
-    public string  $form_sefaz_message = '';
-    public string  $form_amount        = '';
-    public string  $form_notes         = '';
+    public string $form_client_id = '';
+
+    public string $form_client_name = '';
+
+    public string $form_invoice_number = '';
+
+    public string $form_series = '1';
+
+    public string $form_type = 'nfe';
+
+    public string $form_environment = 'homologation';
+
+    public string $form_status = 'draft';
+
+    public string $form_access_key = '';
+
+    public string $form_protocol = '';
+
+    public string $form_sefaz_message = '';
+
+    public string $form_amount = '';
+
+    public string $form_notes = '';
 
     /* ─────────────────────────────────────
       TRANSMIT MODAL
      ─────────────────────────────────────*/
     public bool $showTransmitModal = false;
-    public ?int $transmittingId    = null;
+
+    public ?int $transmittingId = null;
 
     /* ─────────────────────────────────────
       SEFAZ STATUS
      ─────────────────────────────────────*/
-    public bool   $sefazOnline      = true;
-    public string $sefazMessage     = 'Online';
+    public bool $sefazOnline = true;
+
+    public string $sefazMessage = 'Online';
 
     /* ─────────────────────────────────────
       CANCEL FORM
@@ -92,13 +113,12 @@ class NotaFiscal extends Component
             ->orderByDesc('created_at');
 
         if ($this->search !== '') {
-            $q = '%' . $this->search . '%';
+            $q = '%'.$this->search.'%';
             $query->where(function ($qry) use ($q) {
                 $qry->where('invoice_number', 'like', $q)
                     ->orWhere('client_name', 'like', $q)
                     ->orWhere('access_key', 'like', $q)
-                    ->orWhereHas('client', fn($s) =>
-                        $s->where('name', 'like', $q)->orWhere('social_name', 'like', $q)
+                    ->orWhereHas('client', fn ($s) => $s->where('name', 'like', $q)->orWhere('social_name', 'like', $q)
                     );
             });
         }
@@ -124,10 +144,10 @@ class NotaFiscal extends Component
     #[Computed]
     public function kpis(): array
     {
-        $total      = FiscalNote::count();
+        $total = FiscalNote::count();
         $authorized = FiscalNote::where('status', FiscalNoteStatus::Authorized)->count();
-        $rejected   = FiscalNote::where('status', FiscalNoteStatus::Rejected)->count();
-        $cancelled  = FiscalNote::where('status', FiscalNoteStatus::Cancelled)->count();
+        $rejected = FiscalNote::where('status', FiscalNoteStatus::Rejected)->count();
+        $cancelled = FiscalNote::where('status', FiscalNoteStatus::Cancelled)->count();
         $totalValue = FiscalNote::where('status', FiscalNoteStatus::Authorized)->sum('amount');
 
         return compact('total', 'authorized', 'rejected', 'cancelled', 'totalValue');
@@ -157,7 +177,6 @@ class NotaFiscal extends Component
     public function openCreate(): void
     {
         $this->resetForm();
-        $this->form_invoice_number = $this->nextInvoiceNumber();
         $this->isEditing = false;
         $this->editingId = null;
         $this->showModal = true;
@@ -170,18 +189,18 @@ class NotaFiscal extends Component
     {
         $note = FiscalNote::findOrFail($id);
 
-        $this->form_client_id      = (string) ($note->client_id ?? '');
-        $this->form_client_name    = $note->client_name ?? '';
+        $this->form_client_id = (string) ($note->client_id ?? '');
+        $this->form_client_name = $note->client_name ?? '';
         $this->form_invoice_number = $note->invoice_number;
-        $this->form_series         = $note->series;
-        $this->form_type           = $note->type;
-        $this->form_environment    = $note->environment;
-        $this->form_status         = $note->status->value;
-        $this->form_access_key     = $note->access_key ?? '';
-        $this->form_protocol       = $note->protocol ?? '';
-        $this->form_sefaz_message  = $note->sefaz_message ?? '';
-        $this->form_amount         = (string) $note->amount;
-        $this->form_notes          = $note->notes ?? '';
+        $this->form_series = $note->series;
+        $this->form_type = $note->type;
+        $this->form_environment = $note->environment;
+        $this->form_status = $note->status->value;
+        $this->form_access_key = $note->access_key ?? '';
+        $this->form_protocol = $note->protocol ?? '';
+        $this->form_sefaz_message = $note->sefaz_message ?? '';
+        $this->form_amount = (string) $note->amount;
+        $this->form_notes = $note->notes ?? '';
 
         $this->editingId = $id;
         $this->isEditing = true;
@@ -194,17 +213,17 @@ class NotaFiscal extends Component
     public function save(): void
     {
         $this->validate([
-            'form_invoice_number' => 'required|digits_between:1,9',
-            'form_series'         => 'required|max:3',
-            'form_type'           => 'required|in:nfe,nfce',
-            'form_environment'    => 'required|in:production,homologation',
-            'form_status'         => 'required',
-            'form_amount'         => 'required|numeric|min:0',
+            'form_invoice_number' => ($this->isEditing ? 'required' : 'nullable').'|digits_between:1,9',
+            'form_series' => 'required|max:3',
+            'form_type' => 'required|in:nfe,nfce',
+            'form_environment' => 'required|in:production,homologation',
+            'form_status' => 'required',
+            'form_amount' => 'required|numeric|min:0',
         ], [
             'form_invoice_number.required' => 'O número da nota é obrigatório.',
             'form_invoice_number.digits_between' => 'O número deve ter até 9 dígitos.',
             'form_amount.required' => 'Informe o valor total.',
-            'form_amount.min'      => 'O valor não pode ser negativo.',
+            'form_amount.min' => 'O valor não pode ser negativo.',
         ]);
 
         // Resolve client name from id
@@ -215,19 +234,19 @@ class NotaFiscal extends Component
         }
 
         $data = [
-            'client_id'      => $this->form_client_id ?: null,
-            'client_name'    => $clientName ?: null,
+            'client_id' => $this->form_client_id ?: null,
+            'client_name' => $clientName ?: null,
             'invoice_number' => $this->form_invoice_number,
-            'series'         => $this->form_series,
-            'type'           => $this->form_type,
-            'environment'    => $this->form_environment,
-            'status'         => $this->form_status,
-            'access_key'     => $this->form_access_key ?: null,
-            'protocol'       => $this->form_protocol ?: null,
-            'sefaz_message'  => $this->form_sefaz_message ?: null,
-            'amount'         => (float) str_replace(['.', ','], ['', '.'], $this->form_amount),
-            'notes'          => $this->form_notes ?: null,
-            'emitted_by'     => Auth::id(),
+            'series' => $this->form_series,
+            'type' => $this->form_type,
+            'environment' => $this->form_environment,
+            'status' => $this->form_status,
+            'access_key' => $this->form_access_key ?: null,
+            'protocol' => $this->form_protocol ?: null,
+            'sefaz_message' => $this->form_sefaz_message ?: null,
+            'amount' => (float) str_replace(['.', ','], ['', '.'], $this->form_amount),
+            'notes' => $this->form_notes ?: null,
+            'emitted_by' => Auth::id(),
         ];
 
         // Set authorized_at when authorizing
@@ -242,6 +261,13 @@ class NotaFiscal extends Component
             FiscalNote::findOrFail($this->editingId)->update($data);
             session()->flash('success', 'Nota fiscal atualizada com sucesso!');
         } else {
+            $reservation = app(FiscalNumberService::class)->reserveForCurrentCompany(
+                $this->form_type,
+                $this->form_series,
+                $this->form_environment,
+            );
+            $data['company_id'] = $reservation['company_id'];
+            $data['invoice_number'] = $reservation['invoice_number'];
             $data['authorized_at'] = $this->form_status === 'authorized' ? now() : null;
             FiscalNote::create($data);
             session()->flash('success', 'Nota fiscal cadastrada com sucesso!');
@@ -255,14 +281,14 @@ class NotaFiscal extends Component
      ─────────────────────────────────────*/
     public function openView(int $id): void
     {
-        $this->viewingId    = $id;
+        $this->viewingId = $id;
         $this->showViewModal = true;
     }
 
     public function closeView(): void
     {
         $this->showViewModal = false;
-        $this->viewingId     = null;
+        $this->viewingId = null;
     }
 
     /* ─────────────────────────────────────
@@ -270,8 +296,8 @@ class NotaFiscal extends Component
      ─────────────────────────────────────*/
     public function openCancel(int $id): void
     {
-        $this->cancellingId   = $id;
-        $this->cancel_reason  = '';
+        $this->cancellingId = $id;
+        $this->cancel_reason = '';
         $this->showCancelModal = true;
     }
 
@@ -281,7 +307,7 @@ class NotaFiscal extends Component
             'cancel_reason' => 'required|min:15|max:255',
         ], [
             'cancel_reason.required' => 'Informe o motivo do cancelamento.',
-            'cancel_reason.min'      => 'O motivo deve ter no mínimo 15 caracteres.',
+            'cancel_reason.min' => 'O motivo deve ter no mínimo 15 caracteres.',
         ]);
 
         $note = FiscalNote::findOrFail($this->cancellingId);
@@ -290,19 +316,13 @@ class NotaFiscal extends Component
             $nfeService = app(NFeService::class);
             $result = $nfeService->cancelar($note, $this->cancel_reason);
 
-            if ($result['canceled']) {
-                session()->flash('success', 'Nota fiscal cancelada na SEFAZ. Protocolo: ' . ($result['protocol'] ?? '—'));
+            if ($result['cancelled']) {
+                session()->flash('success', 'Nota fiscal cancelada na SEFAZ. Protocolo: '.($result['protocol'] ?? '—'));
             } else {
-                session()->flash('error', 'SEFAZ não cancelou a nota: ' . ($result['message'] ?? 'Erro desconhecido'));
+                session()->flash('error', 'SEFAZ não cancelou a nota: '.($result['message'] ?? 'Erro desconhecido'));
             }
         } catch (\Exception $e) {
-            // Fallback: se não tiver certificado/conexão, cancela localmente
-            $note->update([
-                'status'        => FiscalNoteStatus::Cancelled->value,
-                'cancel_reason' => $this->cancel_reason,
-                'cancelled_at'  => now(),
-            ]);
-            session()->flash('success', 'Nota fiscal cancelada localmente.');
+            session()->flash('error', 'Erro ao cancelar a NF-e: '.$e->getMessage());
         }
 
         $this->closeCancelModal();
@@ -311,8 +331,8 @@ class NotaFiscal extends Component
     public function closeCancelModal(): void
     {
         $this->showCancelModal = false;
-        $this->cancellingId    = null;
-        $this->cancel_reason   = '';
+        $this->cancellingId = null;
+        $this->cancel_reason = '';
         $this->resetErrorBag(['cancel_reason']);
     }
 
@@ -321,7 +341,7 @@ class NotaFiscal extends Component
      ─────────────────────────────────────*/
     public function openTransmit(int $id): void
     {
-        $this->transmittingId    = $id;
+        $this->transmittingId = $id;
         $this->showTransmitModal = true;
     }
 
@@ -334,12 +354,12 @@ class NotaFiscal extends Component
             $result = $nfeService->transmitir($note, sincrono: true);
 
             if ($result['authorized']) {
-                session()->flash('success', 'NF-e autorizada pela SEFAZ! Protocolo: ' . ($result['protocol'] ?? '—'));
+                session()->flash('success', 'NF-e autorizada pela SEFAZ! Protocolo: '.($result['protocol'] ?? '—'));
             } else {
-                session()->flash('error', 'NF-e não autorizada: [' . ($result['code'] ?? '—') . '] ' . ($result['message'] ?? ''));
+                session()->flash('error', 'NF-e não autorizada: ['.($result['code'] ?? '—').'] '.($result['message'] ?? ''));
             }
         } catch (\Exception $e) {
-            session()->flash('error', 'Erro ao transmitir: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao transmitir: '.$e->getMessage());
         }
 
         $this->closeTransmitModal();
@@ -348,7 +368,7 @@ class NotaFiscal extends Component
     public function closeTransmitModal(): void
     {
         $this->showTransmitModal = false;
-        $this->transmittingId    = null;
+        $this->transmittingId = null;
     }
 
     /* ─────────────────────────────────────
@@ -357,13 +377,13 @@ class NotaFiscal extends Component
     public function checkSefazStatus(): void
     {
         try {
-            $nfeService       = app(NFeService::class);
-            $status           = $nfeService->consultarStatus();
-            $this->sefazOnline  = $status['online'];
+            $nfeService = app(NFeService::class);
+            $status = $nfeService->consultarStatus();
+            $this->sefazOnline = $status['online'];
             $this->sefazMessage = $status['message'] ?? ($status['online'] ? 'Online' : 'Offline');
         } catch (\Exception $e) {
-            $this->sefazOnline  = false;
-            $this->sefazMessage = 'Erro: ' . $e->getMessage();
+            $this->sefazOnline = false;
+            $this->sefazMessage = 'Erro: '.$e->getMessage();
         }
     }
 
@@ -372,7 +392,7 @@ class NotaFiscal extends Component
      ─────────────────────────────────────*/
     public function confirmDelete(int $id): void
     {
-        $this->deletingId     = $id;
+        $this->deletingId = $id;
         $this->showDeleteModal = true;
     }
 
@@ -388,7 +408,7 @@ class NotaFiscal extends Component
     public function cancelDelete(): void
     {
         $this->showDeleteModal = false;
-        $this->deletingId      = null;
+        $this->deletingId = null;
     }
 
     /* ─────────────────────────────────────
@@ -404,36 +424,42 @@ class NotaFiscal extends Component
 
     private function resetForm(): void
     {
-        $this->form_client_id      = '';
-        $this->form_client_name    = '';
+        $this->form_client_id = '';
+        $this->form_client_name = '';
         $this->form_invoice_number = '';
-        $this->form_series         = '1';
-        $this->form_type           = 'nfe';
-        $this->form_environment    = 'homologation';
-        $this->form_status         = 'draft';
-        $this->form_access_key     = '';
-        $this->form_protocol       = '';
-        $this->form_sefaz_message  = '';
-        $this->form_amount         = '';
-        $this->form_notes          = '';
+        $this->form_series = '1';
+        $this->form_type = 'nfe';
+        $this->form_environment = 'homologation';
+        $this->form_status = 'draft';
+        $this->form_access_key = '';
+        $this->form_protocol = '';
+        $this->form_sefaz_message = '';
+        $this->form_amount = '';
+        $this->form_notes = '';
         $this->resetErrorBag();
     }
 
     /* ─────────────────────────────────────
       PAGINATION RESET
      ─────────────────────────────────────*/
-    public function updatingSearch(): void       { $this->resetPage(); }
-    public function updatingFilterStatus(): void  { $this->resetPage(); }
-    public function updatingFilterType(): void    { $this->resetPage(); }
-    public function updatingFilterEnv(): void     { $this->resetPage(); }
-
-    /* ─────────────────────────────────────
-      HELPER
-     ─────────────────────────────────────*/
-    private function nextInvoiceNumber(): string
+    public function updatingSearch(): void
     {
-        $last = FiscalNote::max('invoice_number') ?? '0';
-        return str_pad((int) $last + 1, 6, '0', STR_PAD_LEFT);
+        $this->resetPage();
+    }
+
+    public function updatingFilterStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterType(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterEnv(): void
+    {
+        $this->resetPage();
     }
 
     /* ─────────────────────────────────────
@@ -442,11 +468,10 @@ class NotaFiscal extends Component
     public function render(): View
     {
         return view('livewire.fiscal.notas-fiscais.index', [
-            'notes'    => $this->notes,
-            'kpis'     => $this->kpis,
-            'clients'  => $this->clients,
+            'notes' => $this->notes,
+            'kpis' => $this->kpis,
+            'clients' => $this->clients,
             'statuses' => FiscalNoteStatus::cases(),
         ]);
     }
 }
-

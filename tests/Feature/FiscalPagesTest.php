@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Livewire\Fiscal\NotaFiscalEntrada;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -13,6 +14,17 @@ use App\Livewire\Fiscal\GrupoTributario\Form as GrupoTributarioForm;
 
 class FiscalPagesTest extends TestCase
 {
+    use RefreshDatabase;
+
+    public function test_nota_fiscal_entrada_page_uses_livewire_component(): void
+    {
+        $response = $this->actingAs(User::factory()->create())
+            ->get(route('fiscal.entrance.index'));
+
+        $response->assertOk();
+        $response->assertSeeLivewire(NotaFiscalEntrada::class);
+    }
+
     /**
      * Test that tipo operacao index page loads
      */
@@ -67,4 +79,3 @@ class FiscalPagesTest extends TestCase
         $response->assertSeeLivewire(GrupoTributarioForm::class);
     }
 }
-

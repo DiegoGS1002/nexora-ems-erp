@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\FiscalNote;
 use App\Services\DanfeService;
 use App\Services\NFeService;
@@ -28,7 +27,7 @@ class NFeController extends Controller
             return response()->json([
                 'success' => $result['authorized'],
                 'message' => $result['message'],
-                'data'    => $result,
+                'data' => $result,
             ], $result['authorized'] ? 200 : 422);
         } catch (\Exception $e) {
             return response()->json([
@@ -51,10 +50,10 @@ class NFeController extends Controller
             $result = $this->nfeService->cancelar($note, $request->justificativa);
 
             return response()->json([
-                'success' => $result['canceled'],
+                'success' => $result['cancelled'],
                 'message' => $result['message'],
-                'data'    => $result,
-            ], $result['canceled'] ? 200 : 422);
+                'data' => $result,
+            ], $result['cancelled'] ? 200 : 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -74,7 +73,7 @@ class NFeController extends Controller
             return response()->json([
                 'success' => $result['online'],
                 'message' => $result['message'],
-                'data'    => $result,
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -99,7 +98,7 @@ class NFeController extends Controller
             return response()->json([
                 'success' => $result['found'],
                 'message' => $result['message'],
-                'data'    => $result,
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -134,7 +133,7 @@ class NFeController extends Controller
 
             return response($pdf, 200)
                 ->header('Content-Type', 'application/pdf')
-                ->header('Content-Disposition', 'inline; filename="DANFE_' . $note->invoice_number . '.pdf"');
+                ->header('Content-Disposition', 'inline; filename="DANFE_'.$note->invoice_number.'.pdf"');
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -148,7 +147,7 @@ class NFeController extends Controller
      */
     public function xml(FiscalNote $note)
     {
-        if (!$note->xml_path) {
+        if (! $note->xml_path) {
             return response()->json([
                 'success' => false,
                 'message' => 'XML não disponível para esta nota.',
@@ -159,8 +158,7 @@ class NFeController extends Controller
 
         return \Storage::disk($disk)->download(
             $note->xml_path,
-            'NFe_' . $note->invoice_number . '.xml'
+            'NFe_'.$note->invoice_number.'.xml'
         );
     }
 }
-

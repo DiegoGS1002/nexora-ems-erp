@@ -26,6 +26,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        if (DB::getDriverName() !== 'mysql') {
+            Schema::table('rag_documents', function (Blueprint $table) {
+                $table->longText('embedding')->nullable();
+            });
+
+            return;
+        }
+
         $version = DB::selectOne('SELECT VERSION() AS v')->v;
         $major   = (int) explode('.', $version)[0];
 
@@ -44,4 +52,3 @@ return new class extends Migration
         Schema::dropIfExists('rag_documents');
     }
 };
-

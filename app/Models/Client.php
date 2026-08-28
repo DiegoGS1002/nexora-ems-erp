@@ -36,6 +36,8 @@ class Client extends Model
         'address_district',
         'address_city',
         'address_state',
+        'ibge_municipio',
+        'ind_ie_dest',
         'credit_limit',
         'payment_condition_default',
         'situation',

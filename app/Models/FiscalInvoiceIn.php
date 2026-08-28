@@ -37,6 +37,21 @@ class FiscalInvoiceIn extends Model
         'total_value',
         'xml_path',
         'raw_xml',
+        'authorization_protocol',
+        'authorization_status',
+        'original_xml_hash',
+        'xml_validated_at',
+        'matching_status',
+        'matching_divergences',
+        'matching_approved_by',
+        'matching_approved_at',
+        'receipt_applied_at',
+        'cost_center',
+        'chart_of_account_id',
+        'financial_nature',
+        'installment_data',
+        'reversed_at',
+        'cancellation_event_protocol',
         'stock_movement_id',
         'account_payable_id',
         'escriturada_at',
@@ -48,6 +63,12 @@ class FiscalInvoiceIn extends Model
         'issue_date'      => 'date',
         'entry_date'      => 'date',
         'escriturada_at'  => 'datetime',
+        'xml_validated_at' => 'datetime',
+        'matching_divergences' => 'array',
+        'matching_approved_at' => 'datetime',
+        'receipt_applied_at' => 'datetime',
+        'installment_data' => 'array',
+        'reversed_at' => 'datetime',
         'products_total'  => 'decimal:2',
         'shipping_total'  => 'decimal:2',
         'insurance_total' => 'decimal:2',
@@ -114,12 +135,12 @@ class FiscalInvoiceIn extends Model
 
     public function isEscrituravel(): bool
     {
-        return in_array($this->status, ['validada', 'aguardando_conferencia', 'importada', 'digitada']);
+        return in_array($this->status, ['validada', 'aguardando_conferencia', 'importada', 'digitada'])
+            && $this->matching_status !== 'divergent';
     }
 
     public function isCancellable(): bool
     {
-        return !in_array($this->status, ['escriturada', 'cancelada']);
+        return $this->status !== 'cancelada';
     }
 }
-

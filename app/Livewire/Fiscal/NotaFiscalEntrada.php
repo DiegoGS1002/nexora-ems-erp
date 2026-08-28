@@ -2,15 +2,13 @@
 
 namespace App\Livewire\Fiscal;
 
-use App\Enums\PayableStatus;
-use App\Models\AccountPayable;
 use App\Models\FiscalInvoiceIn;
 use App\Models\FiscalInvoiceItemIn;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
-use App\Models\StockMovement;
 use App\Models\Supplier;
-use App\Support\PerPage;
+use App\Models\Company;
+use App\Services\NFeIncomingXmlValidator;
 use App\Traits\HasPerPage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -26,59 +24,95 @@ use Livewire\WithPagination;
 #[Title('Notas Fiscais de Entrada')]
 class NotaFiscalEntrada extends Component
 {
-    use WithPagination, WithFileUploads;
+    use HasPerPage, WithFileUploads, WithPagination;
 
     /* ─── Filters ─── */
-    public string $search       = '';
+    public string $search = '';
+
     public string $filterStatus = '';
 
     /* ─── Modal State ─── */
-    public bool   $showModal    = false;
-    public bool   $showDetail   = false;
-    public bool   $showXmlModal = false;
-    public string $activeTab    = 'cabecalho';
-    public ?int   $editingId    = null;
-    public ?int   $viewingId    = null;
+    public bool $showModal = false;
+
+    public bool $showDetail = false;
+
+    public bool $showXmlModal = false;
+
+    public string $activeTab = 'cabecalho';
+
+    public ?int $editingId = null;
+
+    public ?int $viewingId = null;
 
     /* ─── XML Upload ─── */
     public $xmlFile = null;
 
+    public string $validatedXmlPath = '';
+
+    public string $validatedXmlProtocol = '';
+
+    public string $validatedXmlHash = '';
+
+    public array $validatedInstallments = [];
+
     /* ══════════════════════════════════════════
        FORM — Cabeçalho
     ══════════════════════════════════════════ */
-    public string $supplier_id        = '';
-    public string $supplier_name      = '';
-    public string $supplier_cnpj      = '';
-    public string $supplier_ie        = '';
-    public string $purchase_order_id  = '';
-    public string $invoice_number     = '';
-    public string $series             = '1';
-    public string $access_key         = '';
-    public string $doc_type           = 'nfe';
-    public string $issue_date         = '';
-    public string $entry_date         = '';
-    public string $cfop               = '';
-    public string $operation_nature   = '';
-    public string $status             = 'digitada';
-    public string $notes              = '';
+    public string $supplier_id = '';
+
+    public string $supplier_name = '';
+
+    public string $supplier_cnpj = '';
+
+    public string $supplier_ie = '';
+
+    public string $purchase_order_id = '';
+
+    public string $invoice_number = '';
+
+    public string $series = '1';
+
+    public string $access_key = '';
+
+    public string $doc_type = 'nfe';
+
+    public string $issue_date = '';
+
+    public string $entry_date = '';
+
+    public string $cfop = '';
+
+    public string $operation_nature = '';
+
+    public string $status = 'digitada';
+
+    public string $notes = '';
 
     /* ══════════════════════════════════════════
        FORM — Itens
     ══════════════════════════════════════════ */
-    public array  $invoiceItems  = [];
+    public array $invoiceItems = [];
+
     public string $searchProduct = '';
-    public array  $searchResults = [];
+
+    public array $searchResults = [];
 
     /* ══════════════════════════════════════════
        FORM — Totais
     ══════════════════════════════════════════ */
-    public string $products_total  = '0';
-    public string $shipping_total  = '0';
+    public string $products_total = '0';
+
+    public string $shipping_total = '0';
+
     public string $insurance_total = '0';
-    public string $other_expenses  = '0';
-    public string $discount_total  = '0';
-    public string $tax_total       = '0';
-    public string $total_value     = '0';
+
+    public string $other_expenses = '0';
+
+    public string $discount_total = '0';
+
+    public string $tax_total = '0';
+
+    public string $total_value = '0';
 
     /* ─── Computed ─── */
 
@@ -86,12 +120,12 @@ class NotaFiscalEntrada extends Component
     public function invoices()
     {
         return FiscalInvoiceIn::with(['supplier'])
-            ->when($this->search, fn($q) => $q->where(function ($q2) {
-                $q2->where('invoice_number', 'like', '%' . $this->search . '%')
-                   ->orWhere('supplier_name', 'like', '%' . $this->search . '%')
-                   ->orWhere('access_key', 'like', '%' . $this->search . '%');
+            ->when($this->search, fn ($q) => $q->where(function ($q2) {
+                $q2->where('invoice_number', 'like', '%'.$this->search.'%')
+                    ->orWhere('supplier_name', 'like', '%'.$this->search.'%')
+                    ->orWhere('access_key', 'like', '%'.$this->search.'%');
             }))
-            ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
+            ->when($this->filterStatus, fn ($q) => $q->where('status', $this->filterStatus))
             ->latest()
             ->paginate($this->perPage);
     }
@@ -100,11 +134,11 @@ class NotaFiscalEntrada extends Component
     public function stats(): array
     {
         return [
-            'total'       => FiscalInvoiceIn::count(),
-            'digitada'    => FiscalInvoiceIn::where('status', 'digitada')->count(),
-            'aguardando'  => FiscalInvoiceIn::where('status', 'aguardando_conferencia')->count(),
+            'total' => FiscalInvoiceIn::count(),
+            'digitada' => FiscalInvoiceIn::where('status', 'digitada')->count(),
+            'aguardando' => FiscalInvoiceIn::where('status', 'aguardando_conferencia')->count(),
             'escriturada' => FiscalInvoiceIn::where('status', 'escriturada')->count(),
-            'cancelada'   => FiscalInvoiceIn::where('status', 'cancelada')->count(),
+            'cancelada' => FiscalInvoiceIn::where('status', 'cancelada')->count(),
             'valor_total' => FiscalInvoiceIn::whereNotIn('status', ['cancelada'])->sum('total_value'),
         ];
     }
@@ -142,51 +176,51 @@ class NotaFiscalEntrada extends Component
     {
         $this->resetForm();
         $this->entry_date = now()->format('Y-m-d');
-        $this->showModal  = true;
+        $this->showModal = true;
     }
 
     public function openEdit(int $id): void
     {
         $invoice = FiscalInvoiceIn::with('items')->findOrFail($id);
 
-        $this->editingId        = $id;
-        $this->supplier_id      = (string) ($invoice->supplier_id ?? '');
-        $this->supplier_name    = $invoice->supplier_name ?? '';
-        $this->supplier_cnpj    = $invoice->supplier_cnpj ?? '';
-        $this->supplier_ie      = $invoice->supplier_ie ?? '';
-        $this->purchase_order_id= (string) ($invoice->purchase_order_id ?? '');
-        $this->invoice_number   = $invoice->invoice_number;
-        $this->series           = $invoice->series;
-        $this->access_key       = $invoice->access_key ?? '';
-        $this->doc_type         = $invoice->doc_type;
-        $this->issue_date       = $invoice->issue_date?->format('Y-m-d') ?? '';
-        $this->entry_date       = $invoice->entry_date?->format('Y-m-d') ?? '';
-        $this->cfop             = $invoice->cfop ?? '';
+        $this->editingId = $id;
+        $this->supplier_id = (string) ($invoice->supplier_id ?? '');
+        $this->supplier_name = $invoice->supplier_name ?? '';
+        $this->supplier_cnpj = $invoice->supplier_cnpj ?? '';
+        $this->supplier_ie = $invoice->supplier_ie ?? '';
+        $this->purchase_order_id = (string) ($invoice->purchase_order_id ?? '');
+        $this->invoice_number = $invoice->invoice_number;
+        $this->series = $invoice->series;
+        $this->access_key = $invoice->access_key ?? '';
+        $this->doc_type = $invoice->doc_type;
+        $this->issue_date = $invoice->issue_date?->format('Y-m-d') ?? '';
+        $this->entry_date = $invoice->entry_date?->format('Y-m-d') ?? '';
+        $this->cfop = $invoice->cfop ?? '';
         $this->operation_nature = $invoice->operation_nature ?? '';
-        $this->status           = $invoice->status;
-        $this->notes            = $invoice->notes ?? '';
-        $this->products_total   = (string) $invoice->products_total;
-        $this->shipping_total   = (string) $invoice->shipping_total;
-        $this->insurance_total  = (string) $invoice->insurance_total;
-        $this->other_expenses   = (string) $invoice->other_expenses;
-        $this->discount_total   = (string) $invoice->discount_total;
-        $this->tax_total        = (string) $invoice->tax_total;
-        $this->total_value      = (string) $invoice->total_value;
+        $this->status = $invoice->status;
+        $this->notes = $invoice->notes ?? '';
+        $this->products_total = (string) $invoice->products_total;
+        $this->shipping_total = (string) $invoice->shipping_total;
+        $this->insurance_total = (string) $invoice->insurance_total;
+        $this->other_expenses = (string) $invoice->other_expenses;
+        $this->discount_total = (string) $invoice->discount_total;
+        $this->tax_total = (string) $invoice->tax_total;
+        $this->total_value = (string) $invoice->total_value;
 
-        $this->invoiceItems = $invoice->items->map(fn($item) => [
-            'id'           => $item->id,
-            'product_id'   => $item->product_id ?? '',
+        $this->invoiceItems = $invoice->items->map(fn ($item) => [
+            'id' => $item->id,
+            'product_id' => $item->product_id ?? '',
             'product_code' => $item->product_code ?? '',
             'product_name' => $item->product_name,
-            'ncm'          => $item->ncm ?? '',
-            'cfop'         => $item->cfop ?? '',
-            'unit'         => $item->unit,
-            'quantity'     => (string) $item->quantity,
-            'unit_price'   => (string) $item->unit_price,
-            'total_price'  => (string) $item->total_price,
-            'icms_value'   => (string) $item->icms_value,
-            'ipi_value'    => (string) $item->ipi_value,
-            'pis_value'    => (string) $item->pis_value,
+            'ncm' => $item->ncm ?? '',
+            'cfop' => $item->cfop ?? '',
+            'unit' => $item->unit,
+            'quantity' => (string) $item->quantity,
+            'unit_price' => (string) $item->unit_price,
+            'total_price' => (string) $item->total_price,
+            'icms_value' => (string) $item->icms_value,
+            'ipi_value' => (string) $item->ipi_value,
+            'pis_value' => (string) $item->pis_value,
             'cofins_value' => (string) $item->cofins_value,
         ])->toArray();
 
@@ -201,68 +235,78 @@ class NotaFiscalEntrada extends Component
 
     public function openDetail(int $id): void
     {
-        $this->viewingId  = $id;
+        $this->viewingId = $id;
         $this->showDetail = true;
     }
 
     public function closeDetail(): void
     {
         $this->showDetail = false;
-        $this->viewingId  = null;
+        $this->viewingId = null;
     }
 
     public function openXmlModal(): void
     {
-        $this->xmlFile      = null;
+        $this->xmlFile = null;
         $this->showXmlModal = true;
     }
 
     public function closeXmlModal(): void
     {
         $this->showXmlModal = false;
-        $this->xmlFile      = null;
+        $this->xmlFile = null;
     }
 
     /* ─── XML Import ─── */
 
-    public function importXml(): void
+    public function importXml(NFeIncomingXmlValidator $validator): void
     {
         $this->validate(['xmlFile' => 'required|file|mimes:xml|max:5120']);
 
         try {
             $content = file_get_contents($this->xmlFile->getRealPath());
+            $validation = $validator->validateAndStore(
+                $content,
+                Company::where('is_active', true)->firstOrFail()
+            );
+            $this->validatedXmlPath = $validation['xml_path'];
+            $this->validatedXmlProtocol = $validation['protocol'];
+            $this->validatedXmlHash = $validation['hash'];
+            $this->validatedInstallments = $validation['installments'];
 
             // Remove namespaces for easier parsing
             $content = preg_replace('/\s+xmlns[^=]*="[^"]*"/', '', $content);
             $xml = simplexml_load_string($content, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING);
 
-            if (!$xml) {
+            if (! $xml) {
                 session()->flash('error', 'XML inválido ou malformado.');
+
                 return;
             }
 
             // Navigate to NFe/infNFe node
             $infNFe = $xml->NFe->infNFe ?? $xml->infNFe ?? null;
-            if (!$infNFe) {
+            if (! $infNFe) {
                 // Try nfeProc wrapper
                 $infNFe = $xml->NFe->infNFe ?? $xml->nfeProc->NFe->infNFe ?? null;
             }
 
-            if (!$infNFe) {
+            if (! $infNFe) {
                 session()->flash('error', 'Estrutura do XML NF-e não reconhecida.');
+
                 return;
             }
 
-            $ide   = $infNFe->ide ?? null;
-            $emit  = $infNFe->emit ?? null;
+            $ide = $infNFe->ide ?? null;
+            $emit = $infNFe->emit ?? null;
             $total = $infNFe->total->ICMSTot ?? null;
 
             // Populate header
-            $this->invoice_number   = (string) ($ide->nNF ?? '');
-            $this->series           = (string) ($ide->serie ?? '1');
-            $this->doc_type         = 'nfe';
+            $this->invoice_number = (string) ($ide->nNF ?? '');
+            $this->series = (string) ($ide->serie ?? '1');
+            $this->doc_type = 'nfe';
             $this->operation_nature = (string) ($ide->natOp ?? '');
-            $this->cfop             = '';
+            $this->cfop = '';
 
             // Access key from Id attribute or chNFe
             $idAttr = (string) ($infNFe['Id'] ?? '');
@@ -281,11 +325,11 @@ class NotaFiscalEntrada extends Component
             if ($emit) {
                 $this->supplier_cnpj = preg_replace('/\D/', '', (string) ($emit->CNPJ ?? ''));
                 $this->supplier_name = (string) ($emit->xNome ?? $emit->xFant ?? '');
-                $this->supplier_ie   = (string) ($emit->IE ?? '');
+                $this->supplier_ie = (string) ($emit->IE ?? '');
 
                 // Try to find supplier by CNPJ
                 if ($this->supplier_cnpj) {
-                    $sup = Supplier::where('taxNumber', 'like', '%' . $this->supplier_cnpj . '%')->first();
+                    $sup = Supplier::where('taxNumber', 'like', '%'.$this->supplier_cnpj.'%')->first();
                     if ($sup) {
                         $this->supplier_id = (string) $sup->id;
                     }
@@ -294,16 +338,16 @@ class NotaFiscalEntrada extends Component
 
             // Totals
             if ($total) {
-                $this->products_total  = (string) ((float) ($total->vProd ?? 0));
-                $this->shipping_total  = (string) ((float) ($total->vFrete ?? 0));
+                $this->products_total = (string) ((float) ($total->vProd ?? 0));
+                $this->shipping_total = (string) ((float) ($total->vFrete ?? 0));
                 $this->insurance_total = (string) ((float) ($total->vSeg ?? 0));
-                $this->other_expenses  = (string) ((float) ($total->vOutro ?? 0));
-                $this->discount_total  = (string) ((float) ($total->vDesc ?? 0));
-                $this->tax_total       = (string) round(
-                    (float)($total->vICMS ?? 0) +
-                    (float)($total->vIPI ?? 0) +
-                    (float)($total->vPIS ?? 0) +
-                    (float)($total->vCOFINS ?? 0),
+                $this->other_expenses = (string) ((float) ($total->vOutro ?? 0));
+                $this->discount_total = (string) ((float) ($total->vDesc ?? 0));
+                $this->tax_total = (string) round(
+                    (float) ($total->vICMS ?? 0) +
+                    (float) ($total->vIPI ?? 0) +
+                    (float) ($total->vPIS ?? 0) +
+                    (float) ($total->vCOFINS ?? 0),
                     2
                 );
                 $this->total_value = (string) ((float) ($total->vNF ?? 0));
@@ -312,7 +356,7 @@ class NotaFiscalEntrada extends Component
             // Items
             $this->invoiceItems = [];
             foreach ($infNFe->det as $det) {
-                $prod    = $det->prod ?? null;
+                $prod = $det->prod ?? null;
                 $imposto = $det->imposto ?? null;
 
                 $icmsVal = 0;
@@ -325,15 +369,15 @@ class NotaFiscalEntrada extends Component
                     }
                 }
 
-                $ipiVal    = (float) ($imposto->IPI->IPITrib->vIPI ?? 0);
-                $pisVal    = (float) ($imposto->PIS->PISAliq->vPIS ?? $imposto->PIS->PISOutr->vPIS ?? 0);
+                $ipiVal = (float) ($imposto->IPI->IPITrib->vIPI ?? 0);
+                $pisVal = (float) ($imposto->PIS->PISAliq->vPIS ?? $imposto->PIS->PISOutr->vPIS ?? 0);
                 $cofinsVal = (float) ($imposto->COFINS->COFINSAliq->vCOFINS ?? $imposto->COFINS->COFINSOutr->vCOFINS ?? 0);
 
                 $productCode = (string) ($prod->cProd ?? '');
                 $productName = (string) ($prod->xProd ?? '');
-                $qty         = (float) ($prod->qCom ?? 0);
-                $unitPrice   = (float) ($prod->vUnCom ?? 0);
-                $totalPrice  = (float) ($prod->vProd ?? 0);
+                $qty = (float) ($prod->qCom ?? 0);
+                $unitPrice = (float) ($prod->vUnCom ?? 0);
+                $totalPrice = (float) ($prod->vProd ?? 0);
 
                 // Try to find product
                 $productId = '';
@@ -345,19 +389,19 @@ class NotaFiscalEntrada extends Component
                 }
 
                 $this->invoiceItems[] = [
-                    'id'           => null,
-                    'product_id'   => $productId,
+                    'id' => null,
+                    'product_id' => $productId,
                     'product_code' => $productCode,
                     'product_name' => $productName,
-                    'ncm'          => (string) ($prod->NCM ?? ''),
-                    'cfop'         => (string) ($prod->CFOP ?? ''),
-                    'unit'         => (string) ($prod->uCom ?? 'UN'),
-                    'quantity'     => (string) $qty,
-                    'unit_price'   => (string) $unitPrice,
-                    'total_price'  => (string) $totalPrice,
-                    'icms_value'   => (string) $icmsVal,
-                    'ipi_value'    => (string) $ipiVal,
-                    'pis_value'    => (string) $pisVal,
+                    'ncm' => (string) ($prod->NCM ?? ''),
+                    'cfop' => (string) ($prod->CFOP ?? ''),
+                    'unit' => (string) ($prod->uCom ?? 'UN'),
+                    'quantity' => (string) $qty,
+                    'unit_price' => (string) $unitPrice,
+                    'total_price' => (string) $totalPrice,
+                    'icms_value' => (string) $icmsVal,
+                    'ipi_value' => (string) $ipiVal,
+                    'pis_value' => (string) $pisVal,
                     'cofins_value' => (string) $cofinsVal,
                 ];
             }
@@ -370,7 +414,7 @@ class NotaFiscalEntrada extends Component
             session()->flash('message', 'XML importado com sucesso! Revise os dados e salve.');
 
         } catch (\Throwable $e) {
-            session()->flash('error', 'Erro ao processar XML: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao processar XML: '.$e->getMessage());
         }
     }
 
@@ -379,19 +423,19 @@ class NotaFiscalEntrada extends Component
     public function addItem(): void
     {
         $this->invoiceItems[] = [
-            'id'           => null,
-            'product_id'   => '',
+            'id' => null,
+            'product_id' => '',
             'product_code' => '',
             'product_name' => '',
-            'ncm'          => '',
-            'cfop'         => '',
-            'unit'         => 'UN',
-            'quantity'     => '1',
-            'unit_price'   => '0',
-            'total_price'  => '0',
-            'icms_value'   => '0',
-            'ipi_value'    => '0',
-            'pis_value'    => '0',
+            'ncm' => '',
+            'cfop' => '',
+            'unit' => 'UN',
+            'quantity' => '1',
+            'unit_price' => '0',
+            'total_price' => '0',
+            'icms_value' => '0',
+            'ipi_value' => '0',
+            'pis_value' => '0',
             'cofins_value' => '0',
         ];
     }
@@ -412,19 +456,19 @@ class NotaFiscalEntrada extends Component
     {
         $prodTotal = 0;
         foreach ($this->invoiceItems as &$item) {
-            $qty   = (float) ($item['quantity'] ?? 0);
+            $qty = (float) ($item['quantity'] ?? 0);
             $price = (float) ($item['unit_price'] ?? 0);
             $total = round($qty * $price, 2);
             $item['total_price'] = (string) $total;
             $prodTotal += $total;
         }
         $this->products_total = (string) round($prodTotal, 2);
-        $this->total_value    = (string) round(
+        $this->total_value = (string) round(
             $prodTotal
-            + (float)$this->shipping_total
-            + (float)$this->insurance_total
-            + (float)$this->other_expenses
-            - (float)$this->discount_total,
+            + (float) $this->shipping_total
+            + (float) $this->insurance_total
+            + (float) $this->other_expenses
+            - (float) $this->discount_total,
             2
         );
     }
@@ -433,6 +477,7 @@ class NotaFiscalEntrada extends Component
     {
         if (strlen($query) < 2) {
             $this->searchResults = [];
+
             return;
         }
         $this->searchResults = Product::where('name', 'like', "%{$query}%")
@@ -445,11 +490,13 @@ class NotaFiscalEntrada extends Component
     public function selectProduct(int $itemIndex, string $productId): void
     {
         $product = Product::find($productId);
-        if (!$product) return;
+        if (! $product) {
+            return;
+        }
 
-        $this->invoiceItems[$itemIndex]['product_id']   = (string) $product->id;
+        $this->invoiceItems[$itemIndex]['product_id'] = (string) $product->id;
         $this->invoiceItems[$itemIndex]['product_name'] = $product->name;
-        $this->invoiceItems[$itemIndex]['unit']         = $product->unit_measure ?? 'UN';
+        $this->invoiceItems[$itemIndex]['unit'] = $product->unit_measure ?? 'UN';
         $this->searchResults = [];
     }
 
@@ -458,38 +505,47 @@ class NotaFiscalEntrada extends Component
     public function save(): void
     {
         $this->validate([
-            'supplier_name'  => 'required|string|max:255',
+            'supplier_name' => 'required|string|max:255',
             'invoice_number' => 'required|string|max:9',
-            'series'         => 'required|string|max:3',
-            'entry_date'     => 'required|date',
-            'invoiceItems'   => 'array|min:1',
+            'series' => 'required|string|max:3',
+            'entry_date' => 'required|date',
+            'invoiceItems' => 'array|min:1',
         ]);
 
         DB::transaction(function () {
             $data = [
-                'supplier_id'       => $this->supplier_id ?: null,
-                'supplier_name'     => $this->supplier_name,
-                'supplier_cnpj'     => $this->supplier_cnpj,
-                'supplier_ie'       => $this->supplier_ie,
+                'supplier_id' => $this->supplier_id ?: null,
+                'supplier_name' => $this->supplier_name,
+                'supplier_cnpj' => $this->supplier_cnpj,
+                'supplier_ie' => $this->supplier_ie,
                 'purchase_order_id' => $this->purchase_order_id ?: null,
-                'invoice_number'    => $this->invoice_number,
-                'series'            => $this->series,
-                'access_key'        => $this->access_key ?: null,
-                'doc_type'          => $this->doc_type,
-                'issue_date'        => $this->issue_date ?: null,
-                'entry_date'        => $this->entry_date,
-                'cfop'              => $this->cfop,
-                'operation_nature'  => $this->operation_nature,
-                'status'            => $this->status,
-                'products_total'    => (float) $this->products_total,
-                'shipping_total'    => (float) $this->shipping_total,
-                'insurance_total'   => (float) $this->insurance_total,
-                'other_expenses'    => (float) $this->other_expenses,
-                'discount_total'    => (float) $this->discount_total,
-                'tax_total'         => (float) $this->tax_total,
-                'total_value'       => (float) $this->total_value,
-                'notes'             => $this->notes,
-                'created_by'        => Auth::id(),
+                'invoice_number' => $this->invoice_number,
+                'series' => $this->series,
+                'access_key' => $this->access_key ?: null,
+                'doc_type' => $this->doc_type,
+                'issue_date' => $this->issue_date ?: null,
+                'entry_date' => $this->entry_date,
+                'cfop' => $this->cfop,
+                'operation_nature' => $this->operation_nature,
+                'status' => $this->status,
+                'products_total' => (float) $this->products_total,
+                'shipping_total' => (float) $this->shipping_total,
+                'insurance_total' => (float) $this->insurance_total,
+                'other_expenses' => (float) $this->other_expenses,
+                'discount_total' => (float) $this->discount_total,
+                'tax_total' => (float) $this->tax_total,
+                'total_value' => (float) $this->total_value,
+                'notes' => $this->notes,
+                'xml_path' => $this->validatedXmlPath ?: null,
+                'raw_xml' => $this->validatedXmlPath
+                    ? \Illuminate\Support\Facades\Storage::disk(config('nfe.xml_disk'))->get($this->validatedXmlPath)
+                    : null,
+                'authorization_protocol' => $this->validatedXmlProtocol ?: null,
+                'authorization_status' => $this->validatedXmlProtocol ? '100' : null,
+                'original_xml_hash' => $this->validatedXmlHash ?: null,
+                'xml_validated_at' => $this->validatedXmlHash ? now() : null,
+                'installment_data' => $this->validatedInstallments ?: null,
+                'created_by' => Auth::id(),
             ];
 
             if ($this->editingId) {
@@ -503,19 +559,19 @@ class NotaFiscalEntrada extends Component
             foreach ($this->invoiceItems as $item) {
                 FiscalInvoiceItemIn::create([
                     'fiscal_invoice_in_id' => $invoice->id,
-                    'product_id'           => $item['product_id'] ?: null,
-                    'product_code'         => $item['product_code'] ?? '',
-                    'product_name'         => $item['product_name'],
-                    'ncm'                  => $item['ncm'] ?? '',
-                    'cfop'                 => $item['cfop'] ?? '',
-                    'unit'                 => $item['unit'] ?? 'UN',
-                    'quantity'             => (float) ($item['quantity'] ?? 0),
-                    'unit_price'           => (float) ($item['unit_price'] ?? 0),
-                    'total_price'          => (float) ($item['total_price'] ?? 0),
-                    'icms_value'           => (float) ($item['icms_value'] ?? 0),
-                    'ipi_value'            => (float) ($item['ipi_value'] ?? 0),
-                    'pis_value'            => (float) ($item['pis_value'] ?? 0),
-                    'cofins_value'         => (float) ($item['cofins_value'] ?? 0),
+                    'product_id' => $item['product_id'] ?: null,
+                    'product_code' => $item['product_code'] ?? '',
+                    'product_name' => $item['product_name'],
+                    'ncm' => $item['ncm'] ?? '',
+                    'cfop' => $item['cfop'] ?? '',
+                    'unit' => $item['unit'] ?? 'UN',
+                    'quantity' => (float) ($item['quantity'] ?? 0),
+                    'unit_price' => (float) ($item['unit_price'] ?? 0),
+                    'total_price' => (float) ($item['total_price'] ?? 0),
+                    'icms_value' => (float) ($item['icms_value'] ?? 0),
+                    'ipi_value' => (float) ($item['ipi_value'] ?? 0),
+                    'pis_value' => (float) ($item['pis_value'] ?? 0),
+                    'cofins_value' => (float) ($item['cofins_value'] ?? 0),
                 ]);
             }
         });
@@ -526,64 +582,44 @@ class NotaFiscalEntrada extends Component
 
     /* ─── Escriturar (Confirm Receipt) ─── */
 
-    public function escriturar(int $id): void
+    public function escriturar(
+        int $id,
+        \App\Services\PurchaseInvoiceMatchingService $matchingService,
+        \App\Services\FiscalEntryPostingService $postingService
+    ): void
     {
         $invoice = FiscalInvoiceIn::with('items')->findOrFail($id);
 
-        if (!$invoice->isEscrituravel()) {
+        if ($invoice->purchase_order_id && $invoice->matching_status === null) {
+            $matchingService->compare($invoice);
+            $invoice->refresh();
+        }
+
+        if (! $invoice->isEscrituravel()) {
             session()->flash('error', 'Esta NF não pode ser escriturada.');
+
             return;
         }
 
-        DB::transaction(function () use ($invoice) {
-            // 1. Entrada no estoque por item
-            foreach ($invoice->items as $item) {
-                if ($item->product_id) {
-                    StockMovement::create([
-                        'product_id'  => $item->product_id,
-                        'user_id'     => Auth::id(),
-                        'quantity'    => $item->quantity,
-                        'type'        => 'entrada',
-                        'origin'      => 'nf_entrada',
-                        'unit_cost'   => $item->unit_price,
-                        'observation' => "NF-e Entrada #{$invoice->invoice_number} / {$invoice->supplier_name}",
-                    ]);
-                }
-            }
-
-            // 2. Gerar conta a pagar
-            $payable = AccountPayable::create([
-                'description_title'   => "NF Entrada #{$invoice->invoice_number} - {$invoice->supplier_name}",
-                'supplier_id'         => $invoice->supplier_id,
-                'amount'              => $invoice->total_value,
-                'due_date_at'         => now()->addDays(30)->format('Y-m-d'),
-                'status'              => PayableStatus::Pending->value,
-                'observation'         => "Gerado automaticamente a partir da NF de Entrada #{$invoice->invoice_number}",
-            ]);
-
-            // 3. Atualizar status
-            $invoice->update([
-                'status'             => 'escriturada',
-                'account_payable_id' => $payable->id,
-                'escriturada_at'     => now(),
-            ]);
-        });
+        $matchingService->applyReceipt($invoice);
+        $postingService->post($invoice, auth()->user());
 
         session()->flash('message', 'NF escriturada! Estoque e Contas a Pagar atualizados.');
     }
 
     /* ─── Cancel ─── */
 
-    public function cancel(int $id): void
+    public function cancel(int $id, \App\Services\FiscalEntryReversalService $reversalService): void
     {
         $invoice = FiscalInvoiceIn::findOrFail($id);
 
-        if (!$invoice->isCancellable()) {
+        if (! $invoice->isCancellable()) {
             session()->flash('error', 'Esta NF não pode ser cancelada.');
+
             return;
         }
 
-        $invoice->update(['status' => 'cancelada']);
+        $reversalService->reverse($invoice, auth()->user());
         session()->flash('message', 'NF de Entrada cancelada.');
     }
 
@@ -595,6 +631,7 @@ class NotaFiscalEntrada extends Component
 
         if ($invoice->status === 'escriturada') {
             session()->flash('error', 'Não é possível excluir uma NF já escriturada.');
+
             return;
         }
 
@@ -606,32 +643,32 @@ class NotaFiscalEntrada extends Component
 
     private function resetForm(): void
     {
-        $this->editingId        = null;
-        $this->activeTab        = 'cabecalho';
-        $this->supplier_id      = '';
-        $this->supplier_name    = '';
-        $this->supplier_cnpj    = '';
-        $this->supplier_ie      = '';
-        $this->purchase_order_id= '';
-        $this->invoice_number   = '';
-        $this->series           = '1';
-        $this->access_key       = '';
-        $this->doc_type         = 'nfe';
-        $this->issue_date       = '';
-        $this->entry_date       = '';
-        $this->cfop             = '';
+        $this->editingId = null;
+        $this->activeTab = 'cabecalho';
+        $this->supplier_id = '';
+        $this->supplier_name = '';
+        $this->supplier_cnpj = '';
+        $this->supplier_ie = '';
+        $this->purchase_order_id = '';
+        $this->invoice_number = '';
+        $this->series = '1';
+        $this->access_key = '';
+        $this->doc_type = 'nfe';
+        $this->issue_date = '';
+        $this->entry_date = '';
+        $this->cfop = '';
         $this->operation_nature = '';
-        $this->status           = 'digitada';
-        $this->notes            = '';
-        $this->products_total   = '0';
-        $this->shipping_total   = '0';
-        $this->insurance_total  = '0';
-        $this->other_expenses   = '0';
-        $this->discount_total   = '0';
-        $this->tax_total        = '0';
-        $this->total_value      = '0';
-        $this->invoiceItems     = [];
-        $this->searchResults    = [];
+        $this->status = 'digitada';
+        $this->notes = '';
+        $this->products_total = '0';
+        $this->shipping_total = '0';
+        $this->insurance_total = '0';
+        $this->other_expenses = '0';
+        $this->discount_total = '0';
+        $this->tax_total = '0';
+        $this->total_value = '0';
+        $this->invoiceItems = [];
+        $this->searchResults = [];
     }
 
     /* ─── Render ─── */
@@ -641,4 +678,3 @@ class NotaFiscalEntrada extends Component
         return view('livewire.fiscal.nota-fiscal-entrada');
     }
 }
-

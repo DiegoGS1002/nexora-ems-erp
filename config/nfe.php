@@ -49,6 +49,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'xml_disk'  => env('NFE_XML_DISK', 'local'),
+    'backup_disk' => env('NFE_BACKUP_DISK', 'local'),
     'xml_path'  => env('NFE_XML_PATH', 'nfe/xmls'),
     'danfe_path' => env('NFE_DANFE_PATH', 'nfe/danfe'),
 
@@ -69,6 +70,8 @@ return [
     */
     'ibpt_token' => env('NFE_IBPT_TOKEN', null),
 
+    'ipi_cenq_default' => env('NFE_IPI_CENQ_DEFAULT', '999'),
+
     /*
     |--------------------------------------------------------------------------
     | CSC — Código de Segurança do Contribuinte (obrigatório para NF-Ce)
@@ -84,4 +87,3 @@ return [
     */
     'versao' => env('NFE_VERSAO_APP', '1.0.0'),
 ];
-

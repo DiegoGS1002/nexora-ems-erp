@@ -15,6 +15,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         $version = DB::selectOne('SELECT VERSION() AS v')->v;
         $major   = (int) explode('.', $version)[0];
 
@@ -40,6 +44,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         $version = DB::selectOne('SELECT VERSION() AS v')->v;
         $major   = (int) explode('.', $version)[0];
 
@@ -58,4 +66,3 @@ return new class extends Migration
         }
     }
 };
-

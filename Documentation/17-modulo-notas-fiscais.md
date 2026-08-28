@@ -1,757 +1,425 @@
-# Módulo de Notas Fiscais (NF-e)
+# Módulo de Notas Fiscais — NF-e, NFC-e e entradas
 
-## 1. Visão Geral
+## 1. Objetivo e estado atual
 
-O módulo de Notas Fiscais gerencia todo o ciclo de vida de documentos fiscais eletrônicos (NF-e e NFC-e), desde a criação até a transmissão para a SEFAZ, cancelamento e armazenamento de XMLs e DANFEs. Este é um dos módulos mais críticos do sistema por envolver obrigações fiscais.
+O módulo fiscal controla notas de saída, notas de entrada, integração com a SEFAZ, XML, DANFE, cancelamento, Carta de Correção e numeração fiscal.
 
-### Funcionalidades Principais
-- Criação de NF-e (modelo 55) e NFC-e (modelo 65)
-- Transmissão para SEFAZ (homologação e produção)
-- Cancelamento de notas fiscais
-- Geração de DANFE em PDF
-- Armazenamento de XMLs assinados
-- Consulta de status na SEFAZ
-- Validação automática de campos obrigatórios
-- Integração com pedidos de venda
-- Controle de numeração sequencial
-- Diagnóstico de rejeições SEFAZ
+Este documento representa a base do módulo após as correções dos itens 2.3 a 2.8. A ampliação fiscal dos problemas 3 a 6 está documentada em [`18-ajustes-fiscais-nfe-2026.md`](18-ajustes-fiscais-nfe-2026.md).
 
----
+| Responsabilidade | Classe |
+|---|---|
+| Comunicação com a SEFAZ | `App\Services\NFeService` |
+| Numeração fiscal | `App\Services\FiscalNumberService` |
+| DANFE | `App\Services\DanfeService` |
+| Nota, itens e eventos | `FiscalNote`, `FiscalNoteItem`, `FiscalNoteEvent` |
+| Sequências | `FiscalNumberSequence` |
+| Listagem de saídas | `App\Livewire\Fiscal\NotaFiscal` |
+| Gestão de uma NF-e | `App\Livewire\Fiscal\NFeGestao` |
+| Notas de entrada | `App\Livewire\Fiscal\NotaFiscalEntrada` |
+| API | `App\Http\Controllers\Api\NFeController` |
 
-## 2. Regras de Negócio
+## 2. Funcionalidades anteriores e atuais
 
-### 2.1 Status da Nota Fiscal
-O ciclo de vida de uma NF-e segue estes status:
+### 2.1 Funções que já existiam
 
-1. **Draft** (Rascunho): Nota em elaboração, pode ser editada
-2. **Validada**: Passou por validação interna, pronta para transmissão
-3. **Transmitida**: Enviada para SEFAZ, aguardando retorno
-4. **Autorizada**: Aprovada pela SEFAZ, chave de acesso recebida
-5. **Cancelada**: Cancelada dentro do prazo legal (24h)
-6. **Denegada**: Rejeitada pela SEFAZ por irregularidade fiscal
-7. **Rejeitada**: Não passou na validação da SEFAZ
+- Cadastro manual de NF-e e NFC-e.
+- Pré-NF-e a partir de pedido de venda.
+- Montagem e assinatura do XML.
+- Transmissão síncrona e assíncrona.
+- Consulta de recibo, chave e disponibilidade da SEFAZ.
+- Cancelamento.
+- Armazenamento do XML enviado.
+- Geração, visualização e download do DANFE.
+- Download do XML.
+- Listagem, filtros, indicadores, edição e exclusão.
+- Componente de notas fiscais de entrada e importação de XML.
+- Escrituração de entrada, estoque e contas a pagar.
 
-### 2.2 Ambientes SEFAZ
-- **Homologação**: Para testes, não tem validade fiscal
-- **Produção**: Ambiente real, gera obrigações fiscais
+### 2.2 Funções acrescentadas ou corrigidas
 
-### 2.3 Numeração
-- Numeração sequencial por série
-- Não pode haver gaps (buracos na sequência)
-- Série 1 = NF-e padrão
-- Outras séries conforme necessidade da empresa
+- Resultado individual em `protNFe/infProt`, selecionado pela chave.
+- Separação entre resultado do lote e resultado fiscal.
+- Estados de autorização, rejeição, denegação, processamento, falha e indeterminação.
+- Preservação do recibo assíncrono.
+- Composição e armazenamento do `nfeProc`.
+- Separação entre XML enviado e XML oficial.
+- DANFE e download baseados no `nfeProc` após autorização.
+- Rota funcional de NF-e de entrada.
+- Carta de Correção eletrônica — CC-e.
+- Cancelamento com contrato uniforme `cancelled` e resultado individual.
+- Numeração transacional por empresa, tipo, série e ambiente.
+- Restrição única de número fiscal no banco.
+- Pedido preservado em seu estado comercial enquanto a NF-e é rascunho ou não autorizada.
+- Pedido alterado para `NfTransmitida` somente após protocolo `100` ou `150`.
 
-### 2.4 Prazo de Cancelamento
-- NF-e pode ser cancelada em até **24 horas** após autorização
-- Ou até antes da ocorrência do fato gerador (circulação da mercadoria)
-- Após este prazo, necessário emitir Nota de Devolução
+### 2.3 Antes e agora
 
-### 2.5 Chave de Acesso
-Formato: **44 dígitos**
-```
-UF (2) + AAMM (4) + CNPJ (14) + Modelo (2) + Série (3) + Número (9) + Tipo Emissão (1) + Código Numérico (8) + DV (1)
-```
+| Área | Antes | Agora |
+|---|---|---|
+| Transmissão | Primeiro `cStat` | `infProt` correspondente à chave |
+| XML | Apenas XML assinado | XML enviado preservado e `nfeProc` oficial |
+| DANFE | Podia usar XML sem protocolo | Usa o XML protocolado quando autorizado |
+| Entrada | Placeholder | `NotaFiscalEntrada` acessível |
+| CC-e | Método inexistente | Envio, parser, sequência e evento |
+| Cancelamento | Divergência `canceled/cancelled` | Contrato único `cancelled` |
+| Falha de cancelamento | Podia cancelar localmente | Não altera estado sem confirmação |
+| Numeração | `max()+1` global | Reserva transacional por escopo |
+| Pedido de venda | Rascunho já marcava o pedido como faturado | Somente autorização atualiza para `NfTransmitida` |
 
-### 2.6 Validações Obrigatórias
-Antes de transmitir, o sistema valida:
-- CNPJ/CPF do emitente e destinatário
-- Inscrição Estadual válida
-- Endereço completo (CEP, rua, número, cidade, UF, código IBGE)
-- Pelo menos 1 item na nota
-- NCM de 8 dígitos para cada item
-- CFOP válido
-- Valores: total dos itens = subtotal, impostos calculados corretamente
-- Certificado A1 válido e não expirado
+## 3. Estados fiscais
 
----
+`FiscalNoteStatus`:
 
-## 3. Estrutura Técnica
+| Valor | Significado |
+|---|---|
+| `draft` | Rascunho |
+| `sent` | Enviada ou aguardando definição |
+| `authorized` | Uso autorizado |
+| `rejected` | Rejeitada |
+| `denied` | Denegada |
+| `cancelled` | Cancelada pela SEFAZ |
 
-### 3.1 Model: `App\Models\FiscalNote`
+`NFeTransmissionState` separa o transporte do estado persistido: `Authorized`, `Rejected`, `Denied`, `Processing`, `Indeterminate` e `Failed`.
 
-**Caminho**: `app/Models/FiscalNote.php`
-
-#### Propriedades Principais
-```php
-protected $fillable = [
-    // Relacionamentos
-    'client_id',              // UUID do cliente
-    'sales_order_id',         // UUID do pedido de venda (opcional)
-    'company_id',             // UUID da empresa emissora
-    
-    // Identificação
-    'chave_acesso',           // 44 dígitos (após autorização)
-    'numero',                 // Número sequencial
-    'serie',                  // Série da nota (padrão: 1)
-    'tipo',                   // nfe, nfce, nfs
-    'modelo',                 // 55 (NF-e), 65 (NFC-e)
-    
-    // Status e ambiente
-    'status',                 // Enum: FiscalNoteStatus
-    'ambiente',               // homologacao, producao
-    
-    // Datas
-    'data_emissao',           // Data/hora de emissão
-    'data_autorizacao',       // Data/hora autorização SEFAZ
-    'data_cancelamento',      // Data/hora cancelamento
-    
-    // Valores
-    'total_products',         // Total dos produtos
-    'total_icms',             // Total ICMS
-    'total_ipi',              // Total IPI
-    'total_pis',              // Total PIS
-    'total_cofins',           // Total COFINS
-    'freight_value',          // Valor do frete
-    'insurance_value',        // Valor do seguro
-    'other_expenses',         // Outras despesas
-    'discount_value',         // Desconto total
-    'total_value',            // Valor total da nota
-    
-    // Transporte
-    'freight_type',           // 0=emitente, 1=destinatário, 2=terceiros
-    'carrier_name',           // Nome da transportadora
-    'carrier_cnpj',           // CNPJ da transportadora
-    'vehicle_plate',          // Placa do veículo
-    'vehicle_state',          // UF da placa
-    
-    // SEFAZ
-    'protocol_number',        // Número do protocolo SEFAZ
-    'rejection_reason',       // Motivo de rejeição/denegação
-    'cancellation_reason',    // Motivo do cancelamento
-    'xml_path',               // Caminho do XML autorizado
-    'xml_cancelamento_path',  // Caminho do XML de cancelamento
-    
-    // Observações
-    'additional_info',        // Informações adicionais
-    'fiscal_notes_obs',       // Observações fiscais
-];
-```
-
-#### Casts
-```php
-protected $casts = [
-    'data_emissao'      => 'datetime',
-    'data_autorizacao'  => 'datetime',
-    'data_cancelamento' => 'datetime',
-    'total_products'    => 'decimal:2',
-    'total_value'       => 'decimal:2',
-    'status'            => FiscalNoteStatus::class,
-];
-```
-
-#### Relacionamentos
-- `client()`: BelongsTo Client
-- `salesOrder()`: BelongsTo SalesOrder
-- `company()`: BelongsTo Company
-- `items()`: HasMany FiscalNoteItem
-
-#### Métodos Principais
-```php
-generateChaveAcesso(): string
-    // Gera chave de acesso de 44 dígitos
-
-canTransmit(): bool
-    // Verifica se pode transmitir
-
-canCancel(): bool
-    // Verifica se pode cancelar (24h)
-
-isAuthorized(): bool
-    // Verifica se está autorizada
-```
-
-### 3.2 Model: `App\Models\FiscalNoteItem`
-
-```php
-protected $fillable = [
-    'fiscal_note_id',
-    'product_id',
-    'item_number',            // Ordem do item (1, 2, 3...)
-    'product_code',           // Código do produto
-    'ean',                    // EAN
-    'description',            // Descrição
-    'ncm',                    // NCM (8 dígitos)
-    'cfop',                   // CFOP
-    'unit',                   // Unidade
-    'quantity',               // Quantidade
-    'unit_value',             // Valor unitário
-    'total_value',            // Valor total
-    'discount_value',         // Desconto
-    
-    // Origem e CST
-    'origin',                 // 0=Nacional, 1=Estrangeira, etc.
-    'cst',                    // CST do ICMS
-    'csosn',                  // CSOSN (Simples Nacional)
-    
-    // ICMS
-    'icms_base',              // Base de cálculo ICMS
-    'icms_percent',           // Alíquota ICMS
-    'icms_value',             // Valor ICMS
-    
-    // IPI
-    'ipi_base',
-    'ipi_percent',
-    'ipi_value',
-    
-    // PIS
-    'pis_base',
-    'pis_percent',
-    'pis_value',
-    
-    // COFINS
-    'cofins_base',
-    'cofins_percent',
-    'cofins_value',
-    
-    'additional_info',        // Informações adicionais do item
-];
-```
-
-### 3.3 Controller API: `App\Http\Controllers\Api\NFeController`
-
-**Caminho**: `app/Http/Controllers/Api/NFeController.php`
-
-Este controller gerencia as operações com a SEFAZ.
-
-#### Métodos Principais
-```php
-transmitir(FiscalNote $note): JsonResponse
-    // 1. Valida nota fiscal (campos obrigatórios)
-    // 2. Carrega certificado A1
-    // 3. Gera XML da NF-e
-    // 4. Assina XML com certificado
-    // 5. Transmite para SEFAZ
-    // 6. Processa retorno (autorizada/rejeitada)
-    // 7. Salva XML e atualiza nota
-
-cancelar(FiscalNote $note, Request $request): JsonResponse
-    // 1. Valida prazo de cancelamento (24h)
-    // 2. Valida motivo (mínimo 15 caracteres)
-    // 3. Gera XML de cancelamento
-    // 4. Assina e transmite para SEFAZ
-    // 5. Processa retorno
-    // 6. Atualiza status da nota
-
-status(): JsonResponse
-    // Consulta status do serviço SEFAZ
-
-consultar(Request $request): JsonResponse
-    // Consulta situação de uma NF-e na SEFAZ pela chave
-
-danfe(FiscalNote $note): Response
-    // Gera DANFE em PDF e retorna para download
-
-visualizarDanfe(FiscalNote $note): Response
-    // Exibe DANFE no navegador (inline)
-
-xml(FiscalNote $note): Response
-    // Download do XML autorizado
-```
-
-### 3.4 Livewire Components
-
-#### NotaFiscal: `App\Livewire\Fiscal\NotaFiscal`
-**Caminho**: `app/Livewire/Fiscal/NotaFiscal.php`
-
-**Funcionalidades**:
-- Listagem de notas fiscais
-- Filtros: status, tipo, ambiente, período
-- Cards com KPIs (total, emitidas, canceladas, rascunhos)
-- Ações rápidas: transmitir, cancelar, DANFE, XML
-- Busca por número, chave ou cliente
-- Paginação configurável
-
-#### NFeGestao: `App\Livewire\Fiscal\NFeGestao`
-**Caminho**: `app/Livewire/Fiscal/NFeGestao.php`
-
-**Funcionalidades**:
-- Formulário de edição de NF-e
-- Abas: Identificação, Itens, Totais, Transporte
-- Adição/remoção de itens
-- Cálculo automático de impostos
-- Validação em tempo real
-- Transmissão e cancelamento
-
----
+Protocolos `100` e `150` autorizam. Códigos `110`, `205`, `301`, `302` e `303` denegam. Outros códigos individuais são rejeições.
 
 ## 4. Rotas
 
-### 4.1 Rotas Web
+### 4.1 Telas
 
-**Arquivo**: `routes/fiscal.php`
+| Método | URI | Nome | Destino |
+|---|---|---|---|
+| GET | `/fiscal/notas-fiscais` | `fiscal.nfe.index` | `NotaFiscal` |
+| GET | `/fiscal/nfe/{noteId}/editar` | `fiscal.nfe.editar` | `NFeGestao` |
+| GET | `/fiscal/saida` | `fiscal.exit.index` | `NotaFiscal` |
+| GET | `/fiscal/entrada` | `fiscal.entrance.index` | `NotaFiscalEntrada` |
 
-| Método | URI | Nome | Descrição |
-|--------|-----|------|-----------|
-| GET | `/fiscal/notas-fiscais` | `fiscal.nfe.index` | Listagem de NF-e |
-| GET | `/fiscal/nfe/{noteId}/editar` | `fiscal.nfe.editar` | Editar NF-e |
+A rota de entrada não é mais um resource e não possui endpoints CRUD adicionais.
 
-### 4.2 Rotas API
+### 4.2 API
 
-**Arquivo**: `routes/fiscal.php`, prefixo `/api/nfe`, middleware `auth`
-
-| Método | URI | Nome | Descrição |
-|--------|-----|------|-----------|
-| POST | `/api/nfe/{note}/transmitir` | `api.nfe.transmitir` | Transmite NF-e para SEFAZ |
-| POST | `/api/nfe/{note}/cancelar` | `api.nfe.cancelar` | Cancela NF-e |
-| GET | `/api/nfe/status` | `api.nfe.status` | Status do serviço SEFAZ |
-| POST | `/api/nfe/consultar` | `api.nfe.consultar` | Consulta NF-e pela chave |
+| Método | URI | Nome | Operação |
+|---|---|---|---|
+| POST | `/api/nfe/{note}/transmitir` | `api.nfe.transmitir` | Transmissão |
+| POST | `/api/nfe/{note}/cancelar` | `api.nfe.cancelar` | Cancelamento |
+| GET | `/api/nfe/status` | `api.nfe.status` | Status do serviço |
+| POST | `/api/nfe/consultar` | `api.nfe.consultar` | Consulta por chave |
 | GET | `/api/nfe/{note}/danfe` | `api.nfe.danfe` | Download DANFE |
-| GET | `/api/nfe/{note}/danfe/visualizar` | `api.nfe.danfe.visualizar` | Visualizar DANFE |
-| GET | `/api/nfe/{note}/xml` | `api.nfe.xml` | Download XML |
+| GET | `/api/nfe/{note}/danfe/visualizar` | `api.nfe.danfe.visualizar` | DANFE inline |
+| GET | `/api/nfe/{note}/xml` | `api.nfe.xml` | XML oficial |
 
----
+## 5. Inventário completo do `NFeService`
 
-## 5. Fluxos de Dados
+### 5.1 Funções públicas
 
-### 5.1 Fluxo Completo de Emissão de NF-e
+| Função | Histórico | Comportamento atual |
+|---|---|---|
+| `__construct()` | Existente | Carrega configuração, certificado e `Tools` |
+| `transmitir()` | Existente/corrigida | Monta, assina, envia, interpreta, armazena e atualiza |
+| `consultarRecibo()` | Acrescentada ao fluxo | Finaliza transmissão assíncrona e gera `nfeProc` |
+| `buildXml()` | Existente/corrigida | Monta XML 4.00, tributos, totais e pagamento |
+| `cartaCorrecao()` | Nova | Valida, envia e registra CC-e |
+| `cancelar()` | Existente/corrigida | Cancela, interpreta evento individual e persiste |
+| `consultarStatus()` | Existente | Consulta disponibilidade da SEFAZ |
+| `consultarChave()` | Existente | Consulta situação da chave |
 
-```
-┌────────────────────┐
-│ 1. Criar Rascunho  │
-│    - Via pedido    │
-│    - Manual        │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│ 2. Preencher Dados │
-│    - Cliente       │
-│    - Itens         │
-│    - Impostos      │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│ 3. Validar         │
-│    - Campos obrig. │
-│    - Cálculos      │
-│    - NCM, CFOP     │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│ 4. Transmitir      │
-│    - Gera XML      │
-│    - Assina cert.  │
-│    - Envia SEFAZ   │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│ 5. Processar       │
-│    Retorno SEFAZ   │
-│    - Autorizada    │
-│    - Rejeitada     │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│ 6. Se Autorizada   │
-│    - Salva XML     │
-│    - Gera chave    │
-│    - Gera DANFE    │
-│    - Status: autor.│
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│ 7. Disponibilizar  │
-│    - DANFE p/ imp. │
-│    - XML p/ client.│
-│    - Envio por e-  │
-│      mail (opcion.)│
-└────────────────────┘
-```
+### 5.2 Montagem do XML
 
-### 5.2 Geração de NF-e a partir de Pedido
+- `loadTools()`, `buildConfigJson()`, `loadCertificate()`.
+- `buildIde()`, `buildEmit()`, `buildEnderEmit()`.
+- `buildDest()`, `buildEnderDest()`.
+- `buildProd()`, `buildImposto()`.
+- `buildIcms()`, `buildIcmsSn()`, `buildIpi()`, `buildPis()`, `buildCofins()`.
+- `buildIcmsTotal()`, `buildTransp()`, `buildPag()`, `buildDetPag()`, `buildInfAdic()`.
+
+### 5.3 Transmissão segura e XML autorizado
+
+- `parseTransmissionResponse()`: separa protocolo e lote.
+- `loadResponseDocument()`: XML seguro com `LIBXML_NONET`.
+- `findProtocolNode()`: encontra `infProt` pela chave.
+- `xpathValue()`: leitura XML controlada.
+- `protocolState()` e `batchState()`: classificam o retorno.
+- `extractAccessKey()`: obtém a chave de `infNFe/@Id`.
+- `applyTransmissionResult()`: atualiza nota, protocolo e recibo.
+- `saveXml()`: persiste artefatos.
+- `saveAuthorizedXml()`: gera `nfeProc` com `Complements::toAuthorize()`.
+- `validateAuthorizedXml()`: confere raiz, chave, código e protocolo.
+
+### 5.4 Carta de Correção
+
+- `sendCce()`: wrapper de `Tools::sefazCCe()`.
+- `nextCceSequence()`: próxima sequência de 1 a 20.
+- `parseCceResponse()`: valida evento `110110`, chave e sequência.
+- `saveCceResponse()`: salva resposta sem sobrescrever cartas anteriores.
+
+### 5.5 Cancelamento
+
+- `sendCancellation()`: wrapper de envio.
+- `parseCancelResponse()`: valida evento `110111` e chave e retorna `cancelled`.
+
+## 6. Contratos de retorno
+
+### 6.1 Transmissão
 
 ```php
-// 1. Pedido muda status para "Invoiced"
-$order->changeStatus(SalesOrderStatus::Invoiced);
-
-// 2. Observer SalesOrderObserver::onInvoiced() é disparado
-
-// 3. Sistema cria FiscalNote
-$note = FiscalNote::create([
-    'client_id' => $order->client_id,
-    'sales_order_id' => $order->id,
-    'tipo' => 'nfe',
-    'modelo' => '55',
-    'serie' => 1,
-    'status' => FiscalNoteStatus::Draft,
-    'ambiente' => config('nfe.ambiente'),
-    'data_emissao' => now(),
-]);
-
-// 4. Copia itens do pedido
-foreach ($order->items as $index => $item) {
-    $note->items()->create([
-        'item_number' => $index + 1,
-        'product_id' => $item->product_id,
-        'description' => $item->description,
-        'ncm' => $item->ncm,
-        'cfop' => $item->cfop,
-        'quantity' => $item->quantity,
-        'unit_value' => $item->unit_price,
-        'total_value' => $item->total,
-        // ... impostos
-    ]);
-}
-
-// 5. Calcula totais da nota
-$note->calculateTotals();
-
-// 6. Nota fica em Draft, aguardando usuário transmitir
+[
+    'state' => NFeTransmissionState::Authorized,
+    'is_final' => true,
+    'authorized' => true,
+    'code' => '100',
+    'message' => 'Autorizado o uso da NF-e',
+    'batch_code' => '104',
+    'batch_message' => 'Lote processado',
+    'receipt' => null,
+    'protocol_code' => '100',
+    'protocol_message' => 'Autorizado o uso da NF-e',
+    'access_key' => '44 dígitos',
+    'protocol' => '...',
+    'received_at' => '...',
+    'raw_response' => '<xml>...</xml>',
+]
 ```
 
-### 5.3 Transmissão para SEFAZ
+### 6.2 CC-e
 
 ```php
-// 1. Usuário clica "Transmitir"
-POST /api/nfe/{note}/transmitir
-
-// 2. Controller valida nota
-$this->validateNote($note);
-
-// 3. Carrega certificado A1
-$certificado = storage_path('app/nfe/certificado.pfx');
-$senha = config('nfe.certificado_senha');
-
-// 4. Monta XML da NF-e usando nfephp-org/sped-nfe
-$nfe = new \NFePHP\NFe\Make();
-$nfe->taginfNFe([
-    'versao' => '4.00',
-    'chave' => $note->chave_acesso,
-    // ... demais tags
-]);
-
-// 5. Assina XML
-$signedXml = $nfe->getXML();
-$tools = new \NFePHP\NFe\Tools($config);
-$signedXml = $tools->signNFe($signedXml);
-
-// 6. Transmite
-$response = $tools->sefazEnviaLote([$signedXml]);
-
-// 7. Processa retorno
-$ret = $tools->sefazConsultaRecibo($response);
-
-if ($ret->cStat == 100) { // Autorizada
-    $note->update([
-        'status' => FiscalNoteStatus::Autorizada,
-        'chave_acesso' => $ret->chNFe,
-        'protocol_number' => $ret->nProt,
-        'data_autorizacao' => now(),
-        'xml_path' => storage_path("app/nfe/autorizadas/{$ret->chNFe}.xml"),
-    ]);
-    
-    // Salva XML
-    file_put_contents($note->xml_path, $ret->xml);
-    
-    // Gera DANFE
-    $danfe = new \NFePHP\DA\NFe\Danfe($ret->xml);
-    $pdf = $danfe->render();
-    file_put_contents(
-        storage_path("app/nfe/danfe/{$ret->chNFe}.pdf"),
-        $pdf
-    );
-} else { // Rejeitada
-    $note->update([
-        'status' => FiscalNoteStatus::Rejeitada,
-        'rejection_reason' => $ret->xMotivo,
-    ]);
-}
+[
+    'registered' => true,
+    'success' => true,
+    'code' => '135',
+    'message' => 'Evento registrado e vinculado à NF-e',
+    'protocol' => '...',
+    'registered_at' => '...',
+    'sequence' => 1,
+    'response_path' => '...',
+]
 ```
 
-### 5.4 Cancelamento de NF-e
+### 6.3 Cancelamento
 
 ```php
-// 1. Usuário clica "Cancelar" e informa motivo
-POST /api/nfe/{note}/cancelar
-{
-    "motivo": "Cliente solicitou cancelamento do pedido"
-}
-
-// 2. Valida prazo (24h)
-if (now()->diffInHours($note->data_autorizacao) > 24) {
-    throw new Exception('Prazo de cancelamento expirado');
-}
-
-// 3. Valida motivo (mínimo 15 caracteres)
-if (strlen($motivo) < 15) {
-    throw new Exception('Motivo deve ter no mínimo 15 caracteres');
-}
-
-// 4. Monta XML de cancelamento
-$tools = new \NFePHP\NFe\Tools($config);
-$eventoCancelamento = $tools->sefazCancela(
-    $note->chave_acesso,
-    $note->protocol_number,
-    $motivo
-);
-
-// 5. Processa retorno
-if ($eventoCancelamento->cStat == 135) { // Cancelada
-    $note->update([
-        'status' => FiscalNoteStatus::Cancelada,
-        'data_cancelamento' => now(),
-        'cancellation_reason' => $motivo,
-        'xml_cancelamento_path' => storage_path("app/nfe/canceladas/{$note->chave_acesso}-canc.xml"),
-    ]);
-    
-    // Salva XML de cancelamento
-    file_put_contents($note->xml_cancelamento_path, $eventoCancelamento->xml);
-    
-    // Reverte movimentações (se necessário)
-    // - Estoque: cria StockMovement inverso
-    // - Financeiro: cancela AccountReceivable
-}
+[
+    'cancelled' => true,
+    'code' => '135',
+    'message' => 'Evento registrado e vinculado à NF-e',
+    'protocol' => '...',
+    'registered_at' => '...',
+    'raw_response' => '<xml>...</xml>',
+]
 ```
 
----
+`canceled` não faz parte do contrato atual.
 
-## 6. Integrações com Outros Módulos
+## 7. XML e DANFE
 
-### 6.1 Módulo de Vendas
-- **Pedido Faturado**: cria FiscalNote automaticamente
-- Copia dados do pedido (cliente, itens, valores)
-- Vínculo bidirecional (pedido ↔ nota)
+| Artefato | Conteúdo |
+|---|---|
+| `xml_sent_path` | XML assinado enviado |
+| `xml_path` antes da autorização | XML para pré-visualização |
+| `xml_path` após autorização | `nfeProc` oficial |
+| `*_resposta.xml` | Resposta da transmissão/consulta |
+| `*_cce_N_resposta.xml` | Resposta da CC-e N |
+| `*_cancelamento.xml` | Resposta do cancelamento |
 
-### 6.2 Módulo Financeiro
-- **NF-e Autorizada**: confirma criação de AccountReceivable
-- NF-e Cancelada: cancela contas a receber associadas
+O `nfeProc` somente é criado para protocolo `100` ou `150`, com chaves correspondentes.
 
-### 6.3 Módulo de Clientes
-- Busca dados do destinatário (CPF/CNPJ, IE, endereço)
-- Validação de campos obrigatórios
+`DanfeService` mantém as funções existentes:
 
-### 6.4 Módulo de Produtos
-- Busca informações fiscais (NCM, CFOP, CST)
-- Obtém descrição e unidade de medida
+- `generate()`: lê `xml_path`, renderiza e salva o PDF.
+- `download()`: devolve o DANFE como download.
+- `getContent()`: gera PDF em memória para exibição inline.
 
-### 6.5 Módulo de Empresas
-- Busca dados do emitente (CNPJ, IE, endereço)
-- Configurações fiscais (regime tributário, CRT)
+Como `xml_path` é promovido ao `nfeProc`, o DANFE autorizado usa o XML protocolado.
 
----
+## 8. Numeração fiscal
 
-## 7. Configurações
+O escopo é:
 
-### 7.1 Arquivo `.env`
-```env
-# Ambiente SEFAZ
-NFE_AMBIENTE=homologacao    # ou producao
-
-# Certificado A1
-NFE_CERTIFICADO_PATH=/path/to/certificado.pfx
-NFE_CERTIFICADO_SENHA=senha_do_certificado
-
-# Empresa
-NFE_RAZAO_SOCIAL="Minha Empresa Ltda"
-NFE_CNPJ="12.345.678/0001-99"
-NFE_IE="123456789"
-NFE_UF=SP
-NFE_REGIME_TRIBUTARIO=1    # 1=Simples Nacional, 3=Normal
-
-# Série padrão
-NFE_SERIE_PADRAO=1
-
-# Timeout (segundos)
-NFE_TIMEOUT=30
+```text
+company_id + document_type + series + environment
 ```
 
-### 7.2 Arquivo `config/nfe.php`
-```php
-return [
-    'ambiente' => env('NFE_AMBIENTE', 'homologacao'),
-    'certificado' => [
-        'path' => env('NFE_CERTIFICADO_PATH'),
-        'senha' => env('NFE_CERTIFICADO_SENHA'),
-    ],
-    'emitente' => [
-        'razao_social' => env('NFE_RAZAO_SOCIAL'),
-        'cnpj' => env('NFE_CNPJ'),
-        'ie' => env('NFE_IE'),
-        'uf' => env('NFE_UF'),
-        'regime_tributario' => env('NFE_REGIME_TRIBUTARIO', 1),
-    ],
-    'serie_padrao' => env('NFE_SERIE_PADRAO', 1),
-    'timeout' => env('NFE_TIMEOUT', 30),
-];
+`FiscalNumberService` possui:
+
+| Função | Finalidade |
+|---|---|
+| `reserveForCurrentCompany()` | Resolve empresa no tenant/usuário e reserva |
+| `reserve()` | Reserva explicitamente para empresa e escopo |
+
+O serviço valida o escopo, inicializa a sequência pelo maior valor numérico daquele escopo, usa transação com `lockForUpdate()`, incrementa `next_number` e retorna nove dígitos.
+
+O banco protege `fiscal_notes` com unicidade em:
+
+```text
+company_id + type + series + environment + invoice_number
 ```
 
----
+Não existe mais `FiscalNote::max('invoice_number') + 1` nos fluxos de criação. Uma reserva exige empresa definida e números reservados não são reutilizados automaticamente.
 
-## 8. Diagnóstico de Rejeições
+## 9. Carta de Correção
 
-### 8.1 Códigos Comuns de Rejeição SEFAZ
+Pré-condições:
 
-| Código | Descrição | Solução |
-|--------|-----------|---------|
-| 204 | Rejeição: Duplicidade de NF-e | Número já foi usado, incrementar |
-| 215 | Rejeição: Falha no schema XML | Verificar estrutura do XML |
-| 539 | Rejeição: CNPJ destinatário inválido | Validar CNPJ do cliente |
-| 540 | Rejeição: CPF destinatário inválido | Validar CPF do cliente |
-| 542 | Rejeição: IE destinatário inválida | Validar IE do cliente |
-| 680 | Rejeição: NCM inexistente | Verificar tabela NCM atualizada |
-| 777 | Rejeição: Diferença valor total | Recalcular totais |
+- nota autorizada;
+- chave com 44 dígitos;
+- protocolo de autorização;
+- texto entre 15 e 1.000 caracteres;
+- sequência entre 1 e 20.
 
-### 8.2 Model: `App\Models\SefazDiagnostic`
-Armazena diagnósticos determinísticos de rejeições.
-
-```php
-SefazDiagnostic::where('codigo', $codigoRejeicao)->first();
-// Retorna: causa, solução, documentação
+```text
+NFeGestao::enviarCce()
+ → NFeService::cartaCorrecao()
+ → Tools::sefazCCe()
+ → valida 110110 + chave + sequência
+ → salva resposta
+ → cria FiscalNoteEvent(cce)
 ```
 
----
+O modal fecha apenas no sucesso e preserva o texto em caso de erro.
 
-## 9. Bibliotecas Utilizadas
+## 10. Cancelamento
 
-### 9.1 nfephp-org/sped-nfe
-Biblioteca oficial para NF-e no Brasil.
+```text
+Interface/API
+ → NFeService::cancelar()
+ → Tools::sefazCancela()
+ → valida 110111 + chave
+ → atualiza FiscalNote
+ → salva XML
+ → cria FiscalNoteEvent(cancelled)
+```
+
+A interface não repete a persistência. Falha de certificado, conexão ou SEFAZ não cancela a nota localmente.
+
+## 11. NF-e de entrada
+
+`NotaFiscalEntrada` está acessível em `fiscal.entrance.index`.
+
+| Grupo | Funções públicas |
+|---|---|
+| Consultas | `invoices()`, `stats()`, `suppliers()`, `purchaseOrders()` |
+| Filtros | `updatedSearch()`, `updatedFilterStatus()` |
+| Modal | `openModal()`, `openEdit()`, `closeModal()` |
+| Detalhes | `openDetail()`, `closeDetail()` |
+| XML | `openXmlModal()`, `closeXmlModal()`, `importXml()` |
+| Itens | `addItem()`, `removeItem()`, `updatedInvoiceItems()`, `recalcTotals()` |
+| Produtos | `searchProducts()`, `selectProduct()` |
+| Persistência | `save()`, `escriturar()`, `cancel()`, `delete()` |
+| Exibição | `render()` |
+
+O importador aceita `NFe` e `nfeProc`, preenche cabeçalho, fornecedor, totais e itens e tenta associar cadastros existentes. A escrituração integra estoque, contas a pagar e pedido de compra conforme os dados associados.
+
+## 12. Interfaces de saída
+
+### 12.1 `NotaFiscal`
+
+| Grupo | Funções públicas |
+|---|---|
+| Dados | `notes()`, `kpis()`, `clients()`, `viewingNote()` |
+| Cadastro | `openCreate()`, `openEdit()`, `save()`, `closeModal()` |
+| Visualização | `openView()`, `closeView()` |
+| Cancelamento | `openCancel()`, `confirmCancel()`, `closeCancelModal()` |
+| Transmissão | `openTransmit()`, `confirmTransmit()`, `closeTransmitModal()` |
+| SEFAZ | `checkSefazStatus()` |
+| Exclusão | `confirmDelete()`, `delete()`, `cancelDelete()` |
+| Filtros | `updatingSearch()`, `updatingFilterStatus()`, `updatingFilterType()`, `updatingFilterEnv()` |
+| Exibição | `render()` |
+
+Na criação, `save()` reserva o número com `FiscalNumberService`.
+
+### 12.2 `NFeGestao`
+
+| Grupo | Funções públicas |
+|---|---|
+| Ciclo | `mount()`, `loadNote()`, `render()` |
+| Transmissão | `transmitir()` |
+| Cancelamento | `openCancelModal()`, `closeCancelModal()`, `cancelar()` |
+| CC-e | `openCceModal()`, `closeCceModal()`, `enviarCce()` |
+| Eventos | `openEventsModal()`, `closeEventsModal()` |
+
+Eventos são apresentados do mais recente ao mais antigo por `FiscalNote::events()`.
+
+## 13. Persistência e migrations
+
+### 13.1 Integração com pedido de venda
+
+Gerar ou reutilizar uma pré-NF-e não altera o status do pedido. `NFeService::applyTransmissionResult()` centraliza a regra para todos os canais de transmissão, inclusive API e consulta assíncrona:
+
+- autorização `100/150`: atualiza o pedido para `NfTransmitida` e grava número, série, chave, protocolo e data;
+- processamento, rejeição, denegação ou indeterminação: preserva o status comercial e registra somente `nfe_status`;
+- reaplicação da mesma autorização preserva `nfe_issued_at`.
+
+O vínculo é mantido por `fiscal_notes.sales_order_id` e `sales_orders.fiscal_note_id`.
+
+### 13.2 Campos e migrations
+
+Campos principais de `fiscal_notes`:
+
+- `company_id`, `client_id`, `sales_order_id`;
+- `invoice_number`, `series`, `type`, `environment`;
+- `status`, `access_key`, `protocol`, `receipt_number`;
+- `sefaz_message`, `authorized_at`;
+- `cancel_protocol`, `cancel_reason`, `cancelled_at`;
+- `xml_path`, `xml_sent_path`, `xml_cancel_path`;
+- `amount`, `notes`, `emitted_by`.
+
+Eventos: `Authorized`, `Rejected`, `Denied`, `Cancelled` e `Cce`. Cada evento pode armazenar descrição, protocolo, JSON de resposta e usuário.
+
+| Migration | Finalidade |
+|---|---|
+| `2026_08_26_000000_create_fiscal_note_events_table.php` | Histórico fiscal |
+| `2026_08_26_010000_add_receipt_number_to_fiscal_notes_table.php` | Recibo assíncrono |
+| `2026_08_27_000000_add_xml_sent_path_to_fiscal_notes_table.php` | XML enviado separado |
+| `2026_08_27_010000_create_fiscal_number_sequences_table.php` | Empresa, sequência e unicidade |
+| `2026_08_27_020000_add_sales_order_id_to_fiscal_notes_table.php` | Vínculo entre nota e pedido |
+
+Aplicação:
 
 ```bash
-composer require nfephp-org/sped-nfe:^5.2
+php artisan migrate
 ```
 
-**Funcionalidades**:
-- Montagem de XML conforme layout da SEFAZ
-- Assinatura digital com certificado A1/A3
-- Transmissão e consulta
-- Eventos (cancelamento, carta de correção)
+## 14. Testes de regressão
 
-### 9.2 nfephp-org/sped-da
-Geração de DANFE e DACTE.
+| Teste | Cobertura |
+|---|---|
+| `FiscalNoteRelationshipsTest` | Itens e eventos |
+| `NFeTransmissionResponseTest` | Protocolo, lote, SOAP e estados |
+| `NFeXmlTest` | Tributos, totais e pagamento |
+| `NFeAuthorizedXmlTest` | XML enviado e `nfeProc` |
+| `NFeCorrectionLetterTest` | CC-e e sequência |
+| `NFeCancellationTest` | Contrato e evento de cancelamento |
+| `FiscalNumberServiceTest` | Sequência, escopos e unicidade |
+| `FiscalInvoiceEntranceRouteTest` | Rota funcional de entrada |
+| `SalesOrderFiscalAuthorizationTest` | Rascunho, autorização e resultados não autorizados |
 
 ```bash
-composer require nfephp-org/sped-da:^1.1
+VIEW_COMPILED_PATH=/tmp php artisan test \
+  tests/Feature/FiscalNoteRelationshipsTest.php \
+  tests/Feature/NFeTransmissionResponseTest.php \
+  tests/Feature/NFeXmlTest.php \
+  tests/Feature/NFeAuthorizedXmlTest.php \
+  tests/Feature/NFeCorrectionLetterTest.php \
+  tests/Feature/NFeCancellationTest.php \
+  tests/Feature/FiscalNumberServiceTest.php \
+  tests/Feature/FiscalInvoiceEntranceRouteTest.php
 ```
 
----
+## 15. Cuidados operacionais
 
-## 10. Exemplos de Código
+- Resultado do lote não equivale à autorização.
+- Nota autorizada deve possuir `nfeProc`.
+- Não reutilizar números reservados automaticamente.
+- Não cancelar localmente sem confirmação da SEFAZ.
+- Não duplicar eventos entre interface e serviço.
+- CC-e não pode alterar valores, impostos, partes ou datas vedadas.
+- Toda reserva fiscal exige empresa/tenant definido.
+- Certificados, senhas e `.env` nunca devem ser versionados.
 
-### 10.1 Criar NF-e Manual
-```php
-$note = FiscalNote::create([
-    'client_id' => $client->id,
-    'tipo' => 'nfe',
-    'modelo' => '55',
-    'serie' => 1,
-    'status' => FiscalNoteStatus::Draft,
-    'ambiente' => 'homologacao',
-    'data_emissao' => now(),
-]);
+## 16. Referências
 
-$note->items()->create([
-    'product_id' => $product->id,
-    'description' => $product->name,
-    'ncm' => '12345678',
-    'cfop' => '5102',
-    'quantity' => 10,
-    'unit_value' => 100.00,
-    'total_value' => 1000.00,
-]);
-```
-
-### 10.2 Transmitir NF-e
-```php
-$controller = app(NFeController::class);
-$response = $controller->transmitir($note);
-
-if ($response->status() === 200) {
-    $data = $response->getData();
-    echo "Chave: {$data->chave_acesso}";
-    echo "Protocolo: {$data->protocol_number}";
-}
-```
-
-### 10.3 Gerar DANFE
-```php
-$pdfContent = $controller->danfe($note)->getContent();
-file_put_contents('/tmp/danfe.pdf', $pdfContent);
-```
-
----
-
-## 11. Performance e Otimizações
-
-### 11.1 Índices
-- `chave_acesso`: Índice único
-- `numero, serie`: Índice composto único
-- `status`: Índice para filtros
-- `data_emissao`: Índice para relatórios
-
-### 11.2 Armazenamento de XMLs
-XMLs autorizados são armazenados em:
-```
-storage/app/nfe/
-├── autorizadas/
-│   ├── 35210212345678000199550010000000011234567890.xml
-│   └── ...
-├── canceladas/
-│   └── ...
-└── danfe/
-    ├── 35210212345678000199550010000000011234567890.pdf
-    └── ...
-```
-
----
-
-## 12. Testes
-
-### 12.1 Testes de Feature
-- `NFeCreationTest`
-- `NFeTransmissionTest`
-- `NFeCancellationTest`
-- `NFeValidationTest`
-
-### 12.2 Exemplo de Teste
-```php
-test('nfe é transmitida com sucesso em homologação', function () {
-    $note = FiscalNote::factory()->create([
-        'status' => FiscalNoteStatus::Draft,
-        'ambiente' => 'homologacao',
-    ]);
-    
-    $response = $this->postJson("/api/nfe/{$note->id}/transmitir");
-    
-    $response->assertOk();
-    expect($note->fresh()->status)->toBe(FiscalNoteStatus::Autorizada);
-});
-```
-
----
-
-## 13. Troubleshooting
-
-### 13.1 Problemas Comuns
-- **Certificado expirado**: Renovar certificado A1
-- **Timeout na SEFAZ**: Aumentar `NFE_TIMEOUT`
-- **Rejeição 204 (duplicidade)**: Verificar numeração sequencial
-- **XML mal formado**: Validar dados antes de transmitir
-
-### 13.2 Comandos Úteis
-```bash
-# Verificar status da SEFAZ
-curl -X GET http://localhost:8000/api/nfe/status
-
-# Listar notas rejeitadas
-php artisan tinker
->>> FiscalNote::where('status', 'rejeitada')->get();
-
-# Reprocessar nota
->>> $note = FiscalNote::find($id);
->>> $note->update(['status' => 'draft']);
-```
-
----
-
-**Caminho do Código**:
-- `app/Models/FiscalNote.php`
-- `app/Http/Controllers/Api/NFeController.php`
-- `app/Livewire/Fiscal/`
-- `routes/fiscal.php`
-- `config/nfe.php`
-
+- [Integração SEFAZ](./41-integracao-sefaz.md)
+- [Pedidos de venda](./12-modulo-pedidos-venda.md)
+- [Estoque](./24-modulo-estoque.md)
+- [Empresas](./28-modulo-empresas.md)
+- [Configurações](./29-modulo-configuracoes.md)

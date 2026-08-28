@@ -202,7 +202,7 @@
                         <div class="nx-nfe-event-item">
                             <div class="nx-nfe-event-dot"></div>
                             <div class="nx-nfe-event-content">
-                                <div class="nx-nfe-event-type">{{ $event->event_type }}</div>
+                                <div class="nx-nfe-event-type">{{ $event->event_type->label() }}</div>
                                 <div class="nx-nfe-event-desc">{{ $event->description }}</div>
                                 @if($event->protocol)
                                     <div class="nx-nfe-event-protocol">Protocolo: {{ $event->protocol }}</div>
@@ -448,4 +448,3 @@
 .nx-field textarea:focus { outline:none; border-color:#818CF8; }
 </style>
 @endpush
-

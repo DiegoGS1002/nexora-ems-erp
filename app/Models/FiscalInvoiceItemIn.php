@@ -26,6 +26,11 @@ class FiscalInvoiceItemIn extends Model
         'ipi_value',
         'pis_value',
         'cofins_value',
+        'tax_data',
+        'credit_allowed',
+        'allocated_shipping',
+        'allocated_insurance',
+        'allocated_other',
     ];
 
     protected $casts = [
@@ -38,6 +43,11 @@ class FiscalInvoiceItemIn extends Model
         'ipi_value'  => 'decimal:2',
         'pis_value'  => 'decimal:2',
         'cofins_value'=> 'decimal:2',
+        'tax_data' => 'array',
+        'credit_allowed' => 'boolean',
+        'allocated_shipping' => 'decimal:2',
+        'allocated_insurance' => 'decimal:2',
+        'allocated_other' => 'decimal:2',
     ];
 
     public function invoice(): BelongsTo
@@ -50,4 +60,3 @@ class FiscalInvoiceItemIn extends Model
         return $this->belongsTo(Product::class);
     }
 }
-

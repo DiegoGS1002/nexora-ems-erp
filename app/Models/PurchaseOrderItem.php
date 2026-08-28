@@ -18,6 +18,7 @@ class PurchaseOrderItem extends Model
         'discount',
         'total',
         'cost_center',
+        'received_quantity',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class PurchaseOrderItem extends Model
         'unit_price' => 'decimal:2',
         'discount'   => 'decimal:2',
         'total'      => 'decimal:2',
+        'received_quantity' => 'decimal:3',
     ];
 
     public function purchaseOrder(): BelongsTo
@@ -43,4 +45,3 @@ class PurchaseOrderItem extends Model
         return max(0, $subtotal - (float) $this->discount);
     }
 }
-
