@@ -191,8 +191,11 @@ class PedidosVenda extends Component
     ───────────────────────────────────────── */
     public function updatedSearchProduct()
     {
-        if (strlen($this->searchProduct) >= 2) {
-            $this->searchResults = Product::where(function($q) {
+        if ($this->searchProduct === '.') {
+            $this->showAvailableProducts();
+        } elseif (strlen($this->searchProduct) >= 2) {
+            $this->searchResults = Product::where('is_active', true)
+                ->where(function($q) {
                     $q->where('name', 'like', '%'.$this->searchProduct.'%')
                       ->orWhere('product_code', 'like', '%'.$this->searchProduct.'%')
                       ->orWhere('ean', 'like', '%'.$this->searchProduct.'%');
@@ -203,6 +206,14 @@ class PedidosVenda extends Component
         } else {
             $this->searchResults = [];
         }
+    }
+    public function showAvailableProducts(): void
+    {
+        $this->searchResults = Product::where('is_active', true)
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id','name','product_code','ean','sale_price','unit_of_measure_id'])
+            ->toArray();
     }
     public function addProduct(string $productId)
     {

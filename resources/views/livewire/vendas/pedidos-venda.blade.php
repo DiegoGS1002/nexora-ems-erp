@@ -450,9 +450,12 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                             Adicionar Produto
                         </div>
+                        <button type="button" wire:click="showAvailableProducts" class="nx-btn nx-btn-primary" style="margin-bottom:10px;">
+                            + Selecionar produto
+                        </button>
                         <div class="nx-field" style="position:relative;margin-bottom:8px;">
                             <input type="text" wire:model.live.debounce.300ms="searchProduct"
-                                placeholder="Buscar por nome, SKU ou EAN..."
+                                placeholder="Buscar por nome, SKU ou EAN... (ou clique em Selecionar produto)"
                                 style="width:100%;padding:10px 14px;border:2px solid #E2E8F0;border-radius:10px;font-size:13px;outline:none;transition:border-color 0.2s;"
                                 onfocus="this.style.borderColor='#6366F1'"
                                 onblur="this.style.borderColor='#E2E8F0'">

@@ -228,7 +228,8 @@ class PedidoForm extends Component
     {
         // Se digitar apenas "." mostra todos os produtos
         if ($this->searchProduct === '.') {
-            $this->searchResults = Product::orderBy('name')
+            $this->searchResults = Product::where('is_active', true)
+                ->orderBy('name')
                 ->limit(15)
                 ->get(['id', 'name', 'product_code', 'ean', 'sale_price'])->toArray();
 
@@ -236,7 +237,8 @@ class PedidoForm extends Component
         }
 
         if (strlen($this->searchProduct) >= 2) {
-            $this->searchResults = Product::where(function ($q) {
+            $this->searchResults = Product::where('is_active', true)
+                ->where(function ($q) {
                 $q->where('name', 'like', '%'.$this->searchProduct.'%')
                     ->orWhere('product_code', 'like', '%'.$this->searchProduct.'%')
                     ->orWhere('ean', 'like', '%'.$this->searchProduct.'%');
@@ -244,6 +246,16 @@ class PedidoForm extends Component
         } else {
             $this->searchResults = [];
         }
+    }
+
+    public function showAvailableProducts(): void
+    {
+        $this->resetErrorBag('searchProduct');
+        $this->searchResults = Product::where('is_active', true)
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name', 'product_code', 'ean', 'sale_price'])
+            ->toArray();
     }
 
     public function addProduct(string $productId): void
