@@ -1,4 +1,4 @@
-<div class="nx-list-page" style="max-width:720px;margin:0 auto;">
+<div class="nx-list-page nx-form-page--compact nx-catalog-page">
 
     <div class="nx-form-header" style="margin-bottom:24px;">
         <a href="{{ route('unit-of-measures.index') }}" class="nx-back-link" wire:navigate>
@@ -44,50 +44,52 @@
                     <span class="nx-section-hint">Campos com <span style="color:#EF4444">*</span> são obrigatórios</span>
                 </div>
 
-                <div class="grid grid-2" style="margin-bottom:16px;">
+                <div class="nx-form-stack">
+                    <div class="nx-form-grid nx-form-grid--2">
+                        <div class="nx-field">
+                            <label>Sigla / Abreviação <span class="nx-required">*</span></label>
+                            <input type="text" wire:model.blur="form.abbreviation" placeholder="Ex: KG, UN, LT" maxlength="20" class="nx-text-uppercase">
+                            <small>Máx. 20 caracteres. Será convertida para maiúsculas.</small>
+                            @error('form.abbreviation') <span class="nx-field-error">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="nx-field">
+                            <label>Status</label>
+                            <label class="nx-toggle-row nx-toggle-row--control">
+                                <div class="nx-toggle-info">
+                                    <span class="nx-toggle-label">{{ $form->is_active ? 'Ativa' : 'Inativa' }}</span>
+                                </div>
+                                <span class="nx-switch">
+                                    <input type="checkbox" wire:model.live="form.is_active">
+                                    <span class="nx-switch-track"></span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="nx-field">
-                        <label>Sigla / Abreviação <span class="nx-required">*</span></label>
-                        <input type="text" wire:model.blur="form.abbreviation" placeholder="Ex: KG, UN, LT" maxlength="20" style="text-transform:uppercase;">
-                        <small>Máx. 20 caracteres. Será convertida para maiúsculas.</small>
-                        @error('form.abbreviation') <span class="nx-field-error">{{ $message }}</span> @enderror
+                        <label>Nome Completo <span class="nx-required">*</span></label>
+                        <input type="text" wire:model.blur="form.name" placeholder="Ex: Quilograma, Unidade, Litro..." maxlength="100">
+                        @error('form.name') <span class="nx-field-error">{{ $message }}</span> @enderror
                     </div>
+
                     <div class="nx-field">
-                        <label>Status</label>
-                        <label class="nx-toggle-row" style="padding:9px 12px;border:1px solid #E2E8F0;border-radius:8px;cursor:pointer;margin:0;">
-                            <div class="nx-toggle-info">
-                                <span class="nx-toggle-label" style="font-size:14px;">{{ $form->is_active ? 'Ativa' : 'Inativa' }}</span>
-                            </div>
-                            <span class="nx-switch">
-                                <input type="checkbox" wire:model.live="form.is_active">
-                                <span class="nx-switch-track"></span>
-                            </span>
-                        </label>
+                        <label>Descrição</label>
+                        <textarea wire:model.blur="form.description" rows="2" placeholder="Detalhes sobre o uso desta unidade de medida..."></textarea>
+                        @error('form.description') <span class="nx-field-error">{{ $message }}</span> @enderror
                     </div>
-                </div>
 
-                <div class="nx-field" style="margin-bottom:16px;">
-                    <label>Nome Completo <span class="nx-required">*</span></label>
-                    <input type="text" wire:model.blur="form.name" placeholder="Ex: Quilograma, Unidade, Litro..." maxlength="100">
-                    @error('form.name') <span class="nx-field-error">{{ $message }}</span> @enderror
+                    {{-- Preview --}}
+                    @if($form->abbreviation || $form->name)
+                        <div class="nx-catalog-preview">
+                            <span class="nx-catalog-code nx-catalog-code--strong">{{ strtoupper($form->abbreviation) ?: '—' }}</span>
+                            <span class="nx-catalog-preview-text">{{ $form->name ?: '—' }}</span>
+                        </div>
+                    @endif
                 </div>
-
-                <div class="nx-field" style="margin-bottom:16px;">
-                    <label>Descrição</label>
-                    <textarea wire:model.blur="form.description" rows="2" placeholder="Detalhes sobre o uso desta unidade de medida..."></textarea>
-                    @error('form.description') <span class="nx-field-error">{{ $message }}</span> @enderror
-                </div>
-
-                {{-- Preview --}}
-                @if($form->abbreviation || $form->name)
-                    <div style="margin-top:8px;padding:12px 16px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0;display:flex;align-items:center;gap:10px;">
-                        <span style="font-family:monospace;font-size:13px;font-weight:700;background:#EEF2FF;color:#4F46E5;padding:3px 10px;border-radius:6px;">{{ strtoupper($form->abbreviation) ?: '—' }}</span>
-                        <span style="font-size:13px;color:#64748B;">{{ $form->name ?: '—' }}</span>
-                    </div>
-                @endif
             </div>
         </div>
 
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+        <div class="nx-form-footer nx-form-footer--separated">
             <a href="{{ route('unit-of-measures.index') }}" class="nx-btn nx-btn-ghost" wire:navigate>Cancelar</a>
             <button type="submit" wire:loading.attr="disabled" wire:loading.class="nx-btn--loading" class="nx-btn nx-btn-primary">
                 <svg wire:loading.remove wire:target="save" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -98,4 +100,3 @@
     </form>
 
 </div>
-

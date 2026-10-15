@@ -1,6 +1,6 @@
 # Nexora EMS ERP
 
-ERP modular para centralizar operações administrativas, comerciais e fiscais. O sistema reúne cadastros, vendas, compras, estoque, produção, logística, financeiro, RH, suporte e emissão de NF-e em uma aplicação Laravel com interfaces reativas em Livewire.
+ERP web modular e multiempresa para centralizar operações administrativas, comerciais e fiscais. O sistema reúne cadastros, vendas, compras, estoque, produção, logística, financeiro, RH, suporte e emissão de NF-e em uma aplicação Laravel com interfaces reativas em Livewire.
 
 > Projeto em desenvolvimento ativo. Antes de usar em produção, revise credenciais, integrações externas, filas, armazenamento e políticas de acesso.
 
@@ -13,8 +13,9 @@ ERP modular para centralizar operações administrativas, comerciais e fiscais. 
 - Jornada, ponto, folha de pagamento e holerites.
 - NF-e, tipos de operação, grupos tributários, DANFE e diagnóstico de integração com a SEFAZ.
 - Operação fiscal completa de saída e entrada: XML 4.00/NT 2025.002, Distribuição DF-e, manifestação, conferência de compras, escrituração e reversão idempotente. Consulte [`Documentation/18-ajustes-fiscais-nfe-2026.md`](Documentation/18-ajustes-fiscais-nfe-2026.md).
-- Dashboard, empresas, usuários, permissões, notificações, auditoria e suporte.
+- Dashboard, empresas, usuários, permissões, notificações, auditoria e suporte, com isolamento de dados por empresa.
 - Assistente de IA com OpenAI, Gemini, RAG e ferramentas especializadas por domínio.
+- API autenticada para clientes, fornecedores, produtos, estoque, financeiro e pedidos de venda.
 - Painel administrativo com Filament.
 
 ## Tecnologias
@@ -69,6 +70,9 @@ DB_PORT=3306
 DB_DATABASE=nexora
 DB_USERNAME=root
 DB_PASSWORD=
+
+# E-mails com acesso administrativo global, separados por vírgula
+PLATFORM_ADMIN_EMAILS=admin@nexora.local
 ```
 
 Em seguida, prepare banco e assets:
@@ -90,7 +94,7 @@ Os seeders criam uma conta administrativa de desenvolvimento:
 - E-mail: `admin@nexora.local`
 - Senha: `admin12345`
 
-Altere essa senha imediatamente em qualquer ambiente compartilhado e não execute seeders de demonstração em produção sem revisar seu conteúdo.
+Altere essa senha imediatamente em qualquer ambiente compartilhado e não execute seeders de demonstração em produção sem revisar seu conteúdo. Os seeders também criam empresas e usuários vinculados para testar o isolamento multiempresa.
 
 ### Setup automatizado
 
@@ -110,7 +114,7 @@ Para iniciar servidor Laravel, listener da fila e Vite com HMR em um único term
 composer run dev
 ```
 
-A aplicação fica disponível, por padrão, em `http://127.0.0.1:8000`. O painel Filament usa a rota `/admin`.
+A aplicação fica disponível, por padrão, em `http://127.0.0.1:8000`. Entre com a conta criada pelos seeders. O painel Filament usa a rota `/admin`.
 
 Se preferir processos separados:
 
@@ -121,6 +125,14 @@ npm run dev
 ```
 
 Execute cada comando em seu próprio terminal.
+
+O projeto usa filas com o driver `database`. Mantenha um worker ativo para processar tarefas assíncronas, especialmente transmissões e conciliações fiscais.
+
+## Multiempresa e acesso
+
+As páginas web e a API exigem uma sessão autenticada. O middleware de tenancy resolve a empresa a partir do usuário e bloqueia contas sem empresa, empresas inativas e acessos fora do contexto permitido. Os e-mails informados em `PLATFORM_ADMIN_EMAILS` atuam como administradores da plataforma e não ficam presos a um único tenant.
+
+Ao criar usuários comuns, vincule-os a uma empresa. Em ambientes reais, substitua o e-mail administrativo padrão e mantenha a lista de administradores globais tão restrita quanto possível.
 
 ## Configurações opcionais
 
@@ -166,13 +178,26 @@ php artisan db:seed --class=RagKnowledgeSeeder
 php artisan db:seed --class=SefazDiagnosticsSeeder
 ```
 
-Para preparar e consultar a base de conhecimento do assistente:
+Para carregar a base de conhecimento do assistente, inclusive sem uma chave da OpenAI, use:
 
 ```bash
-php artisan rag:seed
-php artisan ai:vectorize
+php artisan ai:index-knowledge
 php artisan rag:search "Como consultar o estoque?"
 ```
+
+Sem `OPENAI_API_KEY`, a indexação mantém a busca lexical. Depois de configurar a chave, gere os embeddings dos documentos existentes com:
+
+```bash
+php artisan ai:vectorize
+```
+
+O comando `php artisan rag:seed` é uma alternativa para popular FAQs, regras e diagnósticos SEFAZ diretamente pelo serviço RAG, mas exige `OPENAI_API_KEY` e pode fazer várias chamadas à API.
+
+## API
+
+Os endpoints ficam sob `/api` e reutilizam a autenticação por sessão, proteção CSRF e o contexto multiempresa da interface web. Entre os recursos disponíveis estão clientes, fornecedores, produtos, vínculos produto-fornecedor, movimentações de estoque, contas a pagar e receber e pedidos de venda.
+
+Esta API não usa tokens bearer na configuração atual. Clientes externos precisam estabelecer uma sessão válida e enviar o token CSRF; consulte [a documentação da API](Documentation/38-api-rest.md) e confirme os contratos atuais em [`routes/api.php`](routes/api.php).
 
 ## Testes e qualidade
 

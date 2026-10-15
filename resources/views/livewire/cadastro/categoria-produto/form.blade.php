@@ -1,4 +1,4 @@
-<div class="nx-list-page" style="max-width:720px;margin:0 auto;">
+<div class="nx-list-page nx-form-page--compact nx-catalog-page">
 
     <div class="nx-form-header" style="margin-bottom:24px;">
         <a href="{{ route('product-categories.index') }}" class="nx-back-link" wire:navigate>
@@ -44,45 +44,47 @@
                     <span class="nx-section-hint">Campos com <span style="color:#EF4444">*</span> são obrigatórios</span>
                 </div>
 
-                <div class="nx-field" style="margin-bottom:16px;">
-                    <label>Nome <span class="nx-required">*</span></label>
-                    <input type="text" wire:model.blur="form.name" placeholder="Ex: Eletrônicos, Informática, Alimentos..." maxlength="100">
-                    @error('form.name') <span class="nx-field-error">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="nx-field" style="margin-bottom:16px;">
-                    <label>Descrição</label>
-                    <textarea wire:model.blur="form.description" rows="3" placeholder="Descreva o tipo de produtos desta categoria..."></textarea>
-                    @error('form.description') <span class="nx-field-error">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="grid grid-2" style="margin-bottom:16px;">
+                <div class="nx-form-stack">
                     <div class="nx-field">
-                        <label>Cor de Identificação <span class="nx-required">*</span></label>
-                        <div style="display:flex;gap:10px;align-items:center;">
-                            <input type="color" wire:model.live="form.color" style="width:48px;height:38px;padding:2px;border:1px solid #E2E8F0;border-radius:8px;cursor:pointer;background:#fff;">
-                            <input type="text" wire:model.blur="form.color" maxlength="7" placeholder="#6366F1" style="flex:1;font-family:monospace;">
-                        </div>
-                        @error('form.color') <span class="nx-field-error">{{ $message }}</span> @enderror
+                        <label>Nome <span class="nx-required">*</span></label>
+                        <input type="text" wire:model.blur="form.name" placeholder="Ex: Eletrônicos, Informática, Alimentos..." maxlength="100">
+                        @error('form.name') <span class="nx-field-error">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="nx-field">
-                        <label>Status</label>
-                        <label class="nx-toggle-row" style="padding:9px 12px;border:1px solid #E2E8F0;border-radius:8px;cursor:pointer;margin:0;">
-                            <div class="nx-toggle-info">
-                                <span class="nx-toggle-label" style="font-size:14px;">{{ $form->is_active ? 'Ativa' : 'Inativa' }}</span>
+                        <label>Descrição</label>
+                        <textarea wire:model.blur="form.description" rows="3" placeholder="Descreva o tipo de produtos desta categoria..."></textarea>
+                        @error('form.description') <span class="nx-field-error">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="nx-form-grid nx-form-grid--2">
+                        <div class="nx-field">
+                            <label>Cor de Identificação <span class="nx-required">*</span></label>
+                            <div class="nx-control-row nx-control-row--color">
+                                <input type="color" wire:model.live="form.color" class="nx-color-picker">
+                                <input type="text" wire:model.blur="form.color" maxlength="7" placeholder="#6366F1" class="nx-monospace-input">
                             </div>
-                            <span class="nx-switch">
-                                <input type="checkbox" wire:model.live="form.is_active">
-                                <span class="nx-switch-track"></span>
-                            </span>
-                        </label>
+                            @error('form.color') <span class="nx-field-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="nx-field">
+                            <label>Status</label>
+                            <label class="nx-toggle-row nx-toggle-row--control">
+                                <div class="nx-toggle-info">
+                                    <span class="nx-toggle-label">{{ $form->is_active ? 'Ativa' : 'Inativa' }}</span>
+                                </div>
+                                <span class="nx-switch">
+                                    <input type="checkbox" wire:model.live="form.is_active">
+                                    <span class="nx-switch-track"></span>
+                                </span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
                 {{-- Preview --}}
                 @if($form->name)
-                    <div style="margin-top:8px;padding:12px 16px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0;display:flex;align-items:center;gap:10px;">
+                    <div class="nx-catalog-preview">
                         <span style="width:14px;height:14px;border-radius:4px;background:{{ $form->color }};display:inline-block;flex-shrink:0;"></span>
                         <span style="font-size:13px;font-weight:600;color:#374151;">{{ $form->name }}</span>
                         @if(!$form->is_active)
@@ -93,7 +95,7 @@
             </div>
         </div>
 
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+        <div class="nx-form-footer nx-form-footer--separated">
             <a href="{{ route('product-categories.index') }}" class="nx-btn nx-btn-ghost" wire:navigate>Cancelar</a>
             <button type="submit" wire:loading.attr="disabled" wire:loading.class="nx-btn--loading" class="nx-btn nx-btn-primary">
                 <svg wire:loading.remove wire:target="save" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -104,4 +106,3 @@
     </form>
 
 </div>
-

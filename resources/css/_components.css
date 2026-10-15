@@ -1160,6 +1160,7 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+    min-width: 0;
 }
 
 .nx-field label {
@@ -1183,11 +1184,50 @@
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.nx-field input,
+.nx-field select {
+    min-height: 40px;
+}
+
+.nx-field textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
 .nx-field input:focus,
 .nx-field select:focus,
 .nx-field textarea:focus {
     border-color: #3B82F6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.nx-field input:disabled,
+.nx-field select:disabled,
+.nx-field textarea:disabled,
+.nx-field input[readonly],
+.nx-field textarea[readonly] {
+    color: #64748B;
+    background: #F8FAFC;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+.nx-field input[aria-invalid="true"],
+.nx-field select[aria-invalid="true"],
+.nx-field textarea[aria-invalid="true"],
+.nx-field:has(.nx-field-error) input,
+.nx-field:has(.nx-field-error) select,
+.nx-field:has(.nx-field-error) textarea {
+    border-color: #EF4444;
+}
+
+.nx-field input[aria-invalid="true"]:focus,
+.nx-field select[aria-invalid="true"]:focus,
+.nx-field textarea[aria-invalid="true"]:focus,
+.nx-field:has(.nx-field-error) input:focus,
+.nx-field:has(.nx-field-error) select:focus,
+.nx-field:has(.nx-field-error) textarea:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
 .nx-field input::placeholder,
@@ -1199,6 +1239,98 @@
     font-size: 12px;
     color: #94A3B8;
     line-height: 1.4;
+}
+
+.nx-form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.nx-form-grid {
+    display: grid;
+    gap: 16px;
+    align-items: start;
+}
+
+.nx-form-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nx-field-action {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+}
+
+.nx-field-action__button {
+    align-self: start;
+    min-height: 40px;
+    margin-top: 23px;
+}
+
+.nx-control-row,
+.nx-btn-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nx-control-row > :first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.nx-control-row > :last-child {
+    flex-shrink: 0;
+}
+
+.nx-control-row--color > :first-child {
+    flex: none;
+}
+
+.nx-control-row--color > :last-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.nx-color-picker {
+    width: 48px !important;
+    min-height: 40px;
+    padding: 2px !important;
+    cursor: pointer;
+}
+
+.nx-monospace-input {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+.nx-toggle-row--control {
+    min-height: 40px;
+    align-items: center;
+    padding: 9px 12px;
+    margin: 0;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.nx-toggle-row--control:last-child {
+    padding-bottom: 9px;
+}
+
+.nx-form-page--compact {
+    max-width: 720px;
+    margin-inline: auto;
+}
+
+.nx-form-footer--separated {
+    margin-top: 20px;
+}
+
+.nx-text-uppercase {
+    text-transform: uppercase;
 }
 
 /* Rodapé do formulário */
@@ -1571,6 +1703,9 @@
     .nx-form-section { padding: 18px 16px; }
     .nx-form-footer { flex-direction: column-reverse; }
     .nx-form-footer .nx-btn { width: 100%; justify-content: center; }
+    .nx-form-grid--2,
+    .nx-field-action { grid-template-columns: 1fr; }
+    .nx-field-action__button { width: 100%; justify-content: center; margin-top: 0; }
 }
 
 @media (max-width: 480px) {
@@ -2043,4 +2178,3 @@
         height: 36px;
     }
 }
-

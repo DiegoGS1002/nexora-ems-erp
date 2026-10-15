@@ -1,4 +1,4 @@
-<div class="nx-product-page">
+<div class="nx-product-page nx-catalog-page">
 
     {{-- ═══════ HEADER ═══════ --}}
     <div class="nx-form-header" style="max-width:1200px;margin:0 auto 24px;">
@@ -85,7 +85,7 @@
                                     <label>Código do Produto</label>
                                     <div style="position:relative;">
                                         <input type="text" value="{{ $product?->product_code ?? 'Gerado automaticamente' }}" readonly
-                                            style="background:#F8FAFC;cursor:not-allowed;padding-right:36px;color:#94A3B8;font-family:'JetBrains Mono','Courier New',monospace;font-size:12.5px;">
+                                            class="nx-product-code">
                                         <svg style="position:absolute;right:11px;top:50%;transform:translateY(-50%);color:#CBD5E1;" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                     </div>
                                 </div>
@@ -732,4 +732,3 @@
     @endif
 
 </div>
-

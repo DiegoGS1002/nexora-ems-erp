@@ -1,4 +1,4 @@
-<div class="nx-list-page">
+<div class="nx-list-page nx-catalog-page">
 
     <div class="nx-page-header">
         <div class="nx-page-header-left">
@@ -67,7 +67,7 @@
                         </td>
                         <td><strong>{{ $cat->name }}</strong></td>
                         <td>
-                            <span style="font-family:monospace;font-size:12px;background:#F1F5F9;padding:2px 7px;border-radius:4px;color:#475569;">{{ $cat->slug }}</span>
+                            <span class="nx-catalog-code">{{ $cat->slug }}</span>
                         </td>
                         <td>
                             @if($cat->description)
@@ -114,4 +114,3 @@
     </div>
 
 </div>
-

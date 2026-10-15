@@ -491,6 +491,12 @@
     flex: 1;
 }
 
+/* As listagens do catálogo usam uma superfície clara em toda a área da página. */
+.main-content--catalog-list,
+.main-content:has(> .nx-catalog-page) {
+    background: #FFFFFF;
+}
+
 /* ── TÍTULO DA PÁGINA ── */
 .titulo {
     display: flex;
@@ -1847,4 +1853,3 @@ select.routing-input { cursor: pointer; }
     .eb-title { font-size: 18px; }
     .eb-icon-wrap { width: 72px; height: 72px; border-radius: 18px; }
 }
-

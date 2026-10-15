@@ -696,9 +696,6 @@
 /* Small field variant */
 .nx-field--sm { min-width: 120px; }
 
-.nx-field { margin-bottom: 16px; }
-.nx-field:last-child { margin-bottom: 0; }
-
 @media (max-width: 640px) {
     .nx-field-row, .nx-field-row--3 { grid-template-columns: 1fr; }
 }
@@ -772,5 +769,4 @@
     .nx-bancaria-table-header { display: none; }
     .nx-bancaria-table-row { flex-wrap: wrap; gap: 8px; }
 }
-
 

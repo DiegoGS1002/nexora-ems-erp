@@ -1,4 +1,4 @@
-<div class="nx-list-page">
+<div class="nx-list-page nx-catalog-page">
 
     <div class="nx-page-header">
         <div class="nx-page-header-left">
@@ -62,7 +62,7 @@
                     @foreach($units as $unit)
                     <tr wire:key="unit-{{ $unit->id }}">
                         <td>
-                            <span style="font-family:monospace;font-size:13px;font-weight:700;background:#EEF2FF;color:#4F46E5;padding:3px 10px;border-radius:6px;">{{ $unit->abbreviation }}</span>
+                            <span class="nx-catalog-code nx-catalog-code--strong">{{ $unit->abbreviation }}</span>
                         </td>
                         <td><strong>{{ $unit->name }}</strong></td>
                         <td>
@@ -110,4 +110,3 @@
     </div>
 
 </div>
-

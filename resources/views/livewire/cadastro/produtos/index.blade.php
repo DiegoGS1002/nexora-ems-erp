@@ -1,4 +1,4 @@
-<div class="nx-list-page">
+<div class="nx-list-page nx-catalog-page">
 
     <div class="nx-page-header">
         <div class="nx-page-header-left">
@@ -163,4 +163,3 @@
     </div>
 
 </div>
-

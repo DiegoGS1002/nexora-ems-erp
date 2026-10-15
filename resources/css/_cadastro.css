@@ -40,11 +40,13 @@
     transition: background 0.18s, box-shadow 0.18s, transform 0.1s;
     white-space: nowrap;
     outline: none;
+    min-height: 40px;
 }
 
 .nx-lookup-btn:hover { background: #1D4ED8; border-color: #1D4ED8; box-shadow: 0 3px 10px rgba(37,99,235,0.3); }
 .nx-lookup-btn:active { transform: scale(0.98); }
 .nx-lookup-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.nx-lookup-btn:focus-visible { box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
 
 .nx-lookup-btn--secondary {
     background: #F1F5F9;
@@ -771,4 +773,3 @@
     .nx-table-footer { flex-direction: column; gap: 8px; align-items: flex-start; }
     .nx-roles-modules-grid { grid-template-columns: 1fr 1fr; }
 }
-

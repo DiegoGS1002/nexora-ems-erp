@@ -86,7 +86,7 @@
                     @endif
                 </div>
 
-                <div class="grid grid-2" style="margin-bottom:16px; align-items:end;">
+                <div class="nx-field-action" style="margin-bottom:16px;">
                     <div class="nx-field">
                         <label>{{ $form->tipo_pessoa === 'PJ' ? 'CNPJ' : 'CPF' }} <span class="nx-required">*</span></label>
                         <input type="text" wire:model="form.taxNumber"
@@ -95,18 +95,16 @@
                         @error('form.taxNumber') <span class="nx-field-error">{{ $message }}</span> @enderror
                     </div>
                     @if($form->tipo_pessoa === 'PJ')
-                        <div class="nx-field" style="align-self:end;">
-                            <button type="button" wire:click="buscarCnpj" wire:loading.attr="disabled" wire:target="buscarCnpj" class="nx-lookup-btn">
-                                <span wire:loading.remove wire:target="buscarCnpj" style="display:inline-flex;align-items:center;gap:7px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                    Consultar CNPJ
-                                </span>
-                                <span wire:loading wire:target="buscarCnpj" style="display:none;" wire:loading.style="display:inline-flex;align-items:center;gap:7px;">
-                                    <svg class="nx-spin" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                                    Consultando...
-                                </span>
-                            </button>
-                        </div>
+                        <button type="button" wire:click="buscarCnpj" wire:loading.attr="disabled" wire:target="buscarCnpj" class="nx-lookup-btn nx-field-action__button">
+                            <span wire:loading.remove wire:target="buscarCnpj" class="nx-btn-content">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                Consultar CNPJ
+                            </span>
+                            <span wire:loading wire:target="buscarCnpj" class="nx-btn-content" style="display:none;" wire:loading.style="display:inline-flex;">
+                                <svg class="nx-spin" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                                Consultando...
+                            </span>
+                        </button>
                     @endif
                 </div>
 
@@ -182,24 +180,22 @@
                     <span class="nx-section-hint">Informe o CEP para preenchimento automático</span>
                 </div>
 
-                <div class="grid grid-2" style="margin-bottom:16px; align-items:end;">
+                <div class="nx-field-action" style="margin-bottom:16px;">
                     <div class="nx-field">
                         <label>CEP</label>
                         <input type="text" wire:model="form.address_zip_code" placeholder="00000-000" maxlength="9" autocomplete="off">
                         @error('form.address_zip_code') <span class="nx-field-error">{{ $message }}</span> @enderror
                     </div>
-                    <div class="nx-field" style="align-self:end;">
-                        <button type="button" wire:click="buscarCep" wire:loading.attr="disabled" wire:target="buscarCep" class="nx-lookup-btn nx-lookup-btn--secondary">
-                            <span wire:loading.remove wire:target="buscarCep" style="display:inline-flex;align-items:center;gap:7px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                Buscar CEP
-                            </span>
-                            <span wire:loading wire:target="buscarCep" style="display:none;" wire:loading.style="display:inline-flex;align-items:center;gap:7px;">
-                                <svg class="nx-spin" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                                Buscando...
-                            </span>
-                        </button>
-                    </div>
+                    <button type="button" wire:click="buscarCep" wire:loading.attr="disabled" wire:target="buscarCep" class="nx-lookup-btn nx-lookup-btn--secondary nx-field-action__button">
+                        <span wire:loading.remove wire:target="buscarCep" class="nx-btn-content">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            Buscar CEP
+                        </span>
+                        <span wire:loading wire:target="buscarCep" class="nx-btn-content" style="display:none;" wire:loading.style="display:inline-flex;">
+                            <svg class="nx-spin" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                            Buscando...
+                        </span>
+                    </button>
                 </div>
 
                 @if($cepError)
@@ -243,7 +239,7 @@
                     </div>
                     <div class="nx-field">
                         <label>UF</label>
-                        <input type="text" wire:model="form.address_state" placeholder="SP" maxlength="2" style="text-transform:uppercase;">
+                        <input type="text" wire:model="form.address_state" placeholder="SP" maxlength="2" class="nx-text-uppercase">
                         @error('form.address_state') <span class="nx-field-error">{{ $message }}</span> @enderror
                     </div>
                 </div>
@@ -268,4 +264,3 @@
     </form>
 
 </div>
-

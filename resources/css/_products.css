@@ -2,6 +2,99 @@
    PRODUTOS — Nexora ERP | Formulário e Listagem de Produtos
    ============================================================ */
 
+/*
+ * Catálogo (produtos, categorias e unidades)
+ * Mantém a mesma linguagem branco/azul usada no cadastro de fornecedores.
+ */
+.nx-catalog-page .nx-card,
+.nx-catalog-page .nx-form-card,
+.nx-catalog-page .nx-sidebar-card,
+.nx-catalog-page .nx-filters-bar {
+    border-color: #DBEAFE;
+    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.07), 0 8px 24px rgba(37, 99, 235, 0.05);
+}
+
+.nx-catalog-page .nx-form-section-icon {
+    color: #2563EB;
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+}
+
+.nx-catalog-page .nx-search,
+.nx-catalog-page .nx-filter-select,
+.nx-catalog-page .nx-toggle-row--control {
+    background: #FFFFFF;
+    border-color: #BFDBFE;
+}
+
+.nx-catalog-page .nx-table thead tr,
+.nx-catalog-page .nx-table-footer {
+    background: #EFF6FF;
+    border-color: #DBEAFE;
+}
+
+.nx-catalog-page .nx-table th {
+    color: #475569;
+}
+
+.nx-catalog-page .nx-table tbody tr:hover {
+    background: #F8FBFF;
+}
+
+.nx-catalog-page .nx-search:focus,
+.nx-catalog-page .nx-filter-select:focus,
+.nx-catalog-page .nx-field input:focus,
+.nx-catalog-page .nx-field select:focus,
+.nx-catalog-page .nx-field textarea:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.nx-catalog-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 12px 16px;
+    color: #1E3A8A;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+}
+
+.nx-catalog-preview-text {
+    font-size: 13px;
+    color: #334155;
+}
+
+.nx-catalog-code {
+    display: inline-block;
+    padding: 3px 9px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1D4ED8;
+    background: #DBEAFE;
+    border: 1px solid #BFDBFE;
+    border-radius: 6px;
+}
+
+.nx-catalog-code--strong {
+    padding-inline: 10px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.nx-catalog-page .nx-product-code[readonly] {
+    padding-right: 36px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 12.5px;
+    color: #475569;
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+    cursor: not-allowed;
+}
+
 /* ══════════════════════════════════════════════
    BOTÕES GLOBAIS (nx-btn)
    ══════════════════════════════════════════════ */
@@ -254,8 +347,8 @@
     gap: 4px;
     flex-wrap: wrap;
     margin-bottom: 16px;
-    background: #F8FAFC;
-    border: 1px solid #E8EEF5;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
     border-radius: 12px;
     padding: 6px;
 }
@@ -267,7 +360,7 @@
     padding: 8px 14px;
     font-size: 13px;
     font-weight: 500;
-    color: #64748B;
+    color: #475569;
     background: transparent;
     border: 1.5px solid transparent;
     border-radius: 8px;
@@ -277,7 +370,7 @@
     font-family: "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
-.nx-product-tab:hover { background: #FFFFFF; color: #1E293B; border-color: #E2E8F0; }
+.nx-product-tab:hover { background: #FFFFFF; color: #1E3A8A; border-color: #93C5FD; }
 
 .nx-product-tab--active {
     background: #FFFFFF;
@@ -308,9 +401,9 @@
     padding: 13px 16px;
     font-size: 13px;
     font-weight: 600;
-    color: #374151;
-    background: #F8FAFC;
-    border-bottom: 1px solid #F1F5F9;
+    color: #1E3A8A;
+    background: #EFF6FF;
+    border-bottom: 1px solid #DBEAFE;
 }
 
 .nx-sidebar-card-body {
@@ -334,13 +427,13 @@
     justify-content: center;
     gap: 8px;
     aspect-ratio: 1 / 1;
-    background: #F8FAFC;
-    border: 2px dashed #E2E8F0;
+    background: #EFF6FF;
+    border: 2px dashed #93C5FD;
     border-radius: 10px;
-    color: #CBD5E1;
+    color: #60A5FA;
 }
 
-.nx-product-thumb-empty p { font-size: 12px; color: #94A3B8; margin: 0; }
+.nx-product-thumb-empty p { font-size: 12px; color: #475569; margin: 0; }
 
 /* ══════════════════════════════════════════════
    PRODUTO — TIPO SELECTOR (Físico / Serviço)
@@ -357,8 +450,8 @@
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    background: #F8FAFC;
-    border: 2px solid #E8EEF5;
+    background: #F8FBFF;
+    border: 2px solid #DBEAFE;
     border-radius: 12px;
     cursor: pointer;
     transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
@@ -416,13 +509,13 @@
 
 .nx-dropzone {
     position: relative;
-    border: 2px dashed #D1D5DB;
+    border: 2px dashed #93C5FD;
     border-radius: 14px;
     min-height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #F9FAFB;
+    background: #F8FBFF;
     transition: border-color 0.2s, background 0.2s;
     overflow: hidden;
     cursor: pointer;
@@ -456,12 +549,12 @@
     width: 60px;
     height: 60px;
     border-radius: 16px;
-    background: #F1F5F9;
-    border: 1px solid #E2E8F0;
+    background: #DBEAFE;
+    border: 1px solid #BFDBFE;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #94A3B8;
+    color: #2563EB;
 }
 
 .nx-dropzone-label {
@@ -529,8 +622,8 @@
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    background: #F8FAFC;
-    border: 2px solid #E8EEF5;
+    background: #F8FBFF;
+    border: 2px solid #DBEAFE;
     border-radius: 12px;
     cursor: pointer;
     transition: border-color 0.18s, background 0.18s;
@@ -681,4 +774,3 @@
     .nx-product-footer .nx-btn { width: 100%; justify-content: center; }
     .nx-supplier-grid { grid-template-columns: 1fr; }
 }
-

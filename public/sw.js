@@ -6,14 +6,13 @@
  *  - Stale While Revalidate → dashboards / páginas secundárias
  */
 
-const CACHE_VERSION = 'nexora-v1';
+const CACHE_VERSION = 'nexora-v2';
 const STATIC_CACHE  = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const OFFLINE_URL   = '/offline';
 
 // Assets para pré-cache (Cache First)
 const STATIC_ASSETS = [
-    '/',
     '/offline',
     '/manifest.json',
     '/favicon.ico',
@@ -62,8 +61,11 @@ self.addEventListener('fetch', (event) => {
     if (request.method !== 'GET') return;
     if (url.origin !== location.origin && !isExternalFont(url)) return;
 
+    // Livewire mantém estado e tokens de sessão. Nunca responder pelo cache.
+    if (url.pathname.startsWith('/livewire/') || url.pathname.startsWith('/livewire-')) return;
+
     // API / dados dinâmicos → Network First
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/livewire/')) {
+    if (url.pathname.startsWith('/api/')) {
         event.respondWith(networkFirst(request));
         return;
     }
@@ -202,15 +204,8 @@ async function staleWhileRevalidate(request) {
 
 async function navigationHandler(request) {
     try {
-        const response = await fetch(request);
-        if (response.ok) {
-            const cache = await caches.open(DYNAMIC_CACHE);
-            cache.put(request, response.clone());
-        }
-        return response;
+        return await fetch(request);
     } catch (e) {
-        const cached = await caches.match(request);
-        if (cached) return cached;
         return caches.match(OFFLINE_URL);
     }
 }
@@ -265,4 +260,3 @@ function deletePending(db, id) {
         req.onerror   = (e) => reject(e.target.error);
     });
 }
-

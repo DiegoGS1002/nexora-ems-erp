@@ -76,7 +76,14 @@
             @endsession
 
             {{-- Conteúdo Principal --}}
-            <main class="main-content">
+            <main @class([
+                'main-content',
+                'main-content--catalog-list' => request()->routeIs(
+                    'products.index',
+                    'product-categories.index',
+                    'unit-of-measures.index',
+                ),
+            ])>
                 @yield('content')
                 {{ $slot ?? '' }}
             </main>
